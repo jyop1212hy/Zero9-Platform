@@ -1,8 +1,11 @@
-package com.zero9platform.domain.gpp_follow;
+package com.zero9platform.domain.gpp_follow.controller;
 
 import com.zero9platform.common.model.CommonResponse;
 import com.zero9platform.common.model.PageResponse;
 import com.zero9platform.domain.auth.model.AuthUser;
+import com.zero9platform.domain.gpp_follow.model.request.GppFollowDeleteRequest;
+import com.zero9platform.domain.gpp_follow.service.FollowService;
+import com.zero9platform.domain.gpp_follow.model.request.GppFollowCreateRequest;
 import com.zero9platform.domain.gpp_follow.model.response.GppFollowGetDetailResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -22,12 +25,12 @@ public class FollowController {
     /**
      * 공동구매 게시물 일정 팔로우
      */
-    @PostMapping("/{gppId}/follows")
-    public ResponseEntity<CommonResponse<Void>> gppFollowCreateHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long gppId) {
+    @PostMapping("/follows")
+    public ResponseEntity<CommonResponse<Void>> gppFollowCreateHandler(@AuthenticationPrincipal AuthUser authUser, @RequestBody GppFollowCreateRequest request) {
 
         Long userId = authUser.getId();
 
-        followService.gppFollowCreate(userId, gppId);   // 사용자가 공동구매 게시물을 구독
+        followService.gppFollowCreate(userId, request.getGppId());   // 사용자가 공동구매 게시물을 구독
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("공동구매 게시물 일정 팔로우 성공", null));
     }
@@ -35,12 +38,12 @@ public class FollowController {
     /**
      * 공동구매 게시물 일정 팔로우 취소
      */
-    @DeleteMapping("/{gppId}/follows")
-    public ResponseEntity<CommonResponse<Void>> gppFollowDeleteHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long gppId) {
+    @DeleteMapping("/follows")
+    public ResponseEntity<CommonResponse<Void>> gppFollowDeleteHandler(@AuthenticationPrincipal AuthUser authUser, @RequestBody GppFollowDeleteRequest request) {
 
         Long userId = authUser.getId();
 
-        followService.gppFollowDelete(userId, gppId);
+        followService.gppFollowDelete(userId, request.getGppId());
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("공동구매 게시물 일정 팔로우 취소 성공", null));
     }

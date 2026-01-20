@@ -1,4 +1,4 @@
-package com.zero9platform.domain.gpp_follow;
+package com.zero9platform.domain.gpp_follow.service;
 
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.enums.GppApprovalStatus;
