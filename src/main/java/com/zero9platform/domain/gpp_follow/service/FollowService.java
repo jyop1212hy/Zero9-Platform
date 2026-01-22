@@ -4,6 +4,7 @@ import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.enums.GppApprovalStatus;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.model.PageResponse;
+import com.zero9platform.domain.admin.repository.InfluencerRepository;
 import com.zero9platform.domain.gpp_follow.entity.GppFollow;
 import com.zero9platform.domain.gpp_follow.model.response.GppFollowGetDetailResponse;
 import com.zero9platform.domain.gpp_follow.repository.FollowRepository;
@@ -24,6 +25,7 @@ import java.util.Optional;
 public class FollowService {
 
     private final UserRepository userRepository;
+    private final InfluencerRepository influencerRepository;
     private final GppRepository gppRepository;
     private final FollowRepository followRepository;
 
@@ -82,17 +84,17 @@ public class FollowService {
     // 나 - 게시물1, 게시물2, 게시물3 ...
 
     /**
-     * 공동구매 게시물 일정 팔로우 목록 조회 - 추후 Page 및 stream 변환 작업
+     * 공동구매 게시물 일정 팔로우 목록 조회
      */
     @Transactional(readOnly = true)
-    public PageResponse<GppFollowGetDetailResponse> gppFollowGetPage(Long userId, Pageable pageable) {
+    public PageResponse<GppFollowGetDetailResponse> gppFollowGetList(Long userId, Pageable pageable) {
 
         userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_USER));
 
-        Page<GroupPurchasePost> gpp = gppRepository.findByUserIdAndFollowGpp(userId, pageable);
+        Page<GroupPurchasePost> gppPage = gppRepository.findByUserIdAndFollowGpp(userId, pageable);
 
-        Page<GppFollowGetDetailResponse> pageMap = gpp.map(GppFollowGetDetailResponse::from);
+        Page<GppFollowGetDetailResponse> pageMap = gppPage.map(GppFollowGetDetailResponse::from);
 
         return PageResponse.from(pageMap);
     }

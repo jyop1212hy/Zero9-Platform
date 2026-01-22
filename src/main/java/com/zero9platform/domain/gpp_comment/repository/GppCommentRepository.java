@@ -9,4 +9,7 @@ public interface GppCommentRepository extends JpaRepository<GppComment, Long> {
 
     // gppId에 해당하는 모든 공동구매 게시물의 댓글을 조회
     Page<GppComment> findAllByGroupPurchasePost_Id(Long id, Pageable pageable);
+
+    // gppId에 해당하는 공동구매 게시물의 댓글 총합을 반환
+    Long countByGroupPurchasePost_Id(Long gppId);
 }

@@ -56,8 +56,8 @@ public class FollowController {
 
         Long userId = authUser.getId();
 
-        PageResponse<GppFollowGetDetailResponse> gppList = followService.gppFollowGetPage(userId, pageable);
+        PageResponse<GppFollowGetDetailResponse> gppPage = followService.gppFollowGetList(userId, pageable);
 
-        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("공동구매 게시물 일정 팔로우 목록 조회 성공", gppList));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("공동구매 게시물 일정 팔로우 목록 조회 성공", gppPage));
     }
 }
