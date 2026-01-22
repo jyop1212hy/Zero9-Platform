@@ -17,12 +17,10 @@ public class UserCreateResponse {
     private final String email;
     private final String phone;
     private final String nickname;
-    private final String influencerSocialLink;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
-    private final String token;
 
-    public static UserCreateResponse from(User user, String token) {
+    public static UserCreateResponse from(User user) {
         return new UserCreateResponse(
                 user.getId(),
                 user.getRole(),
@@ -31,10 +29,8 @@ public class UserCreateResponse {
                 user.getEmail(),
                 user.getPhone(),
                 user.getNickname(),
-                user.getInfluencerSocialLink(),
                 user.getCreatedAt(),
-                user.getUpdatedAt(),
-                token
+                user.getUpdatedAt()
         );
     }
 }

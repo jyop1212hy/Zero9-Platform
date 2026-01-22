@@ -69,7 +69,7 @@ public class GroupPurchasePostController {
     public ResponseEntity<CommonResponse<GroupPurchasePostDetailResponse>> GPPUpdateHandler(@PathVariable Long gppId, @RequestBody @Valid GroupPurchasePostUpdateRequest request, @AuthenticationPrincipal AuthUser authUser) {
 
         if (authUser.getUserRole() != UserRole.INFLUENCER) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(CommonResponse.fail("공동구매 게시물 수정은 인플루언서만 가능"));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(CommonResponse.fail("공동구매 게시물 수정은 인플루언서, 본인만 가능"));
         }
 
         GroupPurchasePostDetailResponse response = gppService.gpPostUpdate(gppId, request, authUser);

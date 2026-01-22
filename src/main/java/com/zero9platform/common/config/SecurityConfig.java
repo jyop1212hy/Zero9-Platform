@@ -77,7 +77,8 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.POST,
-                                "/zero9/users"
+                                "/zero9/users/normal",
+                                "/zero9/users/influencer"
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.GET,

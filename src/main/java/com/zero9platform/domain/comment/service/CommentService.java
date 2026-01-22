@@ -4,10 +4,8 @@ package com.zero9platform.domain.comment.service;
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.model.PageResponse;
-import com.zero9platform.domain.auth.model.AuthUser;
 import com.zero9platform.domain.comment.entity.Comment;
 import com.zero9platform.domain.comment.model.request.CommentCreateRequest;
-import com.zero9platform.domain.comment.model.request.CommentGetListRequest;
 import com.zero9platform.domain.comment.model.request.CommentUpdateRequest;
 import com.zero9platform.domain.comment.model.response.CommentCreateResponse;
 import com.zero9platform.domain.comment.model.response.CommentGetListResponse;
@@ -34,12 +32,12 @@ public class CommentService {
      * 일반 게시물 댓글 작성
      */
     @Transactional
-    public CommentCreateResponse commentCreate(Long userId, CommentCreateRequest request) {
+    public CommentCreateResponse commentCreate(Long userId, Long postId, CommentCreateRequest request) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
 
-        Post post = postRepository.findByIdAndDeletedAtIsNull(request.getPostId())
+        Post post = postRepository.findByIdAndDeletedAtIsNull(postId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_POST));
 
         Comment saved = commentRepository.save(new Comment(post, user, request.getContent()));
@@ -51,12 +49,12 @@ public class CommentService {
      * 일반 게시물 댓글 전체목록 조회
      */
     @Transactional(readOnly = true)
-    public PageResponse<CommentGetListResponse> commentGetPage(CommentGetListRequest request, Pageable pageable) {
+    public PageResponse<CommentGetListResponse> commentGetPage(Long postId, Pageable pageable) {
 
-        postRepository.findByIdAndDeletedAtIsNull(request.getPostId())
+        postRepository.findByIdAndDeletedAtIsNull(postId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_POST));
 
-        Page<CommentGetListResponse> page = commentRepository.findAllByPostId(request.getPostId(), pageable)
+        Page<CommentGetListResponse> page = commentRepository.findAllByPostId(postId, pageable)
                 .map(CommentGetListResponse::from);
 
         return PageResponse.from(page);
@@ -66,9 +64,15 @@ public class CommentService {
      * 일반 게시물 댓글 수정
      */
     @Transactional
-    public void commentUpdate(Long userId, Long commentId, CommentUpdateRequest request) {
+    public void commentUpdate(Long userId, Long postId, Long commentId, CommentUpdateRequest request) {
+
+        postRepository.findByIdAndDeletedAtIsNull(postId)
+                .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_POST));
+
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_COMMENT));
+
+        validateCommentBelongsToPost(comment, postId);
 
         validOwner(comment, userId);
 
@@ -79,10 +83,15 @@ public class CommentService {
      * 일반 게시물 댓글 삭제
      */
     @Transactional
-    public void commentDelete(Long userId, Long commentId) {
+    public void commentDelete(Long userId, Long postId, Long commentId) {
+
+        postRepository.findByIdAndDeletedAtIsNull(postId)
+                .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_POST));
 
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_COMMENT));
+
+        validateCommentBelongsToPost(comment, postId);
 
         validOwner(comment, userId);
 
@@ -96,6 +105,14 @@ public class CommentService {
 
         if (!comment.getUser().getId().equals(userId)) {
             throw new CustomException(ExceptionCode.NO_PERMISSION);
+        }
+    }
+    /**
+     *  게시물에 속한 댓글인지 검증
+     */
+    private void validateCommentBelongsToPost(Comment comment, Long postId) {
+        if (!comment.getPost().getId().equals(postId)) {
+            throw new CustomException(ExceptionCode.NOT_FOUND_COMMENT);
         }
     }
 }

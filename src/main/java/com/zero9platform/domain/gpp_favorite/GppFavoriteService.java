@@ -3,6 +3,7 @@ package com.zero9platform.domain.gpp_favorite;
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.model.PageResponse;
+import com.zero9platform.domain.auth.model.AuthUser;
 import com.zero9platform.domain.gpp_favorite.entity.GppFavorite;
 import com.zero9platform.domain.gpp_favorite.model.response.GppFavoriteCreateResponse;
 import com.zero9platform.domain.gpp_favorite.model.GppFavoriteGetResponse;
@@ -31,10 +32,10 @@ public class GppFavoriteService {
      * 찜 등록
      */
     @Transactional
-    public GppFavoriteCreateResponse gppFavoriteCreate(Long gppId, Long userId) {
+    public GppFavoriteCreateResponse gppFavoriteCreate(Long gppId, AuthUser authUser) {
 
-        //유저 아이디정보 DB에서 추출
-        User user = userRepository.findById(userId)
+        //유저 아이디정보 추출
+        User user = userRepository.findById(authUser.getId())
                 .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_USER));
 
         //게시물 존재 여부 확인
@@ -43,7 +44,6 @@ public class GppFavoriteService {
 
         //중복 등록 방지
         boolean existence = gppFavoriteRepository.existsByUserIdAndGroupPurchasePostId(user.getId(), gpPost.getId());
-
         if (existence) {
             throw new CustomException(ExceptionCode.ALREADY_FAVORITE);
         }
@@ -60,9 +60,10 @@ public class GppFavoriteService {
      * 찜 등록 취소
      */
     @Transactional
-    public void gppFavoriteCancellation(Long gppId, Long userId) {
+    public void gppFavoriteCancellation(Long gppId, AuthUser authUser) {
 
-        User user = userRepository.findById(userId)
+        //유저 아이디정보 추출
+        User user = userRepository.findById(authUser.getId())
                 .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_USER));
 
         //게시물 존재 여부 확인
@@ -84,18 +85,14 @@ public class GppFavoriteService {
      * 찜 목록 조회
      */
     @Transactional(readOnly = true)
-    public PageResponse<GppFavoriteGetResponse> gppFavoritePage(Long userId, Pageable pageable) {
+    public PageResponse<GppFavoriteGetResponse> gppFavoritePage(AuthUser authUser, Pageable pageable) {
 
-        User user = userRepository.findById(userId)
+        //유저 아이디정보 추출
+        User user = userRepository.findById(authUser.getId())
                 .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_USER));
 
         //유저 아이디가 찜 등록한 리스트 조회하기
         Page<GppFavorite> gppFavoritePage = gppFavoriteRepository.findByUserId(user.getId(), pageable);
-
-        //없으면 예외처리
-        if (gppFavoritePage.isEmpty()) {
-            throw new CustomException(ExceptionCode.FAVORITE_NOT_FOUND);
-        }
 
         //있으면 리스트를 리스폰스에 담는다.
         Page<GppFavoriteGetResponse> GppFavoriteGetDtoPage = gppFavoritePage.map(GppFavoriteGetResponse::from);

@@ -76,7 +76,7 @@ public class PostController {
     @DeleteMapping("/{id}")
     public ResponseEntity<CommonResponse<Void>> postDeleteHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long id) {
 
-        postService.postDelete(authUser.getId(), id);
+        postService.postDelete(authUser, id);
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("일반 게시물 삭제 성공", null));
     }

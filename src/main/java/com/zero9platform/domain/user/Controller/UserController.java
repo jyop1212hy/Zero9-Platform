@@ -1,25 +1,26 @@
 package com.zero9platform.domain.user.Controller;
 
-import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.enums.UserRole;
-import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.model.CommonResponse;
+import com.zero9platform.common.model.PageResponse;
 import com.zero9platform.domain.auth.model.AuthUser;
 import com.zero9platform.domain.user.Service.UserService;
 import com.zero9platform.domain.user.model.user.request.UserCreateRequest;
 import com.zero9platform.domain.user.model.user.request.UserDeleteRequest;
+import com.zero9platform.domain.user.model.user.request.UserInfluencerCreateRequest;
 import com.zero9platform.domain.user.model.user.request.UserUpdateRequest;
 import com.zero9platform.domain.user.model.user.response.UserCreateResponse;
 import com.zero9platform.domain.user.model.user.response.UserDetailResponse;
 import com.zero9platform.domain.user.model.user.response.UserUpdateResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/zero9")
@@ -29,28 +30,25 @@ public class UserController {
     private final UserService userService;
 
     /**
-     * 회원가입
+     * 일반 회원 회원가입
      */
-    @PostMapping("/users")
+    @PostMapping("/users/normal")
     public ResponseEntity<CommonResponse<UserCreateResponse>> createUserHandler(@Valid @RequestBody UserCreateRequest request) {
-
-        String admin_kr = "관리자";
-
-        // 관리자 관련 데이터는 전부 예외처리
-        if (request.getRole().equals(UserRole.ADMIN) || "admin".equalsIgnoreCase(request.getLoginId()) || admin_kr.equals(request.getName()) || admin_kr.equals(request.getNickname())) {
-            throw new CustomException(ExceptionCode.ADMIN_DATA_NOT_ALLOWED);
-        }
-
-        // 인플루언서는 소셜 링크 필수 입력 검사
-        if (request.getRole().equals(UserRole.INFLUENCER) && (request.getInfluencerSocialLink() == null || request.getInfluencerSocialLink().isEmpty())) {
-            throw new CustomException(ExceptionCode.INFLUENCER_SOCIAL_LINK_REQUIRED);
-        }
 
         UserCreateResponse response = userService.createUser(request);
 
-        String userTypeMessage = request.getRole().equals(UserRole.USER) ? "회원가입 성공" : "인플루언서는 관리자 승인이후 활동 가능합니다.";
+        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("회원가입 성공", response));
+    }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success(userTypeMessage, response));
+    /**
+     * 인플루언서 회원가입
+     */
+    @PostMapping("/users/influencer")
+    public ResponseEntity<CommonResponse<UserCreateResponse>> createInfluencerHandler(@Valid @RequestBody UserInfluencerCreateRequest request) {
+
+        UserCreateResponse response = userService.createUser(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("인플루언서는 관리자 승인후에 활동 가능합니다.", response));
     }
 
     /**
@@ -59,14 +57,20 @@ public class UserController {
     @GetMapping("/users/{userId}/profile")
     public ResponseEntity<CommonResponse<UserDetailResponse>> userDetailHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long userId) {
 
-        // 권한 확인
-        boolean isAdmin = false;
+        boolean isAdmin = false, // 관리자 권한 확인
+                isMy = false; // 내 자신의 고유 식별자 일때
 
+        // 관리자 권한은 조회 불가능
         if (authUser.getUserRole() == UserRole.ADMIN) {
             isAdmin = true;
         }
+    
+        // 자기 자신일때의 조회 데이터가 다르게 나오는 조건
+        if (authUser.getId().equals(userId)) {
+            isMy = true;
+        }
 
-        UserDetailResponse response = userService.userDetail(userId, isAdmin);
+        UserDetailResponse response = userService.userDetail(userId, isAdmin, isMy);
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("사용자 프로필 조회 성공", response));
     }
@@ -75,9 +79,11 @@ public class UserController {
      * 사용자 목록 조회
      */
     @GetMapping("/users")
-    public ResponseEntity<CommonResponse<List<UserDetailResponse>>> userListHandler() {
+    public ResponseEntity<CommonResponse<PageResponse<UserDetailResponse>>> userListHandler(Pageable pageable) {
 
-        List<UserDetailResponse> response = userService.userList();
+        Page<UserDetailResponse> page = userService.userList(pageable);
+
+        PageResponse<UserDetailResponse> response = PageResponse.from(page);
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("사용자 목록 조회 성공", response));
     }

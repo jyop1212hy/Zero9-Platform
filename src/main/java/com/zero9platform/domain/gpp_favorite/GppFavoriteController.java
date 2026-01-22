@@ -22,12 +22,10 @@ public class GppFavoriteController {
     /**
      * 찜 등록
      */
-    @PostMapping("/{gppId}/favorites")
+    @PostMapping("/gp-posts/{gppId}/favorites")
     public ResponseEntity<CommonResponse<GppFavoriteCreateResponse>> gppFavoriteCreateHandler(@PathVariable Long gppId, @AuthenticationPrincipal AuthUser authUser) {
 
-        Long userId = authUser.getId(); // Authentication GET ID
-
-        GppFavoriteCreateResponse createResponse = gppFavoriteService.gppFavoriteCreate(gppId, userId);
+        GppFavoriteCreateResponse createResponse = gppFavoriteService.gppFavoriteCreate(gppId, authUser);
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("찜 등록 성공", createResponse));
     }
@@ -35,14 +33,12 @@ public class GppFavoriteController {
     /**
      * 찜 등록 취소
      */
-    @DeleteMapping("/{gppId}/favorites")
+    @DeleteMapping("/gp-posts/{gppId}/favorites")
     public ResponseEntity<CommonResponse<Void>> gppFavoriteCancellationHandler(@PathVariable Long gppId, @AuthenticationPrincipal AuthUser authUser) {
 
-        Long userId = authUser.getId(); // Authentication GET ID
+        gppFavoriteService.gppFavoriteCancellation(gppId, authUser);
 
-        gppFavoriteService.gppFavoriteCancellation(gppId, userId);
-
-        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("찜 등록취소 성공", null));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("찜 취소 성공", null));
     }
 
     /**
@@ -51,9 +47,7 @@ public class GppFavoriteController {
     @GetMapping("/favorites")
     public ResponseEntity<CommonResponse<PageResponse<GppFavoriteGetResponse>>> gppFavoriteGetPageHandler(@AuthenticationPrincipal AuthUser authUser, Pageable pageable) {
 
-        Long userId = authUser.getId(); // Authentication GET ID
-
-        PageResponse<GppFavoriteGetResponse> favoriteList = gppFavoriteService.gppFavoritePage(userId, pageable);
+        PageResponse<GppFavoriteGetResponse> favoriteList = gppFavoriteService.gppFavoritePage(authUser, pageable);
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("찜 목록 조회 성공", favoriteList));
     }

@@ -16,7 +16,7 @@ public class GppFavoriteGetResponse {
 
     public static GppFavoriteGetResponse from(GppFavorite gppFavorite) {
         return new GppFavoriteGetResponse(
-                gppFavorite.getId(),
+                gppFavorite.getGroupPurchasePost().getId(),
                 gppFavorite.getUser().getId(),
                 gppFavorite.getGroupPurchasePost().getProductName(),
                 gppFavorite.getGroupPurchasePost().getCreatedAt());

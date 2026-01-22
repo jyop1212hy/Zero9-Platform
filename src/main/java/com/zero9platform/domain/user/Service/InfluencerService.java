@@ -19,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,13 +40,11 @@ public class InfluencerService {
      * 인플루언서 목록 조회
      */
     @Transactional(readOnly = true)
-    public List<InfluencerDetailResponse> influencerList(Boolean status) {
+    public Page<InfluencerDetailResponse> influencerList(Boolean status, Pageable pageable) {
 
-        List<Influencer> influencers = influencerRepository.findByApprovalStatusAndUser(status);
+        return influencerRepository.findByApprovalStatusAndUser(status, pageable)
+                .map(InfluencerDetailResponse::from);
 
-        return influencers.stream()
-                .map(InfluencerDetailResponse::from)
-                .toList();
     }
 
     /**

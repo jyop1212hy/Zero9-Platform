@@ -23,13 +23,18 @@ public class Influencer {
     private User user;
 
     @Column(nullable = false)
+    private String influencerSocialLink;
+
+    @Column(nullable = false)
     private Boolean influencerApprovalStatus;
 
     @Column
     private LocalDateTime approvalAt;
 
-    public Influencer(User user) {
+    public Influencer(User user, String influencerSocialLink) {
         this.user = user;
+        this.influencerSocialLink = influencerSocialLink;
+
         this.influencerApprovalStatus = false;
     }
 

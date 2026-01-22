@@ -43,15 +43,12 @@ public class User extends BaseEntity {
     private String profileImage;
 
     @Column
-    private String influencerSocialLink;
-
-    @Column
     private LocalDateTime deletedAt;
 
     /**
      * User 생성자
      */
-    public User(String loginId, String password, String email, String name, String role, String phone, String nickname, String influencerSocialLink) {
+    public User(String loginId, String password, String email, String name, String role, String phone, String nickname) {
         this.loginId = loginId;
         this.password = password;
         this.email = email;
@@ -59,7 +56,6 @@ public class User extends BaseEntity {
         this.role = role;
         this.phone = phone;
         this.nickname = nickname;
-        this.influencerSocialLink = influencerSocialLink;
     }
 
     /**

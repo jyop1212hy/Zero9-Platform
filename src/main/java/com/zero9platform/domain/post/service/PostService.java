@@ -1,6 +1,7 @@
 package com.zero9platform.domain.post.service;
 
 import com.zero9platform.common.enums.ExceptionCode;
+import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.model.PageResponse;
 import com.zero9platform.domain.auth.model.AuthUser;
@@ -89,12 +90,12 @@ public class PostService {
      *  일반 게시물 식제
      */
     @Transactional
-    public void postDelete(Long userId, Long id) {
+    public void postDelete(AuthUser authUser, Long id) {
 
         Post post = postRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_POST));
 
-        validOwner(post, userId);
+        validOwnerOrAdmin(post, authUser.getId(), authUser.getUserRole());
 
         post.delete();
     }
@@ -110,4 +111,17 @@ public class PostService {
             throw new CustomException(ExceptionCode.NO_PERMISSION);
         }
     }
+
+    /**
+     *  게시물 작성자 본인 여부 or 관리자 여부 검증
+     */
+    private void validOwnerOrAdmin(Post post, Long userId, UserRole userRole) {
+
+        Long ownerId = post.getUser().getId();
+
+        if (!ownerId.equals(userId) && userRole != UserRole.ADMIN) {
+            throw new CustomException(ExceptionCode.NO_PERMISSION);
+        }
+    }
+
 }

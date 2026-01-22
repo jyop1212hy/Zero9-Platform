@@ -21,6 +21,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 import static com.zero9platform.common.enums.UserRole.ADMIN;
 
 @Service
@@ -43,7 +45,15 @@ public class GroupPurchasePostService {
                 .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
 
         // 2️. 유효성 검증 - 시작일/종료일 타당성
+        // 종료일은 시작일 이전일 수 없음
         if (request.getEndDate().isBefore(request.getStartDate())) {
+            throw new CustomException(ExceptionCode.GPP_INVALID_DATE_RANGE);
+        }
+
+        // startDate >= 오늘 && endDate >= 오늘
+        // endDate >= 오늘 -> 비교연산 필요없음 (바로 위의 isBefore로 endDate가 무조건 startDate보다 이후임을 검증)
+        // 시작일은 오늘 이전일 수 없음
+        if (request.getStartDate().isBefore(LocalDate.now())) {
             throw new CustomException(ExceptionCode.GPP_INVALID_DATE_RANGE);
         }
 
@@ -93,7 +103,7 @@ public class GroupPurchasePostService {
     /**
      * 공동구매 게시물 상세 조회
      */
-    @Transactional //(readOnly = true) 조회 수 증가 DB반영 안됨
+    @Transactional(readOnly = true)
     public GroupPurchasePostDetailResponse gpPostReadDetail(Long gppId) {
 
         // 1. 공동구매 게시물 조회 [삭제처리 제외 + 유효성 검사 + 승인된 공동구매 게시물]

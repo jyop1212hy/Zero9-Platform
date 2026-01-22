@@ -8,17 +8,13 @@ import lombok.Getter;
 @AllArgsConstructor
 public class UserDetailResponse {
 
-    private final Long id;
-    private final String email;
     private final String nickname;
-    private final String phone;
+    private final String role;
 
     public static UserDetailResponse from(User user) {
         return new UserDetailResponse(
-                user.getId(),
-                user.getEmail(),
                 user.getNickname(),
-                user.getPhone()
+                user.getRole()
         );
     }
 }
