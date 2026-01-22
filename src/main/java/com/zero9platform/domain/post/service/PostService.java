@@ -61,12 +61,11 @@ public class PostService {
      *  일반 게시물 전체목록 조회
      */
     @Transactional(readOnly = true)
-    public PageResponse<PostGetListResponse> postGetPage(Pageable pageable) {
+    public Page<PostGetListResponse> postGetPage(Pageable pageable) {
 
-        Page<PostGetListResponse> page = postRepository.findAllByDeletedAtIsNull(pageable)
-                                                .map(PostGetListResponse::from);
+        Page<Post> page = postRepository.findAllByDeletedAtIsNull(pageable);
 
-        return  PageResponse.from(page);
+        return  page.map(PostGetListResponse::from);
     }
 
     /**

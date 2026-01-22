@@ -49,15 +49,14 @@ public class GppCommentService {
      * 공동구매 게시물 댓글 전체목록 조회
      */
     @Transactional(readOnly = true)
-    public PageResponse<GppCommentGetListResponse> gppCommentGetPage(GppCommentGetListRequest request, Pageable pageable) {
+    public Page<GppCommentGetListResponse> gppCommentGetPage(GppCommentGetListRequest request, Pageable pageable) {
 
-        groupPurchasePostRepository.findByIdAndDeletedAtIsNull(request.getGppId())
+        GroupPurchasePost existingGpp = groupPurchasePostRepository.findByIdAndDeletedAtIsNull(request.getGppId())
                 .orElseThrow(() -> new CustomException(ExceptionCode.GPP_NOT_FOUND));
 
-        Page<GppCommentGetListResponse> page = gppCommentRepository.findAllByGroupPurchasePost_Id(request.getGppId(), pageable)
-                .map(GppCommentGetListResponse::from);
+        Page<GppComment> page = gppCommentRepository.findAllByGroupPurchasePost_Id(existingGpp.getId(), pageable);
 
-        return PageResponse.from(page);
+        return page.map(GppCommentGetListResponse::from);
     }
 
     /**

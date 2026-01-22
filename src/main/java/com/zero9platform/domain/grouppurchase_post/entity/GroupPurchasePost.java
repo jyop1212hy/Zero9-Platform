@@ -2,7 +2,6 @@ package com.zero9platform.domain.grouppurchase_post.entity;
 
 import com.zero9platform.common.entity.BaseEntity;
 import com.zero9platform.common.enums.Category;
-import com.zero9platform.common.enums.GppApprovalStatus;
 import com.zero9platform.common.enums.GppProgressStatus;
 import com.zero9platform.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -44,17 +43,11 @@ public class GroupPurchasePost extends BaseEntity {
     @Column(nullable = false)
     private String linkUrl;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Category category = Category.ETC;
+    private String category = Category.ETC.name();
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private GppApprovalStatus gppApprovalStatus = GppApprovalStatus.PENDING;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private GppProgressStatus gppProgressStatus = GppProgressStatus.READY;
+    private String gppProgressStatus = GppProgressStatus.READY.name();
 
     @Column(nullable = false)
     private LocalDateTime startDate;
@@ -65,7 +58,7 @@ public class GroupPurchasePost extends BaseEntity {
     @Column
     private LocalDateTime deletedAt;
 
-    public GroupPurchasePost(User user, String productName, String content, String image, Long price, String linkUrl, Category category,GppApprovalStatus approvalStatus, GppProgressStatus gppProgressStatus, LocalDateTime startDate, LocalDateTime endDate) {
+    public GroupPurchasePost(User user, String productName, String content, String image, Long price, String linkUrl, String category, String gppProgressStatus, LocalDateTime startDate, LocalDateTime endDate) {
         this.user = user;
         this.productName = productName;
         this.content = content;
@@ -73,7 +66,6 @@ public class GroupPurchasePost extends BaseEntity {
         this.price = price;
         this.linkUrl = linkUrl;
         this.category = category;
-        this.gppApprovalStatus = approvalStatus;
         this.gppProgressStatus = gppProgressStatus;
         this.viewCount = 0L;
         this.startDate = startDate;
@@ -83,7 +75,7 @@ public class GroupPurchasePost extends BaseEntity {
     /**
      * gpp 게시물 수정
      */
-    public void update(String productName, String content, String image, Long price, String linkUrl, Category category, GppProgressStatus gppProgressStatus, LocalDateTime startDate, LocalDateTime endDate) {
+    public void update(String productName, String content, String image, Long price, String linkUrl, String category, String gppProgressStatus, LocalDateTime startDate, LocalDateTime endDate) {
         this.productName = productName;
         this.content = content;
         this.image = image;
@@ -109,10 +101,4 @@ public class GroupPurchasePost extends BaseEntity {
 //        this.viewCount++;
 //    }
 
-    /**
-     * 공동구매 승인 (관리자)
-     */
-    public void GppApprove(GppApprovalStatus approvalStatus) {
-        this.gppApprovalStatus = approvalStatus;
-    }
 }

@@ -2,7 +2,6 @@ package com.zero9platform.domain.grouppurchase_post.service;
 
 import com.zero9platform.common.enums.Category;
 import com.zero9platform.common.enums.ExceptionCode;
-import com.zero9platform.common.enums.GppApprovalStatus;
 import com.zero9platform.common.enums.GppProgressStatus;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.model.PageResponse;
@@ -57,10 +56,9 @@ public class GroupPurchasePostService {
             throw new CustomException(ExceptionCode.GPP_INVALID_DATE_RANGE);
         }
 
-        // 3️. Enum 변환 - 카테고리, 승인상태(작성시점 = 대기중), 진행상태
-        Category category = Category.from(request.getCategory());
-        GppProgressStatus gppProgressStatus = GppProgressStatus.from(request.getGppProgressStatus());
-        //GppApprovalStatus gppApprovalStatus = GppApprovalStatus.APPROVED; // 테스트 시 approved
+        // 3️. Enum 변환 - 카테고리, 진행상태
+        Category category = request.getCategory();
+        GppProgressStatus gppProgressStatus = request.getGppProgressStatus();
 
         // 4️. Entity 생성
         GroupPurchasePost gpp = new GroupPurchasePost(
@@ -70,9 +68,8 @@ public class GroupPurchasePostService {
                 request.getImage(),
                 request.getPrice(),
                 request.getLinkUrl(),
-                category,
-                GppApprovalStatus.PENDING,
-                gppProgressStatus,
+                category.name(),
+                gppProgressStatus.name(),
                 request.getStartDate().atStartOfDay(),
                 request.getEndDate().atStartOfDay()
         );
@@ -88,16 +85,13 @@ public class GroupPurchasePostService {
      * 공동구매 게시물 전체 조회
      */
     @Transactional(readOnly = true)
-    public PageResponse<GroupPurchasePostListResponse> gpPostReadAll(Pageable pageable) {
+    public Page<GroupPurchasePostListResponse> gpPostReadAll(Pageable pageable) {
 
-        // 1. 공동구매 게시물 페이징 조회 [삭제처리 제외 + 승인된 공동구매 게시물]
-        Page<GroupPurchasePost> page = groupPurchasePostRepository.findAllByDeletedAtIsNullAndGppApprovalStatus(pageable, GppApprovalStatus.APPROVED);
+        // 1. 공동구매 게시물 페이징 조회 [삭제처리 제외]
+        Page<GroupPurchasePost> page = groupPurchasePostRepository.findAllByDeletedAtIsNull(pageable);
 
-        // 2. Entity -> ListResponse DTO 변환
-        Page<GroupPurchasePostListResponse> responsePage = page.map(GroupPurchasePostListResponse::from);
-
-        // 3. PageResponse 공용 응답 객체로 변환
-        return PageResponse.from(responsePage);
+        // 2. 응답객체 매핑 후 반환
+        return page.map(GroupPurchasePostListResponse::from);
     }
     
     /**
@@ -106,8 +100,8 @@ public class GroupPurchasePostService {
     @Transactional(readOnly = true)
     public GroupPurchasePostDetailResponse gpPostReadDetail(Long gppId) {
 
-        // 1. 공동구매 게시물 조회 [삭제처리 제외 + 유효성 검사 + 승인된 공동구매 게시물]
-        GroupPurchasePost gpp = groupPurchasePostRepository.findByIdAndDeletedAtIsNullAndGppApprovalStatus(gppId, GppApprovalStatus.APPROVED)
+        // 1. 공동구매 게시물 조회 [삭제처리 제외 + 유효성 검사]
+        GroupPurchasePost gpp = groupPurchasePostRepository.findByIdAndDeletedAtIsNull(gppId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.GPP_NOT_FOUND));
 
         // 2. 조회수 증가 (아직 동시성 문제 고려 안했음, 추후 고민할 것)
@@ -128,8 +122,8 @@ public class GroupPurchasePostService {
 
         Long userId = authUser.getId();
 
-        // 1. 공동구매 게시물 조회 [삭제처리 제외 + 유효성 검사 + 승인된 공동구매 게시물]
-        GroupPurchasePost gpp = groupPurchasePostRepository.findByIdAndDeletedAtIsNullAndGppApprovalStatus(gppId, GppApprovalStatus.APPROVED)
+        // 1. 공동구매 게시물 조회 [삭제처리 제외 + 유효성 검사]
+        GroupPurchasePost gpp = groupPurchasePostRepository.findByIdAndDeletedAtIsNull(gppId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.GPP_NOT_FOUND));
         
         // 2. User 조회 (AuthUser)
@@ -144,10 +138,9 @@ public class GroupPurchasePostService {
             throw new CustomException(ExceptionCode.GPP_NO_PERMISSION);
         }
 
-        // 4. Enum 변환 - 카테고리, 승인상태, 진행상태
-        Category category = Category.from(request.getCategory());
-        GppProgressStatus gppProgressStatus = GppProgressStatus.from(request.getGppProgressStatus());
-//        GppApprovalStatus gppApprovalStatus = gpp.getGppApprovalStatus();
+        // 4. Enum 변환 - 카테고리, 진행상태
+        Category category = request.getCategory();
+        GppProgressStatus gppProgressStatus = request.getGppProgressStatus();
 
         // 5. 엔티티 수정
         gpp.update(
@@ -156,8 +149,8 @@ public class GroupPurchasePostService {
                 request.getImage(),
                 request.getPrice(),
                 request.getLinkUrl(),
-                category,
-                gppProgressStatus,
+                category.name(),
+                gppProgressStatus.name(),
                 request.getStartDate().atStartOfDay(),
                 request.getEndDate().atStartOfDay()
         );

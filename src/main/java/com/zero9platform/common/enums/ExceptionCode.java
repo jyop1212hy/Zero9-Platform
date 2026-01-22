@@ -29,6 +29,8 @@ public enum ExceptionCode {
     NOT_FOUND_POST(HttpStatus.NOT_FOUND, "게시물을 찾을 수 없습니다."),
     NOT_FOUND_GPP(HttpStatus.NOT_FOUND, "공동구매 게시물을 찾을 수 없습니다."),
     NOT_FOUND_GPP_SUBSCRIPTION(HttpStatus.NOT_FOUND, "팔로우한 공동구매 게시물이 없습니다."),
+    PRODUCT_POST_NOT_FOUND(HttpStatus.NOT_FOUND, "상품 게시물이 존재하지 않습니다."),
+    PRODUCT_POST_OPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "상품 게시물 옵션을 찾을 수 없습니다."),
 
     // jwt
     TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "토큰을 찾을 수 없습니다."),
@@ -52,6 +54,7 @@ public enum ExceptionCode {
     //검색
     NOT_FOUND_NICKNAME(HttpStatus.NOT_FOUND, "검색한 인플루언서를 찾을 수 없습니다."),
     INVALID_KEYWORD(HttpStatus.BAD_REQUEST, "검색어가 비어있을 수 없습니다"),
+    CATEGORY_FALSE(HttpStatus.NOT_FOUND, "category는 product 또는 influencer 둘 중 하나여야 합니다."),
     INFLUENCER_POST_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 인플루언서의 상품이 없습니다."),
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "검색된 상품이 없습니다."),
 
@@ -66,6 +69,8 @@ public enum ExceptionCode {
 
     // 409
     ALREADY_SUBSCRIBED_GPP(HttpStatus.CONFLICT, "이미 팔로우한 공동구매 게시물입니다."),
+
+    PP_PROGRESS_STATUS_NOT_FOUND(HttpStatus.BAD_REQUEST, "유효하지 않은 진행 상태입니다."),
     ;
 
     private final HttpStatus status;

@@ -1,4 +1,4 @@
-package com.zero9platform.domain.search.entity;
+package com.zero9platform.domain.searchLog.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
-@Table(name = "searches")
+@Table(name = "search_log")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Search {
+public class SearchLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,7 +21,7 @@ public class Search {
     @Column(nullable = false)
     private Long count = 0L;
 
-    public Search(String keyword) {
+    public SearchLog(String keyword) {
         this.keyword = keyword;
     }
 

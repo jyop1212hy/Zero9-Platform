@@ -1,5 +1,7 @@
 package com.zero9platform.domain.grouppurchase_post.model.response;
 
+import com.zero9platform.common.enums.Category;
+import com.zero9platform.common.enums.GppProgressStatus;
 import com.zero9platform.domain.grouppurchase_post.entity.GroupPurchasePost;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,7 +21,6 @@ public class GroupPurchasePostDetailResponse {
     private Long price;
     private String linkUrl;
     private String category;
-    private String gppApprovalStatus;
     private String gppProgressStatus;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
@@ -27,6 +28,10 @@ public class GroupPurchasePostDetailResponse {
     private LocalDateTime updatedAt;
 
     public static GroupPurchasePostDetailResponse from(GroupPurchasePost groupPurchasePost) {
+
+        Category category = Category.valueOf(groupPurchasePost.getCategory());
+        GppProgressStatus gppProgressStatus = GppProgressStatus.valueOf(groupPurchasePost.getGppProgressStatus());
+
         return new GroupPurchasePostDetailResponse(
                 groupPurchasePost.getId(),
                 groupPurchasePost.getProductName(),
@@ -36,9 +41,8 @@ public class GroupPurchasePostDetailResponse {
                 groupPurchasePost.getViewCount(),
                 groupPurchasePost.getPrice(),
                 groupPurchasePost.getLinkUrl(),
-                groupPurchasePost.getCategory().name(),
-                groupPurchasePost.getGppApprovalStatus().name(),
-                groupPurchasePost.getGppProgressStatus().name(),
+                category.getDescription(),
+                gppProgressStatus.getDescription(),
                 groupPurchasePost.getStartDate(),
                 groupPurchasePost.getEndDate(),
                 groupPurchasePost.getCreatedAt(),

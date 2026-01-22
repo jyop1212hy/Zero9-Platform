@@ -1,6 +1,5 @@
 package com.zero9platform.domain.grouppurchase_post.repository;
 
-import com.zero9platform.common.enums.GppApprovalStatus;
 import com.zero9platform.domain.grouppurchase_post.entity.GroupPurchasePost;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,11 +15,8 @@ public interface GroupPurchasePostRepository extends JpaRepository<GroupPurchase
     // 공동구매 게시물 상세 조회 - [삭제처리 제외]
     Optional<GroupPurchasePost> findByIdAndDeletedAtIsNull(Long id);
 
-    // 공동구매 게시물 상세 조회 - [삭제처리 제외 + 승인된 공동구매 게시물]
-    Optional<GroupPurchasePost> findByIdAndDeletedAtIsNullAndGppApprovalStatus(Long id, GppApprovalStatus gppApprovalStatus);
-
-    // 공동구매 게시물 페이징 조회 [삭제처리 제외 + 승인된 공동구매 게시물]
-    Page<GroupPurchasePost> findAllByDeletedAtIsNullAndGppApprovalStatus(Pageable pageable, GppApprovalStatus gppApprovalStatus);
+    // 공동구매 게시물 페이징 조회 [삭제처리 제외]
+    Page<GroupPurchasePost> findAllByDeletedAtIsNull(Pageable pageable);
 
     // 조회 수 증가 - 삭제처리된 대상은 제외
     // DB에서 직접 증가, 영속성 컨텍스트를 거치지 않음
@@ -33,21 +29,19 @@ public interface GroupPurchasePostRepository extends JpaRepository<GroupPurchase
     int increaseViewCount(@Param("gppId") Long gppId);
 
 
-    @Query("""
-                SELECT g
-                FROM GroupPurchasePost g
-                JOIN FETCH g.user u 
-                WHERE g.deletedAt is null
-                  and u.nickname like concat('%', :keyword, '%')
-            """)
-    Page<GroupPurchasePost> findByUserNickname(@Param("keyword") String keyword, Pageable pageable);
 
-    //통합 상품 키워드 검색
     @Query("""
-                SELECT g
-                FROM GroupPurchasePost g
-                WHERE g.deletedAt is null
-                and g.productName LIKE CONCAT('%', :keyword, '%')
+                SELECT gp
+                FROM GroupPurchasePost gp
+                JOIN FETCH gp.user u
+                WHERE gp.deletedAt IS NULL
+                  AND (
+                    (:searchCondition = 'product' AND gp.productName LIKE CONCAT('%', :keyword, '%'))
+                    OR
+                    (:searchCondition = 'influencer' AND u.nickname LIKE CONCAT('%', :keyword, '%'))
+                    OR
+                    ((:searchCondition IS NULL OR :searchCondition = '') AND (gp.productName LIKE CONCAT('%', :keyword, '%') OR u.nickname LIKE CONCAT('%', :keyword, '%')))
+                  )
             """)
-    Page<GroupPurchasePost> findByProductName(@Param("keyword") String keyword, Pageable pageable);
+    Page<GroupPurchasePost> searchByKeyword(@Param("keyword") String keyword, @Param("searchCondition") String searchCondition, Pageable pageable);
 }

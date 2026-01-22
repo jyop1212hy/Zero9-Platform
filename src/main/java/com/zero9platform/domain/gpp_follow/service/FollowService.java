@@ -1,7 +1,6 @@
 package com.zero9platform.domain.gpp_follow.service;
 
 import com.zero9platform.common.enums.ExceptionCode;
-import com.zero9platform.common.enums.GppApprovalStatus;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.model.PageResponse;
 import com.zero9platform.domain.admin.repository.InfluencerRepository;
@@ -42,11 +41,6 @@ public class FollowService {
         // 공동구매 게시물 조회
         GroupPurchasePost gpp = gppRepository.findById(gppId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_GPP));
-
-        // 공동구매 게시물이 "승인" 상태가 아닐시 예외처리
-        if (!gpp.getGppApprovalStatus().equals(GppApprovalStatus.APPROVED)) {
-            throw new CustomException(ExceptionCode.GPP_APPROVAL_STATUS_NOT_FOUND);
-        }
 
         // 이미 팔로우 했으면 예외 처리
         boolean existence = followRepository.existsByUserIdAndGroupPurchasePostId(user.getId(), gpp.getId());

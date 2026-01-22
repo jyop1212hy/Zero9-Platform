@@ -2,9 +2,6 @@ package com.zero9platform.domain.admin;
 
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.exception.CustomException;
-import com.zero9platform.domain.admin.model.request.gp_post.GpPostApproveRequest;
-import com.zero9platform.domain.admin.model.response.gp_post.GpPostApproveResponse;
-import com.zero9platform.domain.grouppurchase_post.entity.GroupPurchasePost;
 import com.zero9platform.domain.grouppurchase_post.repository.GroupPurchasePostRepository;
 import com.zero9platform.domain.admin.repository.InfluencerRepository;
 import com.zero9platform.domain.user.entity.User;
@@ -21,7 +18,6 @@ import org.springframework.stereotype.Service;
 public class AdminService {
 
     private final InfluencerRepository influencerRepository;
-    private final GroupPurchasePostRepository groupPurchasePostRepository;
     private final UserRepository userRepository;
 
     /**
@@ -39,21 +35,6 @@ public class AdminService {
         influencer.influencerApprove(request.getApprove());
 
         return InfluencerApproveResponse.from(influencer);
-    }
-
-    /**
-     * 인플루언서 공동구매 게시물 승인
-     */
-    @Transactional
-    public GpPostApproveResponse gpPostApprove(Long gppId, GpPostApproveRequest request) {
-
-        GroupPurchasePost gpp = groupPurchasePostRepository.findById(gppId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.GPP_NOT_FOUND));
-
-        // 공동게시물 상태 변경
-        gpp.GppApprove(request.getStatus());
-
-        return new GpPostApproveResponse(gppId, request.getStatus().name());
     }
 
 }

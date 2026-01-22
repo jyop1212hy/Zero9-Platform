@@ -1,5 +1,7 @@
 package com.zero9platform.domain.grouppurchase_post.model.request;
 
+import com.zero9platform.common.enums.Category;
+import com.zero9platform.common.enums.GppProgressStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -15,9 +17,6 @@ public class GroupPurchasePostUpdateRequest {
     @NotBlank(message = "상품명은 필수입니다.")
     private String productName;
 
-//    @NotNull(message = "사용자 ID는 필수입니다.")
-//    private Long userId;
-
     @NotBlank(message = "내용은 필수입니다.")
     private String content;
 
@@ -30,11 +29,11 @@ public class GroupPurchasePostUpdateRequest {
     @NotBlank(message = "구매 링크는 필수입니다.")
     private String linkUrl;
 
-    @NotBlank(message = "카테고리는 필수입니다.")
-    private String category;
+    @NotNull(message = "카테고리는 필수입니다.")
+    private Category category;
 
-    @NotBlank(message = "진행 상태는 필수입니다.")
-    private String gppProgressStatus;
+    @NotNull(message = "진행 상태는 필수입니다.")
+    private GppProgressStatus gppProgressStatus;
 
     @NotNull(message = "시작일은 필수입니다.")
     private LocalDate startDate;

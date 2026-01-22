@@ -1,8 +1,11 @@
 package com.zero9platform.common.enums;
 
 import com.zero9platform.common.exception.CustomException;
+import lombok.Getter;
+
 import java.util.Arrays;
 
+@Getter
 public enum Category {
 
     // 식품
@@ -50,12 +53,12 @@ public enum Category {
         this.description = description;
     }
 
-    // 변환 메서드
-    public static Category from(String value) {
-        return Arrays.stream(values())
-                .filter(c -> c.description.equals(value))
-                .findFirst()
-                .orElseThrow(() ->
-                        new CustomException(ExceptionCode.GPP_CATEGORY_NOT_FOUND));
-    }
+//    // 변환 메서드
+//    public static Category from(String value) {
+//        return Arrays.stream(values()) // // values() : enum에 있는 모든 값들을 배열로 가져옴
+//                .filter(c -> c.description.equals(value))
+//                .findFirst()
+//                .orElseThrow(() ->
+//                        new CustomException(ExceptionCode.GPP_CATEGORY_NOT_FOUND));
+//    }
 }

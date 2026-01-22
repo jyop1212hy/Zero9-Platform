@@ -10,6 +10,7 @@ import com.zero9platform.domain.grouppurchase_post.model.response.GroupPurchaseP
 import com.zero9platform.domain.grouppurchase_post.service.GroupPurchasePostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -46,7 +47,7 @@ public class GroupPurchasePostController {
     @GetMapping("/gp-posts")
     public ResponseEntity<CommonResponse<PageResponse<GroupPurchasePostListResponse>>> GPPReadListHandler(@PageableDefault(size = 10, sort = "createdAt") Pageable pageable) {
 
-        PageResponse<GroupPurchasePostListResponse> response = gppService.gpPostReadAll(pageable);
+        PageResponse<GroupPurchasePostListResponse> response = PageResponse.from(gppService.gpPostReadAll(pageable));
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("공동구매 게시물 목록 조회 성공", response));
     }

@@ -1,4 +1,4 @@
-package com.zero9platform.domain.search.model;
+package com.zero9platform.domain.searchLog.model;
 
 import com.zero9platform.domain.grouppurchase_post.entity.GroupPurchasePost;
 import lombok.Getter;
@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @RequiredArgsConstructor
-public class SearchItemResponse {
+public class SearchLogItemResponse {
 
     private final Long gppId;
     private final Long userId;
@@ -21,8 +21,8 @@ public class SearchItemResponse {
     private final LocalDateTime startDate;
     private final LocalDateTime endDate;
 
-    public static SearchItemResponse from(GroupPurchasePost post, Long favoriteCount) {
-        return new SearchItemResponse(
+    public static SearchLogItemResponse from(GroupPurchasePost post, Long favoriteCount) {
+        return new SearchLogItemResponse(
                 post.getId(),
                 post.getUser().getId(),
                 post.getUser().getNickname(),

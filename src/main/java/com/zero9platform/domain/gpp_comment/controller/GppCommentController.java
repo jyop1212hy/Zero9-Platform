@@ -9,6 +9,7 @@ import com.zero9platform.domain.gpp_comment.model.request.GppCommentUpdateReques
 import com.zero9platform.domain.gpp_comment.model.response.GppCommentCreateResponse;
 import com.zero9platform.domain.gpp_comment.model.response.GppCommentGetListResponse;
 import com.zero9platform.domain.gpp_comment.service.GppCommentService;
+import com.zero9platform.domain.grouppurchase_post.model.response.GroupPurchasePostListResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -41,7 +42,7 @@ public class GppCommentController {
     @GetMapping
     public ResponseEntity<CommonResponse<PageResponse<GppCommentGetListResponse>>> gppCommentGetPageHandler(@RequestBody GppCommentGetListRequest request, Pageable pageable) {
 
-        PageResponse<GppCommentGetListResponse> response = gppCommentService.gppCommentGetPage(request, pageable);
+        PageResponse<GppCommentGetListResponse> response = PageResponse.from(gppCommentService.gppCommentGetPage(request, pageable));
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("공동구매 게시물 댓글 조회 성공", response));
     }
