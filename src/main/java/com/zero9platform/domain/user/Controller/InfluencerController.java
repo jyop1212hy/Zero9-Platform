@@ -1,15 +1,15 @@
 package com.zero9platform.domain.user.Controller;
 
 import com.zero9platform.common.model.CommonResponse;
+import com.zero9platform.common.model.PageResponse;
+import com.zero9platform.domain.gpp_follow.model.response.InfluencerGppGetListResponse;
 import com.zero9platform.domain.user.Service.InfluencerService;
 import com.zero9platform.domain.user.model.influencer.InfluencerDetailResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -30,4 +30,15 @@ public class InfluencerController {
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("인플루언서 목록 조회 성공", influencerList));
     }
+
+    /**
+     * 인플루언서별 공동구매 게시물 목록 조회
+     */
+//    @GetMapping("/influencers/{influencerId}/follows")
+//    public ResponseEntity<CommonResponse<PageResponse<InfluencerGppGetListResponse>>> influencerGppGetListHandler(@PathVariable Long influencerId, Pageable pageable) {
+//
+//        PageResponse<InfluencerGppGetListResponse> gppPage = influencerService.influencerGppFollowGetList(influencerId, pageable);
+//
+//        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("인플루언서별 공동구매 게시물 목록 조회 성공", gppPage));
+//    }
 }

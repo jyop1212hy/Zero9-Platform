@@ -72,7 +72,8 @@ public class SecurityConfig {
                                 "/zero9/posts/**",
                                 "/zero9/searches/**",
                                 "/zero9/gpp-comments/**",
-                                "/zero9/comments"
+                                "/zero9/comments",
+                                "/zero9/influencers/*/follows"
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.POST,
