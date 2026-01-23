@@ -11,7 +11,7 @@ public class ProductPostOptionUpdateRequest {
     private String name;
 
     @Min(0)
-    private Long price;
+    private Long optionPrice;
 
     @Min(0)
     private Integer capacity;

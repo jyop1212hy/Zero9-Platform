@@ -29,7 +29,7 @@ public class ProductPostOptionService {
     private final ProductPostRepository productPostRepository;
 
     /**
-     * 옵션 생성
+     * 옵션 추가 생성
      */
     @Transactional
     public ProductPostOptionCreateResponse optionCreate(Long userId, UserRole userRole, Long productPostId, ProductPostOptionCreateRequest request) {
@@ -41,9 +41,10 @@ public class ProductPostOptionService {
         // 관리자이거나 인플루언서 본인인지 확인
         validInfluencerOwnerOrAdmin(productPost, userId, userRole);
 
-        ProductPostOption option = new ProductPostOption(productPost, request.getName(), request.getPrice(), request.getCapacity());
+        ProductPostOption option = new ProductPostOption(productPost, request.getName(), request.getOptionPrice(), request.getCapacity());
 
         ProductPostOption saved = optionRepository.save(option);
+
         return ProductPostOptionCreateResponse.from(saved);
     }
 
@@ -74,8 +75,7 @@ public class ProductPostOptionService {
         productPostRepository.findByIdAndDeletedAtIsNull(productPostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
 
-        Page<ProductPostOptionGetListResponse> page = optionRepository
-                .findAllByProductPost_Id(productPostId, pageable)
+        Page<ProductPostOptionGetListResponse> page = optionRepository.findAllByProductPost_Id(productPostId, pageable)
                 .map(ProductPostOptionGetListResponse::from);
 
         return PageResponse.from(page);
@@ -98,7 +98,7 @@ public class ProductPostOptionService {
         ProductPostOption option = optionRepository.findByIdAndProductPost_Id(optionId, productPostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_OPTION_NOT_FOUND));
 
-        option.update(request.getName(), request.getPrice(), request.getCapacity());
+        option.update(request.getName(), request.getOptionPrice(), request.getCapacity());
 
         return ProductPostOptionUpdateResponse.from(option);
     }

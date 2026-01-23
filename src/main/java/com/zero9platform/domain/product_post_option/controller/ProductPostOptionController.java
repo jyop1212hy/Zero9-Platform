@@ -26,14 +26,14 @@ public class ProductPostOptionController {
     private final ProductPostOptionService postOptionService;
 
     /**
-     * 옵션 생성
+     * 옵션 추가 생성
      */
     @PostMapping("/{productPostId}/options")
     public ResponseEntity<CommonResponse<ProductPostOptionCreateResponse>> optionCreateHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productPostId, @RequestBody @Valid ProductPostOptionCreateRequest request) {
 
         ProductPostOptionCreateResponse response = postOptionService.optionCreate(authUser.getId(), authUser.getUserRole(), productPostId, request);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("옵션 생성 성공", response));
+        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("옵션 추가 생성 성공", response));
     }
 
     /**

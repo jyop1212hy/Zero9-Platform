@@ -13,7 +13,7 @@ public class ProductPostOptionUpdateResponse {
     private Long id;
     private Long productPostId;
     private String name;
-    private Long price;
+    private Long optionPrice;
     private Integer capacity;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -23,7 +23,7 @@ public class ProductPostOptionUpdateResponse {
                 option.getId(),
                 option.getProductPost().getId(),
                 option.getName(),
-                option.getPrice(),
+                option.getOptionPrice(),
                 option.getCapacity(),
                 option.getCreatedAt(),
                 option.getUpdatedAt()

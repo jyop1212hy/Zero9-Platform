@@ -25,21 +25,21 @@ public class Product extends BaseEntity {
     private String description;
 
     @Column(nullable = false)
-    private Long price; // 정가
+    private Long productPrice; // 정가
 
     @Column
     private LocalDateTime deletedAt;
 
-    public Product(String name, String description, Long price) {
+    public Product(String name, String description, Long productPrice) {
         this.name = name;
         this.description = description;
-        this.price = price;
+        this.productPrice = productPrice;
     }
 
     public void update(String name, String description, Long price) {
         if (name != null) this.name = name;
         if (description != null) this.description = description;
-        if (price != null) this.price = price;
+        if (price != null) this.productPrice = price;
     }
 
     public void delete() {

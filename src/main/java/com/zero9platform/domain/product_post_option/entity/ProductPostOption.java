@@ -25,21 +25,25 @@ public class ProductPostOption  extends BaseEntity {
     private String name;
 
     @Column(nullable = false)
-    private Long price;
+    private Long optionPrice;
 
     @Column(nullable = false)
     private Integer capacity;
 
-    public ProductPostOption(ProductPost productPost, String name, Long price, Integer capacity) {
+    public ProductPostOption(ProductPost productPost, String name, Long optionPrice, Integer capacity) {
         this.productPost = productPost;
         this.name = name;
-        this.price = price;
+        this.optionPrice = optionPrice;
         this.capacity = capacity;
     }
 
     public void update(String name, Long price, Integer capacity) {
         if (name != null) this.name = name;
-        if (price != null) this.price = price;
+        if (price != null) this.optionPrice = price;
         if (capacity != null) this.capacity = capacity;
+    }
+
+    public void setProductPost(ProductPost productPost) {
+        this.productPost = productPost;
     }
 }
