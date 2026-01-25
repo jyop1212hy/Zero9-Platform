@@ -40,7 +40,7 @@ public class ProductPost extends BaseEntity {
     private String content;
 
     @Column(nullable = false)
-    private Long stock;
+    private Integer stock;
 
     @OneToMany(
             mappedBy = "productPost",
@@ -67,7 +67,7 @@ public class ProductPost extends BaseEntity {
     @Column
     private LocalDateTime deletedAt;
 
-    public ProductPost(User user, Product product, String title, String content, Long stock, String image, String category, String productPostProgressStatus, LocalDateTime startDate, LocalDateTime endDate) {
+    public ProductPost(User user, Product product, String title, String content, Integer stock, String image, String category, String productPostProgressStatus, LocalDateTime startDate, LocalDateTime endDate) {
         this.user = user;
         this.product = product;
         this.title = title;
@@ -80,7 +80,7 @@ public class ProductPost extends BaseEntity {
         this.endDate = endDate;
     }
 
-    public void update(String title, String content, Long stock, String image, String category, String productPostProgressStatus, LocalDateTime startDate, LocalDateTime endDate) {
+    public void update(String title, String content, Integer stock, String image, String category, String productPostProgressStatus, LocalDateTime startDate, LocalDateTime endDate) {
         if (title != null) this.title = title;
         if (content != null) this.content = content;
         if (stock != null) this.stock = stock;
@@ -97,4 +97,14 @@ public class ProductPost extends BaseEntity {
         option.setProductPost(this);
     }
 
+
+    // 재고 증가
+    public void increaseStock(Integer totalCapacity) {
+        this.stock += totalCapacity;
+    }
+
+    // 재고 차감
+    public void decreaseStock(Integer totalCapacity) {
+        this.stock -= totalCapacity;
+    }
 }

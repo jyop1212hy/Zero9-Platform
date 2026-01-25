@@ -31,10 +31,14 @@ public class AdminService {
         Influencer influencer = influencerRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new CustomException(ExceptionCode.USER_IS_NOT_INFLUENCER));
 
+        // request 에서 true로 입력 하고 이미 상태값이 true이면 예외처리
+        if (request.getApprove() == true && influencer.isApproved()) {
+            throw new CustomException(ExceptionCode.INFLUENCER_ALREADY_APPROVED);
+        }
+
         // 인플루언서 승인
         influencer.influencerApprove(request.getApprove());
 
         return InfluencerApproveResponse.from(influencer);
     }
-
 }

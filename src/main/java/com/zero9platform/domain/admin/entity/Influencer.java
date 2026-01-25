@@ -45,4 +45,11 @@ public class Influencer {
         this.influencerApprovalStatus = approve;
         this.approvalAt = LocalDateTime.now();
     }
+
+    /**
+     * 인플루언서 승인상태 확인
+     */
+    public boolean isApproved() {
+        return influencerApprovalStatus;
+    }
 }

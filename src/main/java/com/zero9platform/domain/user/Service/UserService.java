@@ -3,7 +3,7 @@ package com.zero9platform.domain.user.Service;
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.exception.CustomException;
-import com.zero9platform.common.jwt.JwtUtil;
+import com.zero9platform.common.aws.s3.S3Service;
 import com.zero9platform.domain.admin.entity.Influencer;
 import com.zero9platform.domain.admin.repository.InfluencerRepository;
 import com.zero9platform.domain.user.entity.User;
@@ -16,8 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +25,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final InfluencerRepository influencerRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
+    private final S3Service s3Service;
 
     private static final String ADMIN_EN = "admin";
     private static final String ADMIN_KR = "관리자";
@@ -109,7 +108,7 @@ public class UserService {
      * 사용자 프로필 수정
      */
     @Transactional
-    public UserUpdateResponse userUpdate(Long userId, UserUpdateRequest request) {
+    public UserUpdateResponse userUpdate(Long userId, UserUpdateRequest request, MultipartFile profileImage) {
 
         User user = findById(userId);
 
@@ -122,7 +121,13 @@ public class UserService {
         // 나를 제외한 중복되는 핸드폰번호 조회
         checkDuplicate(userRepository.existsByPhoneAndIdNot(request.getPhone(), userId), ExceptionCode.PHONE_EXIST);
 
-        user.userUpdate(request.getEmail(), request.getNickname(), request.getPhone());
+        String profileImageUrl = "";
+
+        if (profileImage != null && !profileImage.isEmpty()) {
+            profileImageUrl = s3Service.upload(profileImage);
+        }
+
+        user.userUpdate(request.getEmail(), request.getNickname(), request.getPhone(), profileImageUrl);
 
         return UserUpdateResponse.from(user);
     }
@@ -135,7 +140,7 @@ public class UserService {
 
         User user = findById(userId);
 
-        boolean passwordMatches = passwordEncoder.matches(request.getCurrentPassword(), user.getPassword());
+        boolean passwordMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
         if (!passwordMatches) {
             throw new CustomException(ExceptionCode.PASSWORD_NOT_MATCH);

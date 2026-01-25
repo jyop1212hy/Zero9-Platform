@@ -8,8 +8,8 @@ public class CustomException extends RuntimeException {
 
     private final ExceptionCode exceptionCode;
 
-    public CustomException(ExceptionCode exceptionCode) {
-        super(exceptionCode.getMessage());
+    public CustomException(ExceptionCode exceptionCode, Object... args) {
+        super(String.format(exceptionCode.getMessage(), args));
         this.exceptionCode = exceptionCode;
     }
 }

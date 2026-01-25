@@ -65,12 +65,15 @@ public class SecurityConfig {
                                 HttpMethod.OPTIONS,
                                 "/**"
                         ).permitAll() // CORS Preflight 허용
-                        .requestMatchers("/zero9/auth/**").permitAll()
+                        .requestMatchers(
+                                "/zero9/auth/**",
+                                "/zero9/test/**"
+                        ).permitAll()
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/zero9/gp-posts/**",
                                 "/zero9/posts/**",
-                                "/zero9/searches/**",
+                                "/zero9/searchLog/**",
                                 "/zero9/gpp-comments/**",
                                 "/zero9/comments",
                                 "/zero9/influencers/*/follows"

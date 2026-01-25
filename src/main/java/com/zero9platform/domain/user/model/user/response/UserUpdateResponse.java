@@ -14,6 +14,7 @@ public class UserUpdateResponse {
     private final String email;
     private final String nickname;
     private final String phone;
+    private final String profileImage;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
@@ -23,6 +24,7 @@ public class UserUpdateResponse {
                 user.getEmail(),
                 user.getNickname(),
                 user.getPhone(),
+                user.getProfileImage(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()
         );

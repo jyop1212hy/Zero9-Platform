@@ -24,7 +24,8 @@ public class AdminController {
 
         InfluencerApproveResponse response = adminService.influencerApprove(userId, request);
 
-        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("인플루언서 가입 승인 성공", response));
-    }
+        String approvedMessage = Boolean.TRUE.equals(response.getStatus()) ? "인플루언서 승인 성공" : "인플루언서 승인 보류";
 
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success(approvedMessage, response));
+    }
 }

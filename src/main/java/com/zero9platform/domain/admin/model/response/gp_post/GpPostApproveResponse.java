@@ -1,6 +1,5 @@
 package com.zero9platform.domain.admin.model.response.gp_post;
 
-import com.zero9platform.common.enums.GppApprovalStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

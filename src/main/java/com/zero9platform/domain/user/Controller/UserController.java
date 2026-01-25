@@ -1,5 +1,6 @@
 package com.zero9platform.domain.user.Controller;
 
+import com.zero9platform.common.aws.s3.S3Service;
 import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.model.CommonResponse;
 import com.zero9platform.common.model.PageResponse;
@@ -14,12 +15,12 @@ import com.zero9platform.domain.user.model.user.response.UserDetailResponse;
 import com.zero9platform.domain.user.model.user.response.UserUpdateResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @RestController
@@ -81,9 +82,7 @@ public class UserController {
     @GetMapping("/users")
     public ResponseEntity<CommonResponse<PageResponse<UserDetailResponse>>> userListHandler(Pageable pageable) {
 
-        Page<UserDetailResponse> page = userService.userList(pageable);
-
-        PageResponse<UserDetailResponse> response = PageResponse.from(page);
+        PageResponse<UserDetailResponse> response = PageResponse.from(userService.userList(pageable));
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("사용자 목록 조회 성공", response));
     }
@@ -92,9 +91,9 @@ public class UserController {
      * 사용자 프로필 수정
      */
     @PutMapping("/users")
-    public ResponseEntity<CommonResponse<UserUpdateResponse>> userUpdateHandler(@AuthenticationPrincipal AuthUser authUser, @Valid  @RequestBody UserUpdateRequest request) {
+    public ResponseEntity<CommonResponse<UserUpdateResponse>> userUpdateHandler(@AuthenticationPrincipal AuthUser authUser, @Valid  @RequestPart("userUpdateRequest") UserUpdateRequest request, @RequestPart(value = "profileImage", required = false) MultipartFile profileImage) {
 
-        UserUpdateResponse response = userService.userUpdate(authUser.getId(), request);
+        UserUpdateResponse response = userService.userUpdate(authUser.getId(), request, profileImage);
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("사용자 프로필 수정이 완료 되었습니다.", response));
     }

@@ -13,7 +13,7 @@ public class ProductPostUpdateRequest {
 
     private String title;
     private String content;
-    private Long stock;
+    private Integer stock;
     private String image;
     private Category category;
     private ProductPostProgressStatus productPostProgressStatus;

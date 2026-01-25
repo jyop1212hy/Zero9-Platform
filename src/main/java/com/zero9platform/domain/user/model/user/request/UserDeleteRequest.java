@@ -18,5 +18,5 @@ public class UserDeleteRequest {
             regexp = "^[A-Za-z0-9!@#$%^&*_+-]{8,}$",
             message = "비밀번호는 8자 이상이며 영문 대소문자, 숫자, 특수문자(!@#$%^&*_+-)만 사용할 수 있습니다."
     )
-    private String currentPassword;
+    private String password;
 }

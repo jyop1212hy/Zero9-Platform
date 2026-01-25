@@ -21,18 +21,18 @@ public class SearchLogItemResponse {
     private final LocalDateTime startDate;
     private final LocalDateTime endDate;
 
-    public static SearchLogItemResponse from(GroupPurchasePost post, Long favoriteCount) {
+    public static SearchLogItemResponse from(GroupPurchasePost groupPurchasePost, Long favoriteCount) {
         return new SearchLogItemResponse(
-                post.getId(),
-                post.getUser().getId(),
-                post.getUser().getNickname(),
-                post.getImage(),
-                post.getProductName(),
-                post.getPrice(),
-                post.getViewCount(),
+                groupPurchasePost.getId(),
+                groupPurchasePost.getUser().getId(),
+                groupPurchasePost.getUser().getNickname(),
+                groupPurchasePost.getImage(),
+                groupPurchasePost.getProductName(),
+                groupPurchasePost.getPrice(),
+                groupPurchasePost.getViewCount(),
                 favoriteCount,
-                post.getStartDate(),
-                post.getEndDate()
+                groupPurchasePost.getStartDate(),
+                groupPurchasePost.getEndDate()
         );
     }
 

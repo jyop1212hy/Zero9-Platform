@@ -15,7 +15,7 @@ public class ProductPostCreateRequest {
 
     private String title;
     private String content;
-    private Long stock;
+    private Integer stock;
     private List<ProductPostOptionCreateRequest> optionList;
     private String image;
     private Category category;

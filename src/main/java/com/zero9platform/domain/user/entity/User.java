@@ -61,10 +61,11 @@ public class User extends BaseEntity {
     /**
      * 사용자 프로필 업데이트
      */
-    public void userUpdate(String email, String nickname, String phone) {
+    public void userUpdate(String email, String nickname, String phone, String profileImage) {
         this.email = email;
         this.nickname = nickname;
         this.phone = phone;
+        this.profileImage = profileImage;
     }
 
     /**
@@ -73,5 +74,4 @@ public class User extends BaseEntity {
     public void userDelete() {
         this.deletedAt = LocalDateTime.now();
     }
-
 }

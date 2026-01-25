@@ -21,7 +21,7 @@ public class ProductPostUpdateResponse {
     private final String title;
     private final String content;
     private final Long productPrice;
-    private final Long stock;
+    private final Integer stock;
     private final List<ProductPostOptionCreateResponse> optionList;
     private final String image;
     private final String category;
