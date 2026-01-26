@@ -1,7 +1,6 @@
 package com.zero9platform.domain.user.Service;
 
 import com.zero9platform.common.enums.ExceptionCode;
-import com.zero9platform.common.enums.GppApprovalStatus;
 import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.model.PageResponse;
@@ -47,32 +46,4 @@ public class InfluencerService {
 
     }
 
-    /**
-     * 인플루언서별 공동구매 게시물 목록 조회
-     */
-//    @Transactional
-//    public PageResponse<InfluencerGppGetListResponse> influencerGppFollowGetList(Long influencerId, Pageable pageable) {
-//
-//        // 인플루언서인지 조회
-//        User user = userRepository.findById(influencerId)
-//                .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
-//
-//        if (UserRole.valueOf(user.getRole()) != UserRole.INFLUENCER) {
-//            throw new CustomException(ExceptionCode.USER_IS_NOT_INFLUENCER);
-//        }
-//
-//        // 인플루언서 (해당하는 userId) 의 공동구매 게시물 조회 (삭제되지 않고, 승인된 공동구매 게시물)
-//        Page<GroupPurchasePost> gppPage = gppRepository.findAllByDeletedAtIsNullAndGppApprovalStatusAndUser_Id(GppApprovalStatus.APPROVED, user.getId(), pageable);
-//
-//        for (GroupPurchasePost gpp :gppPage) {
-//            Long gppId = gpp.getId();
-//            Long commentCount = commentRepository.countByGppTotalComments(gppId);
-//            InfluencerGppGetListResponse response = InfluencerGppGetListResponse.from(gpp, commentCount);
-//
-//        }
-//
-////        Page<InfluencerGppGetListResponse> pageMap = PageImpl<>(InfluencerGppGetListResponse.from(gpp, commentCount));
-//
-//        return PageResponse.from(response);
-//    }
 }

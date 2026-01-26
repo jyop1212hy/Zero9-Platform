@@ -34,14 +34,4 @@ public class InfluencerController {
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("인플루언서 목록 조회 성공", response));
     }
 
-    /**
-     * 인플루언서별 공동구매 게시물 목록 조회
-     */
-//    @GetMapping("/influencers/{influencerId}/follows")
-//    public ResponseEntity<CommonResponse<PageResponse<InfluencerGppGetListResponse>>> influencerGppGetListHandler(@PathVariable Long influencerId, Pageable pageable) {
-//
-//        PageResponse<InfluencerGppGetListResponse> gppPage = influencerService.influencerGppFollowGetList(influencerId, pageable);
-//
-//        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("인플루언서별 공동구매 게시물 목록 조회 성공", gppPage));
-//    }
 }
