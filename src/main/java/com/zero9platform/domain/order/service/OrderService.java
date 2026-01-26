@@ -22,8 +22,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -93,19 +93,12 @@ public class OrderService {
     @Transactional(readOnly = true)
     public OrderGetDetailResponse orderGetDetail(Long userId, Long orderId) {
 
-        Order order = orderRepository.findByIdAndCanceledAtIsNull(orderId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.ORDER_NOT_FOUND));
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
-
-        // 본인 인증
-        if (!Objects.equals(order.getOrderItem().getUser().getId(), user.getId())) {
-            throw new CustomException(ExceptionCode.NO_PERMISSION);
-        }
+        // 주문 권한 체크
+        Order order = checkOrderPermission(orderRepository.findByIdAndCanceledAtIsNull(orderId), userId);
 
         return OrderGetDetailResponse.from(order);
     }
+
 
     /**
      * 사용자의 주문 목록 조회
@@ -126,19 +119,11 @@ public class OrderService {
     @Transactional
     public OrderCancelResponse orderCancel(Long userId, Long orderItemId, Long orderId) {
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.ORDER_NOT_FOUND));
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
-
-        // 본인 인증
-        if (!Objects.equals(order.getOrderItem().getUser().getId(), user.getId())) {
-            throw new CustomException(ExceptionCode.NO_PERMISSION);
-        }
+        // 주문 권한 체크
+        Order order = checkOrderPermission(orderRepository.findById(orderId), userId);
 
         // 결제 상태 변경
-        String orderStatus = OrderStatus.CANCELED.name();
+        OrderStatus.CANCELED.name();
 
         // 재고 증가
         OrderItem orderItem = orderItemRepository.findById(orderItemId)
@@ -159,5 +144,22 @@ public class OrderService {
         order.cancel();
 
         return OrderCancelResponse.from(order);
+    }
+
+    /**
+     * 주문 권한 체크
+     */
+    private Order checkOrderPermission(Optional<Order> orderRepository, Long userId) {
+        Order order = orderRepository
+                .orElseThrow(() -> new CustomException(ExceptionCode.ORDER_NOT_FOUND));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
+
+        // 본인 인증
+        if (!Objects.equals(order.getOrderItem().getUser().getId(), user.getId())) {
+            throw new CustomException(ExceptionCode.NO_PERMISSION);
+        }
+        return order;
     }
 }

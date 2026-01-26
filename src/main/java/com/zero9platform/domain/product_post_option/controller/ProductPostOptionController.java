@@ -5,10 +5,7 @@ import com.zero9platform.common.model.PageResponse;
 import com.zero9platform.domain.auth.model.AuthUser;
 import com.zero9platform.domain.product_post_option.model.request.ProductPostOptionCreateRequest;
 import com.zero9platform.domain.product_post_option.model.request.ProductPostOptionUpdateRequest;
-import com.zero9platform.domain.product_post_option.model.response.ProductPostOptionCreateResponse;
-import com.zero9platform.domain.product_post_option.model.response.ProductPostOptionGetDetailResponse;
-import com.zero9platform.domain.product_post_option.model.response.ProductPostOptionGetListResponse;
-import com.zero9platform.domain.product_post_option.model.response.ProductPostOptionUpdateResponse;
+import com.zero9platform.domain.product_post_option.model.response.*;
 import com.zero9platform.domain.product_post_option.service.ProductPostOptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +38,9 @@ public class ProductPostOptionController {
      */
     @GetMapping("/{productPostId}/options/{optionId}")
     public ResponseEntity<CommonResponse<ProductPostOptionGetDetailResponse>> optionGetHandler(@PathVariable Long productPostId, @PathVariable Long optionId) {
+
         ProductPostOptionGetDetailResponse response = postOptionService.optionGetDetail(productPostId, optionId);
+
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("옵션 상세 조회 성공", response));
     }
 
@@ -71,10 +70,10 @@ public class ProductPostOptionController {
      * 옵션 삭제
      * */
     @DeleteMapping("/{productPostId}/options/{optionId}")
-    public ResponseEntity<CommonResponse<Void>> optionDeleteHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productPostId, @PathVariable Long optionId) {
+    public ResponseEntity<CommonResponse<ProductPostOptionDeleteResponse>> optionDeleteHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productPostId, @PathVariable Long optionId) {
 
-        postOptionService.optionDelete(authUser.getId(), authUser.getUserRole(), productPostId, optionId);
+        ProductPostOptionDeleteResponse response = postOptionService.optionDelete(authUser.getId(), authUser.getUserRole(), productPostId, optionId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("옵션 삭제 성공", null));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("옵션 삭제 성공", response));
     }
 }

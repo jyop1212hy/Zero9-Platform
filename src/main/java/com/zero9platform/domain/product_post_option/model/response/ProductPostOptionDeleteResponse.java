@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
-public class ProductPostOptionUpdateResponse {
+public class ProductPostOptionDeleteResponse {
 
     private Long id;
     private Long productPostId;
@@ -20,11 +20,11 @@ public class ProductPostOptionUpdateResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public static ProductPostOptionUpdateResponse from(ProductPostOption option) {
+    public static ProductPostOptionDeleteResponse from(ProductPostOption option) {
 
         OptionStatus optionStatus = OptionStatus.valueOf(option.getOptionStatus());
 
-        return new ProductPostOptionUpdateResponse(
+        return new ProductPostOptionDeleteResponse(
                 option.getId(),
                 option.getProductPost().getId(),
                 option.getName(),

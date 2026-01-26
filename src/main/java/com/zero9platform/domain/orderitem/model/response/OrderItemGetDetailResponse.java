@@ -13,6 +13,7 @@ public class OrderItemGetDetailResponse {
     private final String nickname;
     private final Long productPostId;
     private final String productTitle;
+    private final String productPostStatus;
     private final Long optionId;
     private final String optionName;
     private final Long optionPrice;
@@ -26,6 +27,7 @@ public class OrderItemGetDetailResponse {
                 orderItem.getUser().getNickname(),
                 orderItem.getProductPost().getId(),
                 orderItem.getProductPost().getTitle(),
+                orderItem.getProductPost().getProductPostStatus(),
                 orderItem.getProductPostOption().getId(),
                 orderItem.getProductPostOption().getName(),
                 orderItem.getProductPostOption().getOptionPrice(),

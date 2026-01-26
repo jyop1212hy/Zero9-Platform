@@ -3,6 +3,7 @@ package com.zero9platform.domain.product_post.entity;
 import com.zero9platform.common.entity.BaseEntity;
 import com.zero9platform.common.enums.Category;
 import com.zero9platform.common.enums.ProductPostProgressStatus;
+import com.zero9platform.common.enums.ProductPostStatus;
 import com.zero9platform.domain.product.entity.Product;
 import com.zero9platform.domain.product_post_option.entity.ProductPostOption;
 import com.zero9platform.domain.user.entity.User;
@@ -55,8 +56,13 @@ public class ProductPost extends BaseEntity {
     @Column(nullable = false)
     private String category = Category.ETC.name();
 
+    // 판매 기간 기준 상태
     @Column(nullable = false)
     private String productPostProgressStatus = ProductPostProgressStatus.READY.name();
+
+    // 판매 게시물 기준 상태 (옵션 / 노출)
+    @Column(nullable = false)
+    private String productPostStatus = ProductPostStatus.ACTIVE.name();
 
     @Column(nullable = false)
     private LocalDateTime startDate;
@@ -67,7 +73,7 @@ public class ProductPost extends BaseEntity {
     @Column
     private LocalDateTime deletedAt;
 
-    public ProductPost(User user, Product product, String title, String content, Integer stock, String image, String category, String productPostProgressStatus, LocalDateTime startDate, LocalDateTime endDate) {
+    public ProductPost(User user, Product product, String title, String content, Integer stock, String image, String category, String productPostProgressStatus, String productPostStatus, LocalDateTime startDate, LocalDateTime endDate) {
         this.user = user;
         this.product = product;
         this.title = title;
@@ -76,6 +82,7 @@ public class ProductPost extends BaseEntity {
         this.image = image;
         this.category = category;
         this.productPostProgressStatus = productPostProgressStatus;
+        this.productPostStatus = productPostStatus;
         this.startDate = startDate;
         this.endDate = endDate;
     }
@@ -97,7 +104,6 @@ public class ProductPost extends BaseEntity {
         option.setProductPost(this);
     }
 
-
     // 재고 증가
     public void increaseStock(Integer totalCapacity) {
         this.stock += totalCapacity;
@@ -106,5 +112,28 @@ public class ProductPost extends BaseEntity {
     // 재고 차감
     public void decreaseStock(Integer totalCapacity) {
         this.stock -= totalCapacity;
+    }
+
+    public void setProductPostStatus(String productPostStatus) {
+        this.productPostStatus = productPostStatus;
+    }
+
+    public void softDelete() {
+        this.deletedAt = LocalDateTime.now();
+    }
+
+
+    // 상품 게시물의 하위 옵션 리스트가 전부 "비활성화"인지 아닌지 검증
+    public boolean allOptionsInactive() {
+
+        for (ProductPostOption option: productPostOptionList) {
+            if (ProductPostStatus.ACTIVE.name().equals(option.getOptionStatus())) {
+                return false;
+            }
+        }
+
+        this.productPostStatus = ProductPostStatus.INACTIVE.name();
+
+        return true;
     }
 }

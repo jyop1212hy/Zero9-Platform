@@ -46,4 +46,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
      * 나를 제외한 중복 닉네임
      */
     boolean existsByNicknameAndIdNot(String nickname, Long id);
+
+    Optional<User> findByIdAndDeletedAtIsNull(Long userId);
+
 }

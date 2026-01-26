@@ -52,4 +52,13 @@ public class Order extends BaseEntity {
         this.orderStatus = OrderStatus.CANCELED.name();
         this.canceledAt = LocalDateTime.now();
     }
+
+    public void setOrderItem(OrderItem orderItem) {
+        this.orderItem = orderItem;
+
+        if (orderItem != null && orderItem.getOrder() != this) {
+            orderItem.setOrder(this); // 양방향 연관관계 유지
+        }
+    }
+
 }

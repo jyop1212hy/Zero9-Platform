@@ -1,6 +1,5 @@
 package com.zero9platform.domain.product_post_favorite.entity;
 
-import com.zero9platform.domain.grouppurchase_post.entity.GroupPurchasePost;
 import com.zero9platform.domain.product_post.entity.ProductPost;
 import com.zero9platform.domain.user.entity.User;
 import jakarta.persistence.*;

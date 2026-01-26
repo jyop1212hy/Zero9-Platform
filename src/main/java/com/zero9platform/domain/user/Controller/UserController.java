@@ -1,6 +1,5 @@
 package com.zero9platform.domain.user.Controller;
 
-import com.zero9platform.common.aws.s3.S3Service;
 import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.model.CommonResponse;
 import com.zero9platform.common.model.PageResponse;

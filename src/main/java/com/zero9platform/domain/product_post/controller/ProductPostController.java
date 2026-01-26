@@ -40,8 +40,7 @@ public class ProductPostController {
      * 상품 게시물 상세 조회
      */
     @GetMapping("/product-posts/{productpostId}")
-    public ResponseEntity<CommonResponse<ProductPostGetDetailResponse>> productPostGetDetailHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productpostId) {
-        Long userId = authUser.getId();
+    public ResponseEntity<CommonResponse<ProductPostGetDetailResponse>> productPostGetDetailHandler(@PathVariable Long productpostId) {
 
         ProductPostGetDetailResponse response = productPostService.productPostGetDetail(productpostId);
 

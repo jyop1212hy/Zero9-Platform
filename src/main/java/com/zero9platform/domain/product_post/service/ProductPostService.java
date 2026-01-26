@@ -15,7 +15,6 @@ import com.zero9platform.domain.product_post.model.response.ProductPostUpdateRes
 import com.zero9platform.domain.product_post.repository.ProductPostRepository;
 import com.zero9platform.domain.product_post_option.entity.ProductPostOption;
 import com.zero9platform.domain.product_post_option.model.request.ProductPostOptionCreateRequest;
-import com.zero9platform.domain.product_post_option.repository.ProductPostOptionRepository;
 import com.zero9platform.domain.user.entity.User;
 import com.zero9platform.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +33,6 @@ public class ProductPostService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final ProductPostRepository productPostRepository;
-    private final ProductPostOptionRepository productPostOptionRepository;
 
     /**
      * 상품 판매 게시물 생성
@@ -53,7 +51,7 @@ public class ProductPostService {
         // + 옵션의 가격 (=할인가, 추후 리팩토링) -> 옵션을 여러 개 생성해서 new Option() -> option을 상품 게시물에 포함 -> (선택한 옵션의 가격 * 수량 = 주문 가격 / 금액 ?) "주문 상품 생성"
         // 제목, 내용, 재고, 이미지, 카테고리, 판매 진행 상태, 진행 시작일, 진행 마감일
 
-        ProductPost productPost = new ProductPost(user, product, request.getTitle(), request.getContent(), request.getStock(), request.getImage(), request.getCategory().name(), request.getProductPostProgressStatus().name(), request.getStartDate(), request.getEndDate());
+        ProductPost productPost = new ProductPost(user, product, request.getTitle(), request.getContent(), request.getStock(), request.getImage(), request.getCategory().name(), request.getProductPostProgressStatus().name(), request.getProductPostStatus().name(), request.getStartDate(), request.getEndDate());
 
         // 옵션 생성
         for (ProductPostOptionCreateRequest optionRequest: request.getOptionList()) {
@@ -71,11 +69,21 @@ public class ProductPostService {
     /**
      * 상품 게시물 상세 조회
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public ProductPostGetDetailResponse productPostGetDetail(Long productpostId) {
 
         ProductPost productPost = productPostRepository.findByIdAndDeletedAtIsNull(productpostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
+
+        // 상품 게시물의 하위 옵션 리스트가 전부 "비활성화" 상태일시 예외처리
+        boolean optionsInactive = productPost.allOptionsInactive();
+        if (optionsInactive) {
+            throw new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND);
+        }
+
+        // 해당 상품이 존재하면 조회 가능
+        productRepository.findById(productPost.getProduct().getId())
+                .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_DELETED_CANNOT_VIEW_PRODUCT_POST));
 
         return ProductPostGetDetailResponse.from(productPost);
     }
@@ -86,7 +94,7 @@ public class ProductPostService {
     @Transactional(readOnly = true)
     public PageResponse<ProductPostGetDetailResponse> productPostGetList(Pageable pageable) {
 
-        Page<ProductPost> productPostsPage = productPostRepository.findAllByDeletedAtIsNull(pageable);
+        Page<ProductPost> productPostsPage = productPostRepository.findAllVisible(pageable);
 
         Page<ProductPostGetDetailResponse> responsePage = productPostsPage.map(ProductPostGetDetailResponse::from);
 
@@ -99,11 +107,16 @@ public class ProductPostService {
     @Transactional
     public ProductPostUpdateResponse productPostUpdate(Long userId, Long productpostId, ProductPostUpdateRequest request) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
+        User user = validPermission(userId);
 
         ProductPost productPost = productPostRepository.findByIdAndDeletedAtIsNull(productpostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
+
+        // 상품 게시물의 하위 옵션 리스트가 전부 "비활성화" 상태일시 예외처리
+        boolean optionsInactive = productPost.allOptionsInactive();
+        if (optionsInactive) {
+            throw new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND);
+        }
 
         // 본인만 수정 가능
         validProductPostOwner(user, productPost);
@@ -122,17 +135,20 @@ public class ProductPostService {
     @Transactional
     public void productPostDelete(Long userId, Long productpostId) {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
+        User user = validPermission(userId);
 
         ProductPost productPost = productPostRepository.findByIdAndDeletedAtIsNull(productpostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
 
-        if (!user.getId().equals(productPost.getUser().getId())) {
-            throw new CustomException(ExceptionCode.NO_PERMISSION);
-        }
+        // 본인만 삭제 가능
+        validProductPostOwner(user, productPost);
 
-        productPostRepository.deleteById(productpostId);
+        // 상품 게시물 소프트 딜리트
+        productPost.softDelete();
+
+        // 하위 옵션 리스트들 비활성화
+        productPost.getProductPostOptionList()
+                .forEach(ProductPostOption::optionInactive);
     }
 
     /**
@@ -145,11 +161,11 @@ public class ProductPostService {
     }
 
     /**
-     * 상품 판매 게시물 생성 권한 검증 - 사용자, 관리자 x
+     * 상품 판매 게시물 생성 권한 검증 - 사용자 x
      */
     private User validPermission(Long userId) {
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByIdAndDeletedAtIsNull(userId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
 
         if (UserRole.valueOf(user.getRole()) == UserRole.USER) {

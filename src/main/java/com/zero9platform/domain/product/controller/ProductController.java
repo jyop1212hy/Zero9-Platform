@@ -12,6 +12,7 @@ import com.zero9platform.domain.product.model.response.ProductCreateResponse;
 import com.zero9platform.domain.product.model.response.ProductGetDetailResponse;
 import com.zero9platform.domain.product.model.response.ProductUpdateResponse;
 import com.zero9platform.domain.product.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -31,7 +32,7 @@ public class ProductController {
      * 상품 생성
      */
     @PostMapping
-    public ResponseEntity<CommonResponse<ProductCreateResponse>> productCreateHandler(@AuthenticationPrincipal AuthUser authUser, @RequestBody ProductCreateRequest request) {
+    public ResponseEntity<CommonResponse<ProductCreateResponse>> productCreateHandler(@AuthenticationPrincipal AuthUser authUser, @Valid @RequestBody ProductCreateRequest request) {
 
         Long userId = authUser.getId();
 
@@ -70,7 +71,7 @@ public class ProductController {
      * 상품 수정
      */
     @PutMapping("/{productId}")
-    public ResponseEntity<CommonResponse<ProductUpdateResponse>> productUpdateHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productId, @RequestBody ProductUpdateRequest request) {
+    public ResponseEntity<CommonResponse<ProductUpdateResponse>> productUpdateHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productId, @Valid @RequestBody ProductUpdateRequest request) {
 
         Long userId = authUser.getId();
 
@@ -79,17 +80,17 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("상품 수정 성공", response));
     }
 
-    /**
-     * 상품 삭제
-     */
-    @DeleteMapping("/{productId}")
-    public ResponseEntity<CommonResponse<Void>> productDeleteHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productId) {
-
-        Long userId = authUser.getId();
-
-        productService.productDelete(userId, productId);
-
-        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("상품 삭제 성공", null));
-    }
+//    /**
+//     * 상품 삭제
+//     */
+//    @DeleteMapping("/{productId}")
+//    public ResponseEntity<CommonResponse<Void>> productDeleteHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productId) {
+//
+//        Long userId = authUser.getId();
+//
+//        productService.productDelete(userId, productId);
+//
+//        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("상품 삭제 성공", null));
+//    }
 
 }

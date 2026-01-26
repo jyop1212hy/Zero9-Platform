@@ -66,7 +66,7 @@ public class ProductService {
 
         validPermission(userId);
 
-        Page<ProductGetDetailResponse> productPage = productRepository.findAllByDeletedAtIsNull(pageable)
+        Page<ProductGetDetailResponse> productPage = productRepository.findAll(pageable)
                         .map(ProductGetDetailResponse::from);
 
         return PageResponse.from(productPage);
@@ -85,26 +85,31 @@ public class ProductService {
 
         product.update(request.getName(), request.getDescription(), request.getProductPrice());
 
+        productRepository.save(product);
+
         return ProductUpdateResponse.from(product);
     }
 
-    /**
-     * 상품 삭제
-     */
-    @Transactional
-    public void productDelete(Long userId, Long productId) {
-
-        validPermission(userId);
-
-        productRepository.deleteById(productId);
-    }
+//    /**
+//     * 상품 삭제
+//     */
+//    @Transactional
+//    public void productDelete(Long userId, Long productId) {
+//
+//        validPermission(userId);
+//
+//        Product product = productRepository.findByIdAndDeletedAtIsNull(productId)
+//                .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_NOT_FOUND));
+//
+//        product.delete();
+//    }
 
     /**
      * 상품 생성 권한 검증 - 사용자 x
      */
     private void validPermission(Long userId) {
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByIdAndDeletedAtIsNull(userId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
 
         if (UserRole.valueOf(user.getRole()) == UserRole.USER) {

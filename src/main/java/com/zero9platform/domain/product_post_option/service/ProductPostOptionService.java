@@ -2,6 +2,7 @@ package com.zero9platform.domain.product_post_option.service;
 
 
 import com.zero9platform.common.enums.ExceptionCode;
+import com.zero9platform.common.enums.OptionStatus;
 import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.model.PageResponse;
@@ -10,10 +11,7 @@ import com.zero9platform.domain.product_post.repository.ProductPostRepository;
 import com.zero9platform.domain.product_post_option.entity.ProductPostOption;
 import com.zero9platform.domain.product_post_option.model.request.ProductPostOptionCreateRequest;
 import com.zero9platform.domain.product_post_option.model.request.ProductPostOptionUpdateRequest;
-import com.zero9platform.domain.product_post_option.model.response.ProductPostOptionCreateResponse;
-import com.zero9platform.domain.product_post_option.model.response.ProductPostOptionGetDetailResponse;
-import com.zero9platform.domain.product_post_option.model.response.ProductPostOptionGetListResponse;
-import com.zero9platform.domain.product_post_option.model.response.ProductPostOptionUpdateResponse;
+import com.zero9platform.domain.product_post_option.model.response.*;
 import com.zero9platform.domain.product_post_option.repository.ProductPostOptionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -62,6 +60,11 @@ public class ProductPostOptionService {
         ProductPostOption option = optionRepository.findByIdAndProductPost_Id(optionId, productPostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_OPTION_NOT_FOUND));
 
+        // 옵션 활성화 검증
+        if (OptionStatus.INACTIVE == OptionStatus.valueOf(option.getOptionStatus())) {
+            throw new CustomException(ExceptionCode.OPTION_IS_DISABLED);
+        }
+
         return ProductPostOptionGetDetailResponse.from(option);
     }
 
@@ -75,7 +78,7 @@ public class ProductPostOptionService {
         productPostRepository.findByIdAndDeletedAtIsNull(productPostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
 
-        Page<ProductPostOptionGetListResponse> page = optionRepository.findAllByProductPost_Id(productPostId, pageable)
+        Page<ProductPostOptionGetListResponse> page = optionRepository.findAllByProductPost_IdAndOptionStatusOrderByCapacityAsc(productPostId, "ACTIVE", pageable)
                 .map(ProductPostOptionGetListResponse::from);
 
         return PageResponse.from(page);
@@ -95,7 +98,7 @@ public class ProductPostOptionService {
         validInfluencerOwnerOrAdmin(productPost, userId, userRole);
 
         // 해당하는 상품게시물에 속한 옵션인지 확인
-        ProductPostOption option = optionRepository.findByIdAndProductPost_Id(optionId, productPostId)
+        ProductPostOption option = optionRepository.findByIdAndProductPost_IdAndOptionStatus(optionId, productPostId, "ACTIVE")
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_OPTION_NOT_FOUND));
 
         option.update(request.getName(), request.getOptionPrice(), request.getCapacity());
@@ -107,7 +110,7 @@ public class ProductPostOptionService {
      * 옵션 삭제
      */
     @Transactional
-    public void optionDelete(Long userId, UserRole userRole, Long productPostId, Long optionId) {
+    public ProductPostOptionDeleteResponse optionDelete(Long userId, UserRole userRole, Long productPostId, Long optionId) {
 
         // 상품 게시물 존재여부 검증
         ProductPost productPost = productPostRepository.findByIdAndDeletedAtIsNull(productPostId)
@@ -117,10 +120,16 @@ public class ProductPostOptionService {
         validInfluencerOwnerOrAdmin(productPost, userId, userRole);
 
         // 해당하는 상품게시물에 속한 옵션인지 확인
-        ProductPostOption option = optionRepository.findByIdAndProductPost_Id(optionId, productPostId)
+        ProductPostOption option = optionRepository.findByIdAndProductPost_IdAndOptionStatus(optionId, productPostId, "ACTIVE")
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_OPTION_NOT_FOUND));
 
-        optionRepository.delete(option);
+        // 옵션 비활성화
+        option.optionInactive();
+
+        // 한 상품 게시물의 옵션 리스트가 Empty일 때, 해당 상품 게시물 productPostStatus를 INACTIVE로 변경
+        productPost.allOptionsInactive();
+
+        return ProductPostOptionDeleteResponse.from(option);
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.zero9platform.domain.product_post_option.entity;
 
 import com.zero9platform.common.entity.BaseEntity;
+import com.zero9platform.common.enums.OptionStatus;
 import com.zero9platform.domain.product_post.entity.ProductPost;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -30,11 +31,15 @@ public class ProductPostOption  extends BaseEntity {
     @Column(nullable = false)
     private Integer capacity;
 
+    @Column(nullable = false)
+    private String optionStatus;
+
     public ProductPostOption(ProductPost productPost, String name, Long optionPrice, Integer capacity) {
         this.productPost = productPost;
         this.name = name;
         this.optionPrice = optionPrice;
         this.capacity = capacity;
+        this.optionStatus = OptionStatus.ACTIVE.name();
     }
 
     public void update(String name, Long price, Integer capacity) {
@@ -45,5 +50,9 @@ public class ProductPostOption  extends BaseEntity {
 
     public void setProductPost(ProductPost productPost) {
         this.productPost = productPost;
+    }
+
+    public void optionInactive() {
+        this.optionStatus = OptionStatus.INACTIVE.name();
     }
 }
