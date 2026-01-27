@@ -2,6 +2,7 @@ package com.zero9platform.domain.searchLog;
 
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.exception.CustomException;
+import com.zero9platform.domain.searchLog.repository.SearchContextRepository;
 import com.zero9platform.domain.product_post.entity.ProductPost;
 import com.zero9platform.domain.product_post.repository.ProductPostRepository;
 import com.zero9platform.domain.product_post_favorite.repository.ProductPostFavoriteRepository;
@@ -28,6 +29,7 @@ public class SearchLogService {
     private final SearchLogRepository searchLogRepository;
     private final ProductPostFavoriteRepository productPostFavoriteRepository;
     private final ProductPostRepository productPostRepository;
+    private final SearchContextRepository searchContextRepository;
     /**
      * 키워드 통합 검색
      */
@@ -50,6 +52,13 @@ public class SearchLogService {
 
         // 검색어 로그 저장 (검색 카운트 증가)
         searchKeywordSave(keyword);
+
+        // 임시 컨텍스트 저장
+        searchResult.getContent().forEach(post ->
+                searchContextRepository.save(
+                        new SearchContext(keyword, post.getId())
+                )
+        );
 
         // searchResult로부터 gppId 추출
         List<Long> gppIdList = new ArrayList<>();

@@ -3,6 +3,7 @@ package com.zero9platform.domain.product_post_favorite;
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.model.PageResponse;
+import com.zero9platform.domain.activity_feed.service.ActivityFeedService;
 import com.zero9platform.domain.auth.model.AuthUser;
 import com.zero9platform.domain.grouppurchase_post.repository.GroupPurchasePostRepository;
 import com.zero9platform.domain.product_post.entity.ProductPost;
@@ -29,6 +30,7 @@ public class ProductPostFavoriteService {
     private final UserRepository userRepository;
     private final GroupPurchasePostRepository groupPurchasePostRepository;
     private final ProductPostRepository productPostRepository;
+    private final ActivityFeedService activityFeedService;
 
     /**
      * 찜 등록
@@ -55,6 +57,14 @@ public class ProductPostFavoriteService {
 
         //DB 저장
         productPostFavoriteRepository.save(productPostFavorite);
+
+        // 현재 게시물의 찜 개수 확인
+        long favoriteCount = productPostFavoriteRepository.countByProductPost_Id(productPost.getId());
+
+        // 3개가 되는 순간 피드 생성 및 이미 있다면 패스
+        if (favoriteCount >= 3) {
+            activityFeedService.feedCreate("POPULAR", productPost.getId(), productPost.getTitle());
+        }
 
         return ProductPostFavoriteCreateResponse.from(productPostFavorite);
     }

@@ -4,6 +4,7 @@ import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.enums.OrderStatus;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.util.OrderCodeGenerator;
+import com.zero9platform.domain.activity_feed.service.ActivityFeedService;
 import com.zero9platform.domain.order.entity.Order;
 import com.zero9platform.domain.order.model.response.OrderCancelResponse;
 import com.zero9platform.domain.order.model.response.OrderCreateResponse;
@@ -33,6 +34,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final ProductPostOptionRepository productPostOptionRepository;
+    private final ActivityFeedService activityFeedService;
 
     /**
      * 주문 생성
@@ -76,6 +78,14 @@ public class OrderService {
         // 재고 차감
         productPost.decreaseStock(totalQuantity);
 
+        if (productPost.getStock() == 0) {
+            // 품절 = 재고가 0개
+            activityFeedService.feedCreate("SOLD_OUT", productPost.getId(), productPost.getTitle());
+        } else if (productPost.getStock() <= 10) {
+            // 재고가 10개 이하
+            activityFeedService.feedCreate("LOW_STOCK", productPost.getId(), productPost.getTitle());
+        }
+
         // 주문 고유번호 생성
         String orderNo = OrderCodeGenerator.generate();
 
@@ -83,6 +93,9 @@ public class OrderService {
         Order order = new Order(orderItem, orderNo, totalAmount, orderStatus);
 
         Order savedOrder = orderRepository.save(order);
+
+        // 피드 생성
+        activityFeedService.feedCreate("PAYMENT", savedOrder.getOrderItem().getProductPost().getId(), savedOrder.getOrderItem().getProductPost().getTitle());
 
         return OrderCreateResponse.from(savedOrder);
     }
@@ -94,7 +107,7 @@ public class OrderService {
     public OrderGetDetailResponse orderGetDetail(Long userId, Long orderId) {
 
         // 주문 권한 체크
-        Order order = checkOrderPermission(orderRepository.findByIdAndCanceledAtIsNull(orderId), userId);
+        Order order = checkOrderPermission(orderRepository.findById(orderId), userId);
 
         return OrderGetDetailResponse.from(order);
     }
@@ -106,7 +119,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public Page<OrderGetDetailResponse> orderGetList(Long userId, Pageable pageable) {
 
-        Page<Order> orderPage = orderRepository.findByOrderItem_User_IdAndCanceledAtIsNull(userId, pageable);
+        Page<Order> orderPage = orderRepository.findByOrderItem_User_Id(userId, pageable);
 
         Page<OrderGetDetailResponse> OrderGetDetailResponsePage = orderPage.map(OrderGetDetailResponse::from);
 

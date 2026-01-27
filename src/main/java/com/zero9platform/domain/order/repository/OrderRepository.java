@@ -9,7 +9,5 @@ import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    Optional<Order> findByIdAndCanceledAtIsNull(Long orderId);
-
-    Page<Order> findByOrderItem_User_IdAndCanceledAtIsNull(Long userId, Pageable pageable);
+    Page<Order> findByOrderItem_User_Id(Long userId, Pageable pageable);
 }

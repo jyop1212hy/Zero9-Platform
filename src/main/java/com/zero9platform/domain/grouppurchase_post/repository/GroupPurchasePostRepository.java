@@ -28,20 +28,4 @@ public interface GroupPurchasePostRepository extends JpaRepository<GroupPurchase
             """)
     int increaseViewCount(@Param("gppId") Long gppId);
 
-
-
-    @Query("""
-                SELECT gp
-                FROM GroupPurchasePost gp
-                JOIN FETCH gp.user u
-                WHERE gp.deletedAt IS NULL
-                  AND (
-                    (:searchCondition = 'product' AND gp.productName LIKE CONCAT('%', :keyword, '%'))
-                    OR
-                    (:searchCondition = 'influencer' AND u.nickname LIKE CONCAT('%', :keyword, '%'))
-                    OR
-                    ((:searchCondition IS NULL OR :searchCondition = '') AND (gp.productName LIKE CONCAT('%', :keyword, '%') OR u.nickname LIKE CONCAT('%', :keyword, '%')))
-                  )
-            """)
-    Page<GroupPurchasePost> searchByKeyword(@Param("keyword") String keyword, @Param("searchCondition") String searchCondition, Pageable pageable);
 }

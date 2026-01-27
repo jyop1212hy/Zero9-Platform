@@ -4,6 +4,7 @@ import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.model.PageResponse;
+import com.zero9platform.domain.activity_feed.service.ActivityFeedService;
 import com.zero9platform.domain.product.entity.Product;
 import com.zero9platform.domain.product.repository.ProductRepository;
 import com.zero9platform.domain.product_post.entity.ProductPost;
@@ -33,6 +34,7 @@ public class ProductPostService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
     private final ProductPostRepository productPostRepository;
+    private final ActivityFeedService activityFeedService;
 
     /**
      * 상품 판매 게시물 생성
@@ -60,6 +62,9 @@ public class ProductPostService {
         }
 
         ProductPost savedProductPost = productPostRepository.save(productPost);
+
+        // 피드 생성 호출
+        activityFeedService.feedCreate("SOON", savedProductPost.getId(), savedProductPost.getTitle());
 
         // 응답 DTO에 상품의 정가 및 옵션가 추가
 

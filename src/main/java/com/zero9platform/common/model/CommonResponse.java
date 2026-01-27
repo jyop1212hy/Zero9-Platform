@@ -1,5 +1,6 @@
 package com.zero9platform.common.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -10,6 +11,8 @@ public class CommonResponse<T> {
     private final boolean success;
     private final String message;
     private final T data;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private final LocalDateTime timestamp;
 
     public CommonResponse(boolean success, String message, T data) {

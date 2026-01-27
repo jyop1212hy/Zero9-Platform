@@ -39,4 +39,6 @@ public interface ProductPostFavoriteRepository extends JpaRepository<ProductPost
     //    FROM gpp_favorites
     //    WHERE gpp_id IN (1, 2, 3, ...)
     //    GROUP BY gpp_id;
+
+    long countByProductPost_Id(Long productPostId);
 }

@@ -121,7 +121,7 @@ public class UserService {
         // 나를 제외한 중복되는 핸드폰번호 조회
         checkDuplicate(userRepository.existsByPhoneAndIdNot(request.getPhone(), userId), ExceptionCode.PHONE_EXIST);
 
-        String profileImageUrl = profileImage != null && !profileImage.isEmpty() ? profileImageUrl = s3Service.upload(profileImage) : "";
+        String profileImageUrl = profileImage != null && !profileImage.isEmpty() ? s3Service.upload(profileImage) : "";
 
         user.userUpdate(request.getEmail(), request.getNickname(), request.getPhone(), profileImageUrl);
 
