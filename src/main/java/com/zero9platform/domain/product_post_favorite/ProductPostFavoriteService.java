@@ -2,10 +2,8 @@ package com.zero9platform.domain.product_post_favorite;
 
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.exception.CustomException;
-import com.zero9platform.common.model.PageResponse;
 import com.zero9platform.domain.activity_feed.service.ActivityFeedService;
 import com.zero9platform.domain.auth.model.AuthUser;
-import com.zero9platform.domain.grouppurchase_post.repository.GroupPurchasePostRepository;
 import com.zero9platform.domain.product_post.entity.ProductPost;
 import com.zero9platform.domain.product_post.repository.ProductPostRepository;
 import com.zero9platform.domain.product_post_favorite.entity.ProductPostFavorite;
@@ -28,7 +26,6 @@ public class ProductPostFavoriteService {
 
     private final ProductPostFavoriteRepository productPostFavoriteRepository;
     private final UserRepository userRepository;
-    private final GroupPurchasePostRepository groupPurchasePostRepository;
     private final ProductPostRepository productPostRepository;
     private final ActivityFeedService activityFeedService;
 
@@ -43,7 +40,7 @@ public class ProductPostFavoriteService {
                 .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_USER));
 
         //게시물 존재 여부 확인
-        ProductPost productPost = productPostRepository.findByIdAndDeletedAtIsNull(productPostId)
+        ProductPost productPost = productPostRepository.findById(productPostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_POST));
 
         //중복 등록 방지
@@ -80,7 +77,7 @@ public class ProductPostFavoriteService {
                 .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_USER));
 
         //게시물 존재 여부 확인
-        ProductPost productPost = productPostRepository.findByIdAndDeletedAtIsNull(productPostId)
+        ProductPost productPost = productPostRepository.findById(productPostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_POST));
 
         // 찜 등록 확인

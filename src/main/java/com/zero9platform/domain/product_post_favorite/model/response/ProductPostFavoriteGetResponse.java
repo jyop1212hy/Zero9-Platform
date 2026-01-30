@@ -16,7 +16,7 @@ public class ProductPostFavoriteGetResponse {
         return new ProductPostFavoriteGetResponse(
                 productPostFavorite.getProductPost().getId(),
                 productPostFavorite.getUser().getId(),
-                productPostFavorite.getProductPost().getProduct().getName()
+                productPostFavorite.getProductPost().getName()
         );
     }
 }

@@ -24,7 +24,7 @@ public class ClickLogService {
     public ClickLogProductPostDetailResponse productPostDetail(Long productPostId, String keyword) {
 
         // 상품 조회
-        ProductPost productPost = productPostRepository.findByIdAndDeletedAtIsNull(productPostId)
+        ProductPost productPost = productPostRepository.findById(productPostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_POST));
 
         // 클릭 로그 저장

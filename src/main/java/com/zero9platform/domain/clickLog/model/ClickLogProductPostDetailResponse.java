@@ -13,7 +13,7 @@ public class ClickLogProductPostDetailResponse {
     private final Long productPostId;
     private final String title;
     private final String content;
-    private final Integer stock;
+//    private final Integer stock;
     private final String image;
     private final String category;
     private final String productPostProgressStatus;
@@ -25,10 +25,10 @@ public class ClickLogProductPostDetailResponse {
                 productPost.getId(),
                 productPost.getTitle(),
                 productPost.getContent(),
-                productPost.getStock(),
+//                productPost.getStock(),
                 productPost.getImage(),
                 productPost.getCategory(),
-                productPost.getProductPostProgressStatus(),
+                productPost.getProgressStatus(),
                 productPost.getStartDate(),
                 productPost.getEndDate()
         );

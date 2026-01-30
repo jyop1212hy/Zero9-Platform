@@ -27,7 +27,7 @@ public class SearchLogItemResponse {
                 productPost.getUser().getNickname(),
                 productPost.getImage(),
                 productPost.getTitle(),
-                productPost.getProduct().getProductPrice(),
+                productPost.getOriginalPrice(),
                 favoriteCount,
                 productPost.getStartDate(),
                 productPost.getEndDate()
