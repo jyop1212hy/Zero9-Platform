@@ -1,7 +1,7 @@
 package com.zero9platform.domain.product_post_option.entity;
 
 import com.zero9platform.common.entity.BaseEntity;
-import com.zero9platform.common.enums.OptionStatus;
+import com.zero9platform.common.enums.StockStatus;
 import com.zero9platform.domain.product_post.entity.ProductPost;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -23,36 +23,53 @@ public class ProductPostOption  extends BaseEntity {
     private ProductPost productPost;
 
     @Column(nullable = false)
-    private String name;
+    private String name;    // 옵션명
 
     @Column(nullable = false)
-    private Long optionPrice;
+    private Long salePrice; // 옵션가
 
     @Column(nullable = false)
-    private Integer capacity;
+    private Integer stockQuantity;  // 옵션 재고
 
     @Column(nullable = false)
-    private String optionStatus;
+    private String stockStatus; // 옵션 재고 상태
 
-    public ProductPostOption(ProductPost productPost, String name, Long optionPrice, Integer capacity) {
+    public ProductPostOption(ProductPost productPost, String name, Long salePrice, Integer stockQuantity) {
         this.productPost = productPost;
         this.name = name;
-        this.optionPrice = optionPrice;
-        this.capacity = capacity;
-        this.optionStatus = OptionStatus.ACTIVE.name();
+        this.salePrice = salePrice;
+        this.stockQuantity = stockQuantity;
+        updateStockStatus();
     }
 
-    public void update(String name, Long price, Integer capacity) {
+    public void update(ProductPost productPost, String name, Long salePrice, Integer stockQuantity) {
+
+        if (productPost != null) this.productPost = productPost;
         if (name != null) this.name = name;
-        if (price != null) this.optionPrice = price;
-        if (capacity != null) this.capacity = capacity;
+        if (salePrice != null) this.salePrice = salePrice;
+        if (stockQuantity != null) this.stockQuantity = stockQuantity;
     }
+
+    // 재고 상태 지정
+    private void updateStockStatus() {
+        if (this.stockQuantity != null && this.stockQuantity > 0) {
+            this.stockStatus = StockStatus.IN_STOCK.name();
+        } else {
+            this.stockStatus = StockStatus.SOLD_OUT.name();
+        }
+    }
+
+//    public void update(String name, Long salePrice, Integer capacity) {
+//        if (name != null) this.name = name;
+//        if (salePrice != null) this.salePrice = salePrice;
+//        if (capacity != null) this.capacity = capacity;
+//    }
 
     public void setProductPost(ProductPost productPost) {
         this.productPost = productPost;
     }
 
-    public void optionInactive() {
-        this.optionStatus = OptionStatus.INACTIVE.name();
+    public void optionSoldOut() {
+        this.stockStatus = StockStatus.SOLD_OUT.name();
     }
 }

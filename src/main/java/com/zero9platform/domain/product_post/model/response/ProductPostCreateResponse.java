@@ -1,10 +1,7 @@
 package com.zero9platform.domain.product_post.model.response;
 
-import com.zero9platform.domain.product.entity.Product;
 import com.zero9platform.domain.product_post.entity.ProductPost;
-import com.zero9platform.domain.product_post_option.entity.ProductPostOption;
 import com.zero9platform.domain.product_post_option.model.response.ProductPostOptionCreateResponse;
-import com.zero9platform.domain.user.entity.User;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -16,23 +13,21 @@ import java.util.List;
 public class ProductPostCreateResponse {
 
     private final Long id;
-    private final Long userId;
-    private final Long productId;
+    private final String category;
     private final String title;
+    private final String name;
     private final String content;
-    private final Long productPrice;
-    private final Integer stock;
+    private final Long originalPrice;
     private final List<ProductPostOptionCreateResponse> optionList;
     private final String image;
-    private final String category;
-    private final String productPostProgressStatus;
-    private final String productPostStatus;
+    private final String progressStatus;
+    private final String saleStatus;
     private final LocalDateTime startDate;
     private final LocalDateTime endDate;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    public static ProductPostCreateResponse from(User user, Product product, ProductPost productPost) {
+    public static ProductPostCreateResponse from(ProductPost productPost) {
 
         List<ProductPostOptionCreateResponse> optionList = productPost.getProductPostOptionList().stream()
                 .map(ProductPostOptionCreateResponse::from)
@@ -40,17 +35,15 @@ public class ProductPostCreateResponse {
 
         return new ProductPostCreateResponse(
                 productPost.getId(),
-                user.getId(),
-                product.getId(),
+                productPost.getCategory(),
                 productPost.getTitle(),
+                productPost.getName(),
                 productPost.getContent(),
-                product.getProductPrice(),
-                productPost.getStock(),
+                productPost.getOriginalPrice(),
                 optionList,
                 productPost.getImage(),
-                productPost.getCategory(),
-                productPost.getProductPostProgressStatus(),
-                productPost.getProductPostStatus(),
+                productPost.getProgressStatus(),
+                productPost.getSaleStatus(),
                 productPost.getStartDate(),
                 productPost.getEndDate(),
                 productPost.getCreatedAt(),

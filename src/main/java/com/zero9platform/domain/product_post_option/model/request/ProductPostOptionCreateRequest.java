@@ -14,8 +14,8 @@ public class ProductPostOptionCreateRequest {
     private String name;
 
     @NotNull(message = "가격은 필수입니다.")
-    private Long optionPrice;
+    private Long salePrice;
 
-    @NotNull(message = "수량은 필수입니다.")
-    private Integer capacity;
+    @NotNull(message = "재고는 필수입니다.")
+    private Integer stockQuantity;
 }

@@ -3,7 +3,7 @@ package com.zero9platform.common.enums;
 import lombok.Getter;
 
 @Getter
-public enum ProductPostStatus {
+public enum SaleStatus {
 
     ACTIVE("판매 및 조회 가능"),
     INACTIVE("판매 불가"),  // 옵션 < 0일 때
@@ -11,7 +11,7 @@ public enum ProductPostStatus {
 
     private final String description;
 
-    ProductPostStatus(String description) {
+    SaleStatus(String description) {
         this.description = description;
     }
 }

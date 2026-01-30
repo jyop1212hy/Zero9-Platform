@@ -10,42 +10,32 @@ import java.util.List;
 
 @Getter
 @RequiredArgsConstructor
-public class ProductPostUpdateResponse {
+public class ProductPostGetListResponse {
 
     private final Long id;
-    private final String category;
     private final String title;
     private final String name;
-    private final String content;
     private final Long originalPrice;
-    private final List<ProductPostOptionCreateResponse> optionList;
     private final String image;
     private final String progressStatus;
     private final String saleStatus;
-    private final LocalDateTime startDate;
-    private final LocalDateTime endDate;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    public static ProductPostUpdateResponse from(ProductPost productPost) {
+    public static ProductPostGetListResponse from(ProductPost productPost) {
 
         List<ProductPostOptionCreateResponse> optionList = productPost.getProductPostOptionList().stream()
                 .map(ProductPostOptionCreateResponse::from)
                 .toList();
 
-        return new ProductPostUpdateResponse(
+        return new ProductPostGetListResponse(
                 productPost.getId(),
-                productPost.getCategory(),
                 productPost.getTitle(),
                 productPost.getName(),
-                productPost.getContent(),
                 productPost.getOriginalPrice(),
-                optionList,
                 productPost.getImage(),
                 productPost.getProgressStatus(),
                 productPost.getSaleStatus(),
-                productPost.getStartDate(),
-                productPost.getEndDate(),
                 productPost.getCreatedAt(),
                 productPost.getUpdatedAt()
         );

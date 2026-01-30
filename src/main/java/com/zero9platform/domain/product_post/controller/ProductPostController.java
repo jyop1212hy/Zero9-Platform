@@ -7,8 +7,10 @@ import com.zero9platform.domain.product_post.model.request.ProductPostCreateRequ
 import com.zero9platform.domain.product_post.model.request.ProductPostUpdateRequest;
 import com.zero9platform.domain.product_post.model.response.ProductPostCreateResponse;
 import com.zero9platform.domain.product_post.model.response.ProductPostGetDetailResponse;
+import com.zero9platform.domain.product_post.model.response.ProductPostGetListResponse;
 import com.zero9platform.domain.product_post.model.response.ProductPostUpdateResponse;
 import com.zero9platform.domain.product_post.service.ProductPostService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -27,11 +29,11 @@ public class ProductPostController {
     /**
      * 상품 게시물 생성
      */
-    @PostMapping("/product/{productId}/product-posts")
-    public ResponseEntity<CommonResponse<ProductPostCreateResponse>> productPostCreateHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productId, @RequestBody ProductPostCreateRequest request) {
+    @PostMapping("/product-posts")
+    public ResponseEntity<CommonResponse<ProductPostCreateResponse>> productPostCreateHandler(@AuthenticationPrincipal AuthUser authUser, @Valid @RequestBody ProductPostCreateRequest request) {
         Long userId = authUser.getId();
 
-        ProductPostCreateResponse response = productPostService.productPostCreate(userId, productId, request);
+        ProductPostCreateResponse response = productPostService.productPostCreate(userId, request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("상품 게시물 생성 성공", response));
     }
@@ -39,48 +41,48 @@ public class ProductPostController {
     /**
      * 상품 게시물 상세 조회
      */
-    @GetMapping("/product-posts/{productpostId}")
-    public ResponseEntity<CommonResponse<ProductPostGetDetailResponse>> productPostGetDetailHandler(@PathVariable Long productpostId) {
+    @GetMapping("/product-posts/{productPostId}")
+    public ResponseEntity<CommonResponse<ProductPostGetDetailResponse>> productPostGetDetailHandler(@PathVariable Long productPostId) {
 
-        ProductPostGetDetailResponse response = productPostService.productPostGetDetail(productpostId);
+        ProductPostGetDetailResponse response = productPostService.productPostGetDetail(productPostId);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("상품 게시물 상세 조회 성공", response));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("상품 게시물 상세 조회 성공", response));
     }
 
     /**
      * 상품 게시물 목록 조회
      */
     @GetMapping("/product-posts")
-    public ResponseEntity<CommonResponse<PageResponse<ProductPostGetDetailResponse>>> productPostGetListHandler(Pageable pageable) {
+    public ResponseEntity<CommonResponse<PageResponse<ProductPostGetListResponse>>> productPostGetListHandler(Pageable pageable) {
 
-        PageResponse<ProductPostGetDetailResponse> responsePage = productPostService.productPostGetList(pageable);
+        PageResponse<ProductPostGetListResponse> responsePage = productPostService.productPostGetList(pageable);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("상품 게시물 목록 조회 성공", responsePage));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("상품 게시물 목록 조회 성공", responsePage));
     }
 
     /**
      * 상품 게시물 수정
      */
-    @PutMapping("/product-posts/{productpostId}")
-    public ResponseEntity<CommonResponse<ProductPostUpdateResponse>> productPostUpdateHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productpostId, @RequestBody ProductPostUpdateRequest request) {
+    @PatchMapping("/product-posts/{productPostId}")
+    public ResponseEntity<CommonResponse<ProductPostUpdateResponse>> productPostUpdateHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productPostId, @RequestBody ProductPostUpdateRequest request) {
 
         Long userId = authUser.getId();
 
-        ProductPostUpdateResponse response = productPostService.productPostUpdate(userId, productpostId, request);
+        ProductPostUpdateResponse response = productPostService.productPostUpdate(userId, productPostId, request);
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("상품 게시물 수정 성공", response));
     }
 
-    /**
-     * 상품 게시물 삭제
-     */
-    @DeleteMapping("/product-posts/{productpostId}")
-    public ResponseEntity<CommonResponse<Void>> productPostDeleteHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productpostId) {
-
-        Long userId = authUser.getId();
-
-        productPostService.productPostDelete(userId, productpostId);
-
-        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("상품 게시물 삭제 성공", null));
-    }
+//    /**
+//     * 상품 게시물 삭제
+//     */
+//    @DeleteMapping("/product-posts/{productpostId}")
+//    public ResponseEntity<CommonResponse<Void>> productPostDeleteHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productpostId) {
+//
+//        Long userId = authUser.getId();
+//
+//        productPostService.productPostDelete(userId, productpostId);
+//
+//        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("상품 게시물 삭제 성공", null));
+//    }
 }

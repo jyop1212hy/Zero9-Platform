@@ -2,7 +2,7 @@ package com.zero9platform.domain.product_post_option.service;
 
 
 import com.zero9platform.common.enums.ExceptionCode;
-import com.zero9platform.common.enums.OptionStatus;
+import com.zero9platform.common.enums.StockStatus;
 import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.model.PageResponse;
@@ -33,103 +33,104 @@ public class ProductPostOptionService {
     public ProductPostOptionCreateResponse optionCreate(Long userId, UserRole userRole, Long productPostId, ProductPostOptionCreateRequest request) {
 
         // 상품 게시물 존재여부 검증
-        ProductPost productPost = productPostRepository.findByIdAndDeletedAtIsNull(productPostId)
+        ProductPost productPost = productPostRepository.findById(productPostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
 
         // 관리자이거나 인플루언서 본인인지 확인
         validInfluencerOwnerOrAdmin(productPost, userId, userRole);
 
-        ProductPostOption option = new ProductPostOption(productPost, request.getName(), request.getOptionPrice(), request.getCapacity());
+        ProductPostOption option = new ProductPostOption(productPost, request.getName(), request.getSalePrice(), request.getStockQuantity());
 
-        ProductPostOption saved = optionRepository.save(option);
+        ProductPostOption savedOption = optionRepository.save(option);
 
-        return ProductPostOptionCreateResponse.from(saved);
+        return ProductPostOptionCreateResponse.from(savedOption);
     }
 
     /**
      * 옵션 상세 조회
      */
-    @Transactional(readOnly = true)
-    public ProductPostOptionGetDetailResponse optionGetDetail(Long productPostId, Long optionId) {
-
-        // 상품 게시물 존재여부 검증
-        productPostRepository.findByIdAndDeletedAtIsNull(productPostId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
-
-        // 해당하는 상품게시물에 속한 옵션인지 확인
-        ProductPostOption option = optionRepository.findByIdAndProductPost_Id(optionId, productPostId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_OPTION_NOT_FOUND));
-
-        // 옵션 활성화 검증
-        if (OptionStatus.INACTIVE == OptionStatus.valueOf(option.getOptionStatus())) {
-            throw new CustomException(ExceptionCode.OPTION_IS_DISABLED);
-        }
-
-        return ProductPostOptionGetDetailResponse.from(option);
-    }
-
-    /**
-     *  상품 게시물별 옵션 전체 목록 조회
-     */
-    @Transactional(readOnly = true)
-    public PageResponse<ProductPostOptionGetListResponse> optionGetPage(Long productPostId, Pageable pageable) {
-
-        // 상품 게시물 존재여부 검증
-        productPostRepository.findByIdAndDeletedAtIsNull(productPostId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
-
-        Page<ProductPostOptionGetListResponse> page = optionRepository.findAllByProductPost_IdAndOptionStatusOrderByCapacityAsc(productPostId, "ACTIVE", pageable)
-                .map(ProductPostOptionGetListResponse::from);
-
-        return PageResponse.from(page);
-    }
-
-    /**
-     * 옵션 수정
-     */
-    @Transactional
-    public ProductPostOptionUpdateResponse optionUpdate(Long userId, UserRole userRole, Long productPostId, Long optionId, ProductPostOptionUpdateRequest request) {
-
-        // 상품 게시물 존재여부 검증
-        ProductPost productPost = productPostRepository.findByIdAndDeletedAtIsNull(productPostId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
-
-        // 관리자이거나 인플루언서 본인인지 확인
-        validInfluencerOwnerOrAdmin(productPost, userId, userRole);
-
-        // 해당하는 상품게시물에 속한 옵션인지 확인
-        ProductPostOption option = optionRepository.findByIdAndProductPost_IdAndOptionStatus(optionId, productPostId, "ACTIVE")
-                .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_OPTION_NOT_FOUND));
-
-        option.update(request.getName(), request.getOptionPrice(), request.getCapacity());
-
-        return ProductPostOptionUpdateResponse.from(option);
-    }
+//    @Transactional(readOnly = true)
+//    public ProductPostOptionGetDetailResponse optionGetDetail(Long productPostId, Long optionId) {
+//
+//        // 상품 게시물 존재여부 검증
+//        productPostRepository.findByIdAndDeletedAtIsNull(productPostId)
+//                .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
+//
+//        // 해당하는 상품게시물에 속한 옵션인지 확인
+//        ProductPostOption option = optionRepository.findByIdAndProductPost_Id(optionId, productPostId)
+//                .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_OPTION_NOT_FOUND));
+//
+//        // 옵션 활성화 검증
+//        if (StockStatus.INACTIVE == StockStatus.valueOf(option.getOptionStatus())) {
+//            throw new CustomException(ExceptionCode.OPTION_IS_DISABLED);
+//        }
+//
+//        return ProductPostOptionGetDetailResponse.from(option);
+//    }
+//
+//    /**
+//     *  상품 게시물별 옵션 전체 목록 조회
+//     */
+//    @Transactional(readOnly = true)
+//    public PageResponse<ProductPostOptionGetListResponse> optionGetPage(Long productPostId, Pageable pageable) {
+//
+//        // 상품 게시물 존재여부 검증
+//        productPostRepository.findByIdAndDeletedAtIsNull(productPostId)
+//                .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
+//
+//        Page<ProductPostOptionGetListResponse> page = optionRepository.findAllByProductPost_IdAndOptionStatusOrderByCapacityAsc(productPostId, "ACTIVE", pageable)
+//                .map(ProductPostOptionGetListResponse::from);
+//
+//        return PageResponse.from(page);
+//    }
+//
+//    /**
+//     * 옵션 수정
+//     */
+//    @Transactional
+//    public ProductPostOptionUpdateResponse optionUpdate(Long userId, UserRole userRole, Long productPostId, Long optionId, ProductPostOptionUpdateRequest request) {
+//
+//        // 상품 게시물 존재여부 검증
+//        ProductPost productPost = productPostRepository.findByIdAndDeletedAtIsNull(productPostId)
+//                .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
+//
+//        // 관리자이거나 인플루언서 본인인지 확인
+//        validInfluencerOwnerOrAdmin(productPost, userId, userRole);
+//
+//        // 해당하는 상품게시물에 속한 옵션인지 확인
+//        ProductPostOption option = optionRepository.findByIdAndProductPost_IdAndOptionStatus(optionId, productPostId, "ACTIVE")
+//                .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_OPTION_NOT_FOUND));
+//
+//        option.update(request.getName(), request.getOptionPrice(), request.getCapacity());
+//
+//        return ProductPostOptionUpdateResponse.from(option);
+//    }
 
     /**
      * 옵션 삭제
      */
     @Transactional
-    public ProductPostOptionDeleteResponse optionDelete(Long userId, UserRole userRole, Long productPostId, Long optionId) {
+    public void optionDelete(Long userId, UserRole userRole, Long productPostId, Long optionId) {
 
         // 상품 게시물 존재여부 검증
-        ProductPost productPost = productPostRepository.findByIdAndDeletedAtIsNull(productPostId)
+        ProductPost productPost = productPostRepository.findById(productPostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
 
         // 관리자이거나 인플루언서 본인인지 확인
         validInfluencerOwnerOrAdmin(productPost, userId, userRole);
 
         // 해당하는 상품게시물에 속한 옵션인지 확인
-        ProductPostOption option = optionRepository.findByIdAndProductPost_IdAndOptionStatus(optionId, productPostId, "ACTIVE")
+        ProductPostOption option = optionRepository.findByIdAndProductPost_IdAndStockStatus(optionId, productPostId, "IN_STOCK")
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_OPTION_NOT_FOUND));
 
-        // 옵션 비활성화
-        option.optionInactive();
+        // 옵션 삭제
+        productPost.getProductPostOptionList().remove(option);
 
-        // 한 상품 게시물의 옵션 리스트가 Empty일 때, 해당 상품 게시물 productPostStatus를 INACTIVE로 변경
-        productPost.allOptionsInactive();
+        // 양방향
+        option.setProductPost(null);
 
-        return ProductPostOptionDeleteResponse.from(option);
+        // 옵션 리스트가 비었을 때, 상품 게시물의 판매 상태 "비활성화"
+        productPost.allOptionIsEmpty();
     }
 
     /**

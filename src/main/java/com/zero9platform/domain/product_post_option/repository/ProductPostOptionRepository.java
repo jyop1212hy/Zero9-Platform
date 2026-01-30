@@ -9,9 +9,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface ProductPostOptionRepository  extends JpaRepository<ProductPostOption, Long> {
-    Optional<ProductPostOption> findByIdAndProductPost_Id(Long optionId, Long productPostId);
+//    Optional<ProductPostOption> findByIdAndProductPost_Id(Long optionId, Long productPostId);
 
-    Optional<ProductPostOption> findByIdAndProductPost_IdAndOptionStatus(Long optionId, Long productPostId, String optionStatus);
+    Optional<ProductPostOption> findByIdAndProductPost_IdAndStockStatus(Long optionId, Long productPostId, String inStock);
 
-    Page<ProductPostOption> findAllByProductPost_IdAndOptionStatusOrderByCapacityAsc(Long productPostId, String active, Pageable pageable);
+//    Page<ProductPostOption> findAllByProductPost_IdAndOptionStatusOrderByCapacityAsc(Long productPostId, String active, Pageable pageable);
 }

@@ -36,44 +36,44 @@ public class ProductPostOptionController {
     /**
      * 옵션 상세 조회
      */
-    @GetMapping("/{productPostId}/options/{optionId}")
-    public ResponseEntity<CommonResponse<ProductPostOptionGetDetailResponse>> optionGetHandler(@PathVariable Long productPostId, @PathVariable Long optionId) {
+//    @GetMapping("/{productPostId}/options/{optionId}")
+//    public ResponseEntity<CommonResponse<ProductPostOptionGetDetailResponse>> optionGetHandler(@PathVariable Long productPostId, @PathVariable Long optionId) {
+//
+//        ProductPostOptionGetDetailResponse response = postOptionService.optionGetDetail(productPostId, optionId);
+//
+//        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("옵션 상세 조회 성공", response));
+//    }
 
-        ProductPostOptionGetDetailResponse response = postOptionService.optionGetDetail(productPostId, optionId);
+//    /**
+//     *  상품 게시물별 옵션 전체 목록 조회
+//     */
+//    @GetMapping("/{productPostId}/options")
+//    public ResponseEntity<CommonResponse<PageResponse<ProductPostOptionGetListResponse>>> optionGetListHandler(@PathVariable Long productPostId, Pageable pageable) {
+//
+//        PageResponse<ProductPostOptionGetListResponse> response = postOptionService.optionGetPage(productPostId, pageable);
+//
+//        return ResponseEntity.ok(CommonResponse.success("상품 게시물별 옵션 전체 목록 조회 성공", response));
+//    }
 
-        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("옵션 상세 조회 성공", response));
-    }
-
-    /**
-     *  상품 게시물별 옵션 전체 목록 조회
-     */
-    @GetMapping("/{productPostId}/options")
-    public ResponseEntity<CommonResponse<PageResponse<ProductPostOptionGetListResponse>>> optionGetListHandler(@PathVariable Long productPostId, Pageable pageable) {
-
-        PageResponse<ProductPostOptionGetListResponse> response = postOptionService.optionGetPage(productPostId, pageable);
-
-        return ResponseEntity.ok(CommonResponse.success("상품 게시물별 옵션 전체 목록 조회 성공", response));
-    }
-
-    /**
-     * 옵션 수정
-     */
-    @PutMapping("/{productPostId}/options/{optionId}")
-    public ResponseEntity<CommonResponse<ProductPostOptionUpdateResponse>> optionUpdateHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productPostId, @PathVariable Long optionId, @Valid @RequestBody ProductPostOptionUpdateRequest request) {
-
-        ProductPostOptionUpdateResponse response = postOptionService.optionUpdate(authUser.getId(), authUser.getUserRole(), productPostId, optionId, request);
-
-        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("옵션 수정 성공", response));
-    }
-
+//    /**
+//     * 옵션 수정
+//     */
+//    @PutMapping("/{productPostId}/options/{optionId}")
+//    public ResponseEntity<CommonResponse<ProductPostOptionUpdateResponse>> optionUpdateHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productPostId, @PathVariable Long optionId, @Valid @RequestBody ProductPostOptionUpdateRequest request) {
+//
+//        ProductPostOptionUpdateResponse response = postOptionService.optionUpdate(authUser.getId(), authUser.getUserRole(), productPostId, optionId, request);
+//
+//        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("옵션 수정 성공", response));
+//    }
+//
     /**
      * 옵션 삭제
      * */
     @DeleteMapping("/{productPostId}/options/{optionId}")
-    public ResponseEntity<CommonResponse<ProductPostOptionDeleteResponse>> optionDeleteHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productPostId, @PathVariable Long optionId) {
+    public ResponseEntity<CommonResponse<Void>> optionDeleteHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productPostId, @PathVariable Long optionId) {
 
-        ProductPostOptionDeleteResponse response = postOptionService.optionDelete(authUser.getId(), authUser.getUserRole(), productPostId, optionId);
+        postOptionService.optionDelete(authUser.getId(), authUser.getUserRole(), productPostId, optionId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("옵션 삭제 성공", response));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("옵션 삭제 성공", null));
     }
 }

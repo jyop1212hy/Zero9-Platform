@@ -2,9 +2,10 @@ package com.zero9platform.domain.product_post.entity;
 
 import com.zero9platform.common.entity.BaseEntity;
 import com.zero9platform.common.enums.Category;
-import com.zero9platform.common.enums.ProductPostProgressStatus;
-import com.zero9platform.common.enums.ProductPostStatus;
-import com.zero9platform.domain.product.entity.Product;
+import com.zero9platform.common.enums.ExceptionCode;
+import com.zero9platform.common.enums.ProgressStatus;
+import com.zero9platform.common.enums.SaleStatus;
+import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.domain.product_post_option.entity.ProductPostOption;
 import com.zero9platform.domain.user.entity.User;
 import jakarta.persistence.*;
@@ -24,24 +25,23 @@ public class ProductPost extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id;    // 상품 게시물 ID
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    private User user;  // 회원 ID
 
     @Column(nullable = false)
-    private String title;
+    private String title;   // 제목
+
+    @JoinColumn(nullable = false)
+    private String name; // 상품명
 
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;
+    private String content; // 내용
 
     @Column(nullable = false)
-    private Integer stock;
+    private Long originalPrice;     // 정가
 
     @OneToMany(
             mappedBy = "productPost",
@@ -51,18 +51,16 @@ public class ProductPost extends BaseEntity {
     private List<ProductPostOption> productPostOptionList = new ArrayList<>();
 
     @Column
-    private String image;
+    private String image;   // 이미지
 
     @Column(nullable = false)
-    private String category = Category.ETC.name();
+    private String category = Category.ETC.name();  // 카테고리
 
-    // 판매 기간 기준 상태
     @Column(nullable = false)
-    private String productPostProgressStatus = ProductPostProgressStatus.READY.name();
+    private String progressStatus = ProgressStatus.READY.name();    // 판매 기간 상태
 
-    // 판매 게시물 기준 상태 (옵션 / 노출)
     @Column(nullable = false)
-    private String productPostStatus = ProductPostStatus.ACTIVE.name();
+    private String saleStatus = SaleStatus.ACTIVE.name();    // 판매 가능 상태
 
     @Column(nullable = false)
     private LocalDateTime startDate;
@@ -70,33 +68,59 @@ public class ProductPost extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime endDate;
 
-    @Column
-    private LocalDateTime deletedAt;
-
-    public ProductPost(User user, Product product, String title, String content, Integer stock, String image, String category, String productPostProgressStatus, String productPostStatus, LocalDateTime startDate, LocalDateTime endDate) {
+    public ProductPost(User user, String title, String name, String content, Long originalPrice, String image, String category, LocalDateTime startDate, LocalDateTime endDate) {
         this.user = user;
-        this.product = product;
         this.title = title;
+        this.name = name;
         this.content = content;
-        this.stock = stock;
+        this.originalPrice = originalPrice;
         this.image = image;
         this.category = category;
-        this.productPostProgressStatus = productPostProgressStatus;
-        this.productPostStatus = productPostStatus;
+
+        if (startDate == null || endDate == null) {
+            throw new CustomException(ExceptionCode.PP_DATE_REQUIRED);
+        }
+
+        if (endDate.isBefore(startDate)) {
+            throw new CustomException(ExceptionCode.PP_INVALID_DATE_RANGE);
+        }
+
         this.startDate = startDate;
         this.endDate = endDate;
+        updateProgressStatus();
     }
 
-    public void update(String title, String content, Integer stock, String image, String category, String productPostProgressStatus, LocalDateTime startDate, LocalDateTime endDate) {
-        if (title != null) this.title = title;
-        if (content != null) this.content = content;
-        if (stock != null) this.stock = stock;
-        if (image != null) this.image = image;
+    public void update(String category, String title, String name, String content, Long originalPrice, String image, LocalDateTime startDate, LocalDateTime endDate) {
         if (category != null) this.category = category;
-        if (productPostProgressStatus != null) this.productPostProgressStatus = productPostProgressStatus;
+        if (title != null) this.title = title;
+        if (name != null) this.name = name;
+        if (content != null) this.content = content;
+        if (originalPrice != null) this.originalPrice = originalPrice;
+        if (image != null) this.image = image;
         if (startDate != null) this.startDate = startDate;
         if (endDate != null) this.endDate = endDate;
+    }
 
+    // 판매 기간 상태
+    private void updateProgressStatus() {
+
+        // 준비, 진행, 종료
+        // 준비: 현재 시각 < 시작일
+        // 진행: 시작일 < 현재 시각 && 현재 시각 < 종료일
+        // 종료: 종료일 < 현재 시각
+        if (this.startDate.isAfter(LocalDateTime.now())) {
+            this.progressStatus = ProgressStatus.READY.name();
+        } else if (this.startDate.isBefore(LocalDateTime.now()) && this.endDate.isAfter(LocalDateTime.now())) {
+            this.progressStatus = ProgressStatus.DOING.name();
+        } else if (this.endDate.isBefore(LocalDateTime.now())) {
+            this.progressStatus = ProgressStatus.END.name();
+        }
+    }
+
+    // 판매 가능 상태
+    private void updateSaleStatus() {
+        // optionList의 모든 option의 stockStatus가 SOLD_OUT이면 SOLD_OUT 상태
+        // option
     }
 
     public void addOption(ProductPostOption option) {
@@ -104,36 +128,29 @@ public class ProductPost extends BaseEntity {
         option.setProductPost(this);
     }
 
-    // 재고 증가
-    public void increaseStock(Integer totalCapacity) {
-        this.stock += totalCapacity;
-    }
-
-    // 재고 차감
-    public void decreaseStock(Integer totalCapacity) {
-        this.stock -= totalCapacity;
-    }
-
-    public void setProductPostStatus(String productPostStatus) {
-        this.productPostStatus = productPostStatus;
-    }
-
-    public void softDelete() {
-        this.deletedAt = LocalDateTime.now();
-    }
-
+//    public void setProductPostStatus(String productPostStatus) {
+//        this.productPostStatus = productPostStatus;
+//    }
 
     // 상품 게시물의 하위 옵션 리스트가 전부 "비활성화"인지 아닌지 검증
-    public boolean allOptionsInactive() {
+//    public boolean allOptionsInactive() {
+//
+//        for (ProductPostOption option: productPostOptionList) {
+//            if (SaleStatus.ACTIVE.name().equals(option.getOptionStatus())) {
+//                return false;
+//            }
+//        }
+//
+//        this.productPostStatus = SaleStatus.INACTIVE.name();
+//
+//        return true;
+//    }
 
-        for (ProductPostOption option: productPostOptionList) {
-            if (ProductPostStatus.ACTIVE.name().equals(option.getOptionStatus())) {
-                return false;
-            }
+    public void allOptionIsEmpty() {
+
+        // 옵션이 비었을 때 판매 상태 "비활성화" -> 추후 주문 상품 생성 불가 해야 함
+        if (productPostOptionList.isEmpty()) {
+            this.saleStatus = SaleStatus.INACTIVE.name();
         }
-
-        this.productPostStatus = ProductPostStatus.INACTIVE.name();
-
-        return true;
     }
 }

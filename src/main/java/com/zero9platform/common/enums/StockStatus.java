@@ -3,13 +3,13 @@ package com.zero9platform.common.enums;
 import lombok.Getter;
 
 @Getter
-public enum OptionStatus {
+public enum StockStatus {
 
-    ACTIVE("옵션 활성화"), INACTIVE("옵션 비활성화");
+    IN_STOCK("재고 있음"), SOLD_OUT("재고 없음");
 
     private final String description;
 
-    OptionStatus(String description) {
+    StockStatus(String description) {
         this.description = description;
     }
 
