@@ -1,6 +1,7 @@
 package com.zero9platform.domain.product_post_favorite;
 
 import com.zero9platform.common.enums.ExceptionCode;
+import com.zero9platform.common.enums.FeedType;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.domain.activity_feed.service.ActivityFeedService;
 import com.zero9platform.domain.auth.model.AuthUser;
@@ -60,7 +61,7 @@ public class ProductPostFavoriteService {
 
         // 3개가 되는 순간 피드 생성 및 이미 있다면 패스
         if (favoriteCount >= 3) {
-            activityFeedService.feedCreate("POPULAR", productPost.getId(), productPost.getTitle());
+            activityFeedService.feedCreate(FeedType.DEADLINE, productPost.getId(), productPost.getTitle());
         }
 
         return ProductPostFavoriteCreateResponse.from(productPostFavorite);

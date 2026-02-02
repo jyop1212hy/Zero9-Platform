@@ -1,6 +1,7 @@
 package com.zero9platform.domain.product_post.service;
 
 import com.zero9platform.common.enums.ExceptionCode;
+import com.zero9platform.common.enums.StockStatus;
 import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.model.PageResponse;
@@ -52,13 +53,14 @@ public class ProductPostService {
         // 옵션 생성
         for (ProductPostOptionCreateRequest optionRequest: request.getOptionList()) {
             ProductPostOption option = new ProductPostOption(productPost, optionRequest.getName(), optionRequest.getSalePrice(), optionRequest.getStockQuantity());
+            option.setStockStatus(StockStatus.IN_STOCK.name());
             productPost.addOption(option);
         }
 
         ProductPost savedProductPost = productPostRepository.save(productPost);
 
         // 피드 생성 호출
-        activityFeedService.feedCreate("SOON", savedProductPost.getId(), savedProductPost.getTitle());
+        //activityFeedService.feedCreate("SOON", savedProductPost.getId(), savedProductPost.getTitle());
 
         return ProductPostCreateResponse.from(savedProductPost);
     }
@@ -71,9 +73,6 @@ public class ProductPostService {
 
         ProductPost productPost = productPostRepository.findById(productPostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
-
-        // 상품 게시물의 하위 옵션 리스트가 전부 "비활성화" 상태 체크 (조회는 가능 -> 추후 주문 상품 생성 불가)
-        productPost.allOptionIsEmpty();
 
         return ProductPostGetDetailResponse.from(productPost);
     }
@@ -112,28 +111,6 @@ public class ProductPostService {
 
         return ProductPostUpdateResponse.from(productPost);
     }
-
-//    /**
-//     * 상품 게시물 삭제
-//     */
-//    @Transactional
-//    public void productPostDelete(Long userId, Long productpostId) {
-//
-//        User user = validPermission(userId);
-//
-//        ProductPost productPost = productPostRepository.findByIdAndDeletedAtIsNull(productpostId)
-//                .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
-//
-//        // 본인만 삭제 가능
-//        validProductPostOwner(user, productPost);
-//
-//        // 상품 게시물 소프트 딜리트
-//        productPost.softDelete();
-//
-//        // 하위 옵션 리스트들 비활성화
-//        productPost.getProductPostOptionList()
-//                .forEach(ProductPostOption::optionInactive);
-//    }
 
     /**
      * 본인의 상품 게시물인지 검증

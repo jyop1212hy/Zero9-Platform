@@ -32,8 +32,8 @@ public class GroupPurchasePostUpdateRequest {
     @NotNull(message = "카테고리는 필수입니다.")
     private Category category;
 
-    @NotNull(message = "진행 상태는 필수입니다.")
-    private GppProgressStatus gppProgressStatus;
+//    @NotNull(message = "진행 상태는 필수입니다.")
+//    private GppProgressStatus gppProgressStatus;
 
     @NotNull(message = "시작일은 필수입니다.")
     private LocalDate startDate;

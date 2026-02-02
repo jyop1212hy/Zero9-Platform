@@ -66,11 +66,23 @@ public class SecurityConfig {
                                 "/**"
                         ).permitAll() // CORS Preflight 허용
                         .requestMatchers(
+                                "/login.html",
+                                "/logout.html",
+                                "/main.html",
+                                "/css/**",
+                                "/js/**",
+
                                 "/zero9/auth/**",
                                 "/zero9/test/**"
                         ).permitAll()
                         .requestMatchers(
+                                HttpMethod.POST,
+                                "/zero9/users/normal",
+                                "/zero9/users/influencer"
+                        ).permitAll()
+                        .requestMatchers(
                                 HttpMethod.GET,
+                                "/zero9/options/*",
                                 "/zero9/product-posts",
                                 "/zero9/product-posts/*",
                                 "/zero9/gp-posts/**",
@@ -80,18 +92,10 @@ public class SecurityConfig {
                                 "/zero9/gpp-comments/**",
                                 "/zero9/comments",
                                 "/zero9/influencers/*/follows",
-                                "/zero9/feeds"
+                                "/zero9/feeds/all",
+                                "/zero9/feeds",
+                                "/zero9/ranking/**"
                         ).permitAll()
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/zero9/users/normal",
-                                "/zero9/users/influencer"
-                        ).permitAll()
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/zero9/users",
-                                "/zero9/influencers"
-                        ).hasRole(UserRole.ADMIN.name())
                         .requestMatchers("/zero9/admin/**").hasRole(UserRole.ADMIN.name())
                         .anyRequest().authenticated() // 그 외 요청은 인증 필수
                 )

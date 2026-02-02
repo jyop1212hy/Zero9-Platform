@@ -1,11 +1,11 @@
 package com.zero9platform.domain.searchLog.repository;
 
+import com.zero9platform.domain.ranking.model.response.SearchLogRankingAggregateResponse;
 import com.zero9platform.domain.searchLog.entity.SearchLog;
 import com.zero9platform.domain.searchLog.model.SearchLogListResponse;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -24,6 +24,6 @@ public interface SearchLogRepository extends JpaRepository<SearchLog, Long> {
                 FROM SearchLog s
                 ORDER BY s.count DESC
             """)
-    List<SearchLogListResponse> findTopKeywords(Pageable pageable);
+    List<SearchLogRankingAggregateResponse> findTopKeywords(Pageable pageable);
 
 }

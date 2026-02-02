@@ -17,7 +17,7 @@ public class GroupPurchasePostListResponse {
     private Long userId;
     private String image;
     private Long viewCount;
-    private Long favoriteCount; // 추후 좋아요 기능 연동
+//    private Long favoriteCount; // 추후 좋아요 기능 연동
     private Long price;
     private String category;
     private String gppProgressStatus;
@@ -28,8 +28,8 @@ public class GroupPurchasePostListResponse {
 
     public static GroupPurchasePostListResponse from(GroupPurchasePost groupPurchasePost) {
 
-        Category category = Category.valueOf(groupPurchasePost.getCategory());
-        GppProgressStatus gppProgressStatus = GppProgressStatus.valueOf(groupPurchasePost.getGppProgressStatus());
+//        Category category = Category.valueOf(groupPurchasePost.getCategory());
+//        GppProgressStatus gppProgressStatus = GppProgressStatus.valueOf(groupPurchasePost.getGppProgressStatus());
 
         return new GroupPurchasePostListResponse(
                 groupPurchasePost.getId(),
@@ -37,10 +37,10 @@ public class GroupPurchasePostListResponse {
                 groupPurchasePost.getUser().getId(),
                 groupPurchasePost.getImage(),
                 groupPurchasePost.getViewCount(),
-                0L, // favoriteCount 임시값 (추후 연관관계 추가 시 수정)
+//                0L, // favoriteCount 임시값 (추후 연관관계 추가 시 수정)
                 groupPurchasePost.getPrice(),
-                category.getDescription(),
-                gppProgressStatus.getDescription(),
+                groupPurchasePost.getCategoryDescription(),
+                groupPurchasePost.getProgressStatusDescription(),
                 groupPurchasePost.getStartDate(),
                 groupPurchasePost.getEndDate(),
                 groupPurchasePost.getCreatedAt(),

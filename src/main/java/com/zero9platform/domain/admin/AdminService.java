@@ -2,16 +2,19 @@ package com.zero9platform.domain.admin;
 
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.exception.CustomException;
-import com.zero9platform.domain.grouppurchase_post.repository.GroupPurchasePostRepository;
-import com.zero9platform.domain.admin.repository.InfluencerRepository;
+import com.zero9platform.domain.admin.model.response.user.UserDetailResponse;
+import com.zero9platform.domain.user.repository.InfluencerRepository;
 import com.zero9platform.domain.user.entity.User;
+import com.zero9platform.domain.admin.model.response.influencer.InfluencerDetailResponse;
 import com.zero9platform.domain.user.repository.UserRepository;
-import com.zero9platform.domain.admin.entity.Influencer;
+import com.zero9platform.domain.user.entity.Influencer;
 import com.zero9platform.domain.admin.model.request.influencer.InfluencerApproveRequest;
 import com.zero9platform.domain.admin.model.response.influencer.InfluencerApproveResponse;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +22,17 @@ public class AdminService {
 
     private final InfluencerRepository influencerRepository;
     private final UserRepository userRepository;
+
+    /**
+     * 인플루언서 목록 조회
+     */
+    @Transactional(readOnly = true)
+    public Page<InfluencerDetailResponse> influencerList(Boolean status, String nickname, Pageable pageable) {
+
+        return influencerRepository.findByApprovalStatusAndUser(status, nickname, pageable)
+                .map(InfluencerDetailResponse::from);
+
+    }
 
     /**
      * 인플루언서 가입 승인
@@ -40,5 +54,15 @@ public class AdminService {
         influencer.influencerApprove(request.getApprove());
 
         return InfluencerApproveResponse.from(influencer);
+    }
+
+    /**
+     * 사용자 목록 조회
+     */
+    @Transactional(readOnly = true)
+    public Page<UserDetailResponse> userList(String nickname, Pageable pageable) {
+
+        return userRepository.findAllUser(nickname, pageable)
+                .map(UserDetailResponse::from);
     }
 }

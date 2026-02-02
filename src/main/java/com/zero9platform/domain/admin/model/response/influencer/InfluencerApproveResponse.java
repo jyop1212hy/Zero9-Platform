@@ -1,7 +1,7 @@
 package com.zero9platform.domain.admin.model.response.influencer;
 
 import com.zero9platform.domain.user.entity.User;
-import com.zero9platform.domain.admin.entity.Influencer;
+import com.zero9platform.domain.user.entity.Influencer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

@@ -72,17 +72,4 @@ public class ProductPostController {
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("상품 게시물 수정 성공", response));
     }
-
-//    /**
-//     * 상품 게시물 삭제
-//     */
-//    @DeleteMapping("/product-posts/{productpostId}")
-//    public ResponseEntity<CommonResponse<Void>> productPostDeleteHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productpostId) {
-//
-//        Long userId = authUser.getId();
-//
-//        productPostService.productPostDelete(userId, productpostId);
-//
-//        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("상품 게시물 삭제 성공", null));
-//    }
 }

@@ -2,19 +2,17 @@ package com.zero9platform.domain.user.Controller;
 
 import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.model.CommonResponse;
-import com.zero9platform.common.model.PageResponse;
 import com.zero9platform.domain.auth.model.AuthUser;
 import com.zero9platform.domain.user.Service.UserService;
-import com.zero9platform.domain.user.model.user.request.UserCreateRequest;
-import com.zero9platform.domain.user.model.user.request.UserDeleteRequest;
-import com.zero9platform.domain.user.model.user.request.UserInfluencerCreateRequest;
-import com.zero9platform.domain.user.model.user.request.UserUpdateRequest;
-import com.zero9platform.domain.user.model.user.response.UserCreateResponse;
-import com.zero9platform.domain.user.model.user.response.UserDetailResponse;
-import com.zero9platform.domain.user.model.user.response.UserUpdateResponse;
+import com.zero9platform.domain.user.model.request.UserCreateRequest;
+import com.zero9platform.domain.user.model.request.UserDeleteRequest;
+import com.zero9platform.domain.user.model.request.UserInfluencerCreateRequest;
+import com.zero9platform.domain.user.model.request.UserUpdateRequest;
+import com.zero9platform.domain.user.model.response.UserCreateResponse;
+import com.zero9platform.domain.user.model.response.UserDetailResponse;
+import com.zero9platform.domain.user.model.response.UserUpdateResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -73,17 +71,6 @@ public class UserController {
         UserDetailResponse response = userService.userDetail(userId, isAdmin, isMy);
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("사용자 프로필 조회 성공", response));
-    }
-
-    /**
-     * 사용자 목록 조회
-     */
-    @GetMapping("/users")
-    public ResponseEntity<CommonResponse<PageResponse<UserDetailResponse>>> userListHandler(Pageable pageable) {
-
-        PageResponse<UserDetailResponse> response = PageResponse.from(userService.userList(pageable));
-
-        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("사용자 목록 조회 성공", response));
     }
 
     /**

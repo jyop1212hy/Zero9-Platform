@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
 
         ExceptionCode exceptionCode = e.getExceptionCode();
 
-        CommonResponse<Void> response = new CommonResponse<>(false, exceptionCode.getMessage(), null);
+        CommonResponse<Void> response = new CommonResponse<>(false, e.getMessage(), null);
 
         return ResponseEntity.status(exceptionCode.getStatus()).body(response);
     }

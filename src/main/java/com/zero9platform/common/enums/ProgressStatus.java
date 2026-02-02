@@ -14,11 +14,4 @@ public enum ProgressStatus {
         this.description = description;
     }
 
-//    public static ProgressStatus from(String value) {
-//
-//        return Arrays.stream(values())
-//                .filter(pps -> pps.description.equals(value))
-//                .findFirst()
-//                .orElseThrow(() -> new CustomException(ExceptionCode.PP_PROGRESS_STATUS_NOT_FOUND));
-//    }
 }

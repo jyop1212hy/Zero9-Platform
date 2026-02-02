@@ -1,11 +1,26 @@
 package com.zero9platform.domain.user.repository;
 
 import com.zero9platform.domain.user.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User,Long> {
+
+    /**
+     * 회원 목록 조회
+     */
+    @Query("""
+        SELECT u
+        FROM User u
+        WHERE u.role IN ('USER', 'INFLUENCER') AND (:nickname IS NULL OR u.nickname LIKE CONCAT('%', :nickname, '%'))
+        ORDER BY u.createdAt DESC
+    """)
+    Page<User> findAllUser(@Param("nickname") String nickname, Pageable pageable);
 
     /**
      * 로그인 확인

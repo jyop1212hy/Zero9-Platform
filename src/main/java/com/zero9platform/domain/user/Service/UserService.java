@@ -4,15 +4,16 @@ import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.aws.s3.S3Service;
-import com.zero9platform.domain.admin.entity.Influencer;
-import com.zero9platform.domain.admin.repository.InfluencerRepository;
+import com.zero9platform.domain.auth.refresh_token.RefreshTokenRepository;
+import com.zero9platform.domain.user.entity.Influencer;
+import com.zero9platform.domain.user.repository.InfluencerRepository;
 import com.zero9platform.domain.user.entity.User;
-import com.zero9platform.domain.user.model.user.request.*;
-import com.zero9platform.domain.user.model.user.response.*;
+import com.zero9platform.domain.user.model.request.*;
+import com.zero9platform.domain.user.model.response.*;
 import com.zero9platform.domain.user.repository.UserRepository;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final InfluencerRepository influencerRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final S3Service s3Service;
 
     private static final String ADMIN_EN = "admin";
@@ -92,16 +94,6 @@ public class UserService {
 
         // 자기 자신을 조회할때의 데이터는 다르게 나옴
         return isMy ? UserMyDetailResponse.from(user, user.getPhone(), user.getEmail()) : UserDetailResponse.from(user);
-    }
-
-    /**
-     * 사용자 목록 조회
-     */
-    @Transactional(readOnly = true)
-    public Page<UserDetailResponse> userList(Pageable pageable) {
-
-        return userRepository.findAll(pageable)
-                .map(UserDetailResponse::from);
     }
 
     /**

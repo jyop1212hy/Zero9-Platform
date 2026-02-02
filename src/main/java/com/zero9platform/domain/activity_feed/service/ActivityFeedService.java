@@ -4,7 +4,10 @@ import com.zero9platform.common.enums.FeedType;
 import com.zero9platform.domain.activity_feed.entity.ActivityFeed;
 import com.zero9platform.domain.activity_feed.model.response.ActivityFeedResponse;
 import com.zero9platform.domain.activity_feed.repository.ActivityFeedRepository;
+import com.zero9platform.domain.product_post_favorite.repository.ProductPostFavoriteRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,54 +19,57 @@ import java.util.List;
 public class ActivityFeedService {
 
     private final ActivityFeedRepository feedRepository;
+    private final ProductPostFavoriteRepository favoriteRepository;
 
     /**
      * 피드 생성
      */
     @Transactional
-    public void feedCreate(String type, Long productPostId, String productName) {
+    public void feedCreate(FeedType type, Long targetId, String title) {
 
-        // 중복 방지(이미 있으면 패스)
-        if (feedRepository.existsByTypeAndProductPostId(type, productPostId)) {
-            return;
+        // 중복이 불가능한 타입인데 이미 존재할 경우 패스
+        if (!type.isRepeatable() && targetId != null) {
+            if (feedRepository.existsByTypeAndTargetId(type.name(), targetId)) {
+                return;
+            }
         }
-
-        String message = "";
-        if (type.equals(FeedType.POPULAR.name())) {
-            message = "[" + productName + "] 상품이 많은 관심을 받고 있습니다.";
-        } else if (type.equals(FeedType.PAYMENT.name())) {
-            message = "[" + productName + "] 상품의 새로운 주문이 접수되었습니다.";
-        } else if (type.equals(FeedType.DEADLINE.name())) {
-            message = "[" + productName + "] 상품의 모집 마감이 임박하였습니다.";
-        } else if (type.equals(FeedType.LOW_STOCK.name())) {
-            message = "[" + productName + "] 상품의 재고가 소진될 예정입니다.";
-        }else if (type.equals(FeedType.SOLD_OUT.name())) {
-            message = "[" + productName + "] 상품이 성황리에 품절되었습니다!";
-        }else if (type.equals(FeedType.SOON.name())) {
-            message = "[" + productName + "] 상품이 곧 공개될 예정입니다.";
-        }
+        // 존재하지않거나 반복가능한 타입일 경우
+        // enum 내부 메소드호출 - 피드 내용(메시지) 위임
+        String message = type.toMessage(title);
 
         // 유저id 필드 null이면 전체피드 (현재 개인별 X)
-        ActivityFeed feed = new ActivityFeed(type, message, productPostId, null);
+        ActivityFeed feed = new ActivityFeed(type.name(), message, targetId, null);
         feedRepository.save(feed);
     }
 
     /**
-     * 피드 목록 조회
+     * 피드 전체목록 조회
      */
     @Transactional(readOnly = true)
-    public List<ActivityFeedResponse> feedsGetList() {
+    public Page<ActivityFeedResponse> feedsGetList(Pageable pageable) {
         // 조회
-        List<ActivityFeed> feeds = feedRepository.findAll();
+        Page<ActivityFeed> page = feedRepository.findAll(pageable);
 
-        // 빈 리스트 생성
-        List<ActivityFeedResponse> responses = new ArrayList<>();
+        // DTO 변환
+        return  page.map(ActivityFeedResponse::from);
+    }
 
-        // 향상된 for문으로 하나씩 DTO 변환 후 추가
-        for (ActivityFeed feed : feeds) {
-            responses.add(ActivityFeedResponse.from(feed));
+    /**
+     * 로그인한 사용자의 피드(현재는 찜) 조회
+     */
+    @Transactional(readOnly = true)
+    public Page<ActivityFeedResponse> feedsGetMyList(Long userId, Pageable pageable) {
+
+        // 유저가 찜한 상품 리스트 가져오기
+        List<Long> favoriteList = favoriteRepository.findProductPostIdsByUserId(userId);
+
+        // 찜한 상품이 없다면 빈 페이지 반환 (현재는 찜만)
+        if (favoriteList.isEmpty()) {
+            return Page.<ActivityFeed>empty(pageable).map(ActivityFeedResponse::from);
         }
 
-        return responses;
+        // 찜한 상품들에 대한 피드만 조회
+        return feedRepository.findFeedsByFavoriteList(favoriteList, pageable)
+                .map(ActivityFeedResponse::from);
     }
 }

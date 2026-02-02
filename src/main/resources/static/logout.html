@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>logout</title>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <link href="/css/common.css" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="/js/common.js"></script>
+</head>
+<body>
+    <script>
+        if(!existToken){
+            alert("접근 할 수 없습니다.");
+
+            window.location.href = "main.html";
+        }else{
+            fetch("http://localhost:8080/zero9/auth/logout", {
+                method: "POST",
+                headers: {"Authorization": accessToken},
+                credentials: "include" // 쿠키 전송 (Refresh Token)
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error("Logout failed");
+                }
+
+                // 프론트 로그아웃 처리
+                localStorage.removeItem("accessToken");
+
+                alert("로그아웃 되었습니다.");
+
+                window.location.href = "main.html";
+            }).catch(error => {
+                console.error(error);
+
+                alert("로그아웃 실패");
+
+                window.location.href = "main.html";
+            });
+        }
+    </script>
+</body>
+</html>

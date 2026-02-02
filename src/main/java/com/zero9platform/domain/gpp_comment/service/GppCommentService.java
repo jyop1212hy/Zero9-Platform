@@ -2,7 +2,6 @@ package com.zero9platform.domain.gpp_comment.service;
 
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.exception.CustomException;
-import com.zero9platform.common.model.PageResponse;
 import com.zero9platform.domain.gpp_comment.entity.GppComment;
 import com.zero9platform.domain.gpp_comment.model.request.GppCommentCreateRequest;
 import com.zero9platform.domain.gpp_comment.model.request.GppCommentGetListRequest;

@@ -4,7 +4,7 @@ import com.zero9platform.common.entity.BaseEntity;
 import com.zero9platform.common.enums.Category;
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.enums.ProgressStatus;
-import com.zero9platform.common.enums.SaleStatus;
+//import com.zero9platform.common.enums.DisplayStatus;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.domain.product_post_option.entity.ProductPostOption;
 import com.zero9platform.domain.user.entity.User;
@@ -59,8 +59,8 @@ public class ProductPost extends BaseEntity {
     @Column(nullable = false)
     private String progressStatus = ProgressStatus.READY.name();    // 판매 기간 상태
 
-    @Column(nullable = false)
-    private String saleStatus = SaleStatus.ACTIVE.name();    // 판매 가능 상태
+//    @Column(nullable = false)
+//    private String saleStatus = DisplayStatus.ACTIVE.name();    // 판매 가능 상태
 
     @Column(nullable = false)
     private LocalDateTime startDate;
@@ -117,11 +117,6 @@ public class ProductPost extends BaseEntity {
         }
     }
 
-    // 판매 가능 상태
-    private void updateSaleStatus() {
-        // optionList의 모든 option의 stockStatus가 SOLD_OUT이면 SOLD_OUT 상태
-        // option
-    }
 
     public void addOption(ProductPostOption option) {
         productPostOptionList.add(option);
@@ -132,25 +127,4 @@ public class ProductPost extends BaseEntity {
 //        this.productPostStatus = productPostStatus;
 //    }
 
-    // 상품 게시물의 하위 옵션 리스트가 전부 "비활성화"인지 아닌지 검증
-//    public boolean allOptionsInactive() {
-//
-//        for (ProductPostOption option: productPostOptionList) {
-//            if (SaleStatus.ACTIVE.name().equals(option.getOptionStatus())) {
-//                return false;
-//            }
-//        }
-//
-//        this.productPostStatus = SaleStatus.INACTIVE.name();
-//
-//        return true;
-//    }
-
-    public void allOptionIsEmpty() {
-
-        // 옵션이 비었을 때 판매 상태 "비활성화" -> 추후 주문 상품 생성 불가 해야 함
-        if (productPostOptionList.isEmpty()) {
-            this.saleStatus = SaleStatus.INACTIVE.name();
-        }
-    }
 }

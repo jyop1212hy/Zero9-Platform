@@ -16,11 +16,4 @@ public enum OrderStatus {
         this.description = description;
     }
 
-//    public static OrderStatus from(String value) {
-//
-//        return Arrays.stream(values())
-//                .filter(o -> o.description.equals(value))
-//                .findFirst()
-//                .orElseThrow(() -> new CustomException(ExceptionCode.ORDER_STATUS_NOT_FOUND));
-//    }
 }

@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -55,8 +56,9 @@ public class GroupPurchasePostService {
         }
 
         // 3️. Enum 변환 - 카테고리, 진행상태
-        Category category = request.getCategory();
-        GppProgressStatus gppProgressStatus = request.getGppProgressStatus();
+//        Category category = request.getCategory();
+        String category = request.getCategory().name();
+//        GppProgressStatus gppProgressStatus = request.getGppProgressStatus();
 
         // 4. 이미지 파일 업로드 S3 서비스 호출
         String contentImage = "";
@@ -65,6 +67,7 @@ public class GroupPurchasePostService {
         }
 
         // 5. Entity 생성
+        LocalDateTime now = LocalDateTime.now();
         GroupPurchasePost gpp = new GroupPurchasePost(
                 user,
                 request.getProductName(),
@@ -72,10 +75,11 @@ public class GroupPurchasePostService {
                 contentImage,
                 request.getPrice(),
                 request.getLinkUrl(),
-                category.name(),
-                gppProgressStatus.name(),
+                category,
+//                gppProgressStatus.name(),
                 request.getStartDate().atStartOfDay(),
-                request.getEndDate().atStartOfDay()
+                request.getEndDate().atStartOfDay(),
+                now
         );
 
         // 5️. 데이터 저장
@@ -148,9 +152,10 @@ public class GroupPurchasePostService {
 
         // 5. Enum 변환 - 카테고리, 진행상태
         Category category = request.getCategory();
-        GppProgressStatus gppProgressStatus = request.getGppProgressStatus();
+//        GppProgressStatus gppProgressStatus = request.getGppProgressStatus();
 
         // 6. 엔티티 수정
+        LocalDateTime now = LocalDateTime.now();
         gpp.update(
                 request.getProductName(),
                 request.getContent(),
@@ -158,9 +163,10 @@ public class GroupPurchasePostService {
                 request.getPrice(),
                 request.getLinkUrl(),
                 category.name(),
-                gppProgressStatus.name(),
+//                gppProgressStatus.name(),
                 request.getStartDate().atStartOfDay(),
-                request.getEndDate().atStartOfDay()
+                request.getEndDate().atStartOfDay(),
+                now
         );
 
         // 6. 응답 변환
@@ -192,7 +198,8 @@ public class GroupPurchasePostService {
         }
 
         // 4. Soft Delete
-        gpp.softDelete();
+        LocalDateTime now = LocalDateTime.now();
+        gpp.softDelete(now);
     }
 
 }

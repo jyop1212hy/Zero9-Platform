@@ -58,7 +58,12 @@ public class GroupPurchasePost extends BaseEntity {
     @Column
     private LocalDateTime deletedAt;
 
-    public GroupPurchasePost(User user, String productName, String content, String image, Long price, String linkUrl, String category, String gppProgressStatus, LocalDateTime startDate, LocalDateTime endDate) {
+    
+    /**
+     * gpp 생성자
+     */
+    //    public GroupPurchasePost(User user, String productName, String content, String image, Long price, String linkUrl, String category, String gppProgressStatus, LocalDateTime startDate, LocalDateTime endDate) {
+    public GroupPurchasePost(User user, String productName, String content, String image, Long price, String linkUrl, String category, LocalDateTime startDate, LocalDateTime endDate, LocalDateTime now) {
         this.user = user;
         this.productName = productName;
         this.content = content;
@@ -66,32 +71,70 @@ public class GroupPurchasePost extends BaseEntity {
         this.price = price;
         this.linkUrl = linkUrl;
         this.category = category;
-        this.gppProgressStatus = gppProgressStatus;
+//        this.gppProgressStatus = GppProgressStatus.READY.name(); // 더이상 모집상태 입력을 받지 않고, 생성 시점에 연산한다
         this.viewCount = 0L;
         this.startDate = startDate;
         this.endDate = endDate;
+
+        updateProgressStatus(now); // LocalDateTime.now() <- 엔티티 스스로 현재 시간을 판단해선 안되며, 외부에서 주입받는다
     }
 
     /**
      * gpp 게시물 수정
      */
-    public void update(String productName, String content, String image, Long price, String linkUrl, String category, String gppProgressStatus, LocalDateTime startDate, LocalDateTime endDate) {
+//    public void update(String productName, String content, String image, Long price, String linkUrl, String category, String gppProgressStatus, LocalDateTime startDate, LocalDateTime endDate) {
+    public void update(String productName, String content, String image, Long price, String linkUrl, String category, LocalDateTime startDate, LocalDateTime endDate, LocalDateTime now) {
         this.productName = productName;
         this.content = content;
         this.image = image;
         this.price = price;
         this.linkUrl = linkUrl;
         this.category = category;
-        this.gppProgressStatus = gppProgressStatus;
+//        this.gppProgressStatus = gppProgressStatus; // 더이상 모집상태 입력을 받지 않고, 생성 시점에 연산한다
         this.startDate = startDate;
         this.endDate = endDate;
+
+        // 순서 매우 중요, 바꾸지 말것
+        // start/endDate 변경 이후 현재 시점 기준으로 상태 재계산
+        updateProgressStatus(now); // 날짜 변경 시 상태 재계산
     }
 
     /**
      * gpp 게시물 삭제
      */
-    public void softDelete() {
-        this.deletedAt = LocalDateTime.now();
+//    public void softDelete() {
+//        this.deletedAt = LocalDateTime.now();
+//    }
+    // 현재시간을 외부에서 주입받도록 수정함
+    public void softDelete(LocalDateTime now) {
+        this.deletedAt = now;
+    }
+
+    /**
+     * Enum -> value의 description 반환 (응답dto용)
+     */
+    public String getCategoryDescription() {
+        return Category.valueOf(this.category).getDescription();
+    }
+    public String getProgressStatusDescription() {
+        return GppProgressStatus.valueOf(this.gppProgressStatus).getDescription();
+    }
+
+    /**
+     * 모집상태 전환
+     */
+    public void updateProgressStatus(LocalDateTime now) {
+        GppProgressStatus newStatus;
+
+        if (now.isBefore(startDate)) {
+            newStatus = GppProgressStatus.READY;
+        } else if (now.isBefore(endDate)) {
+            newStatus = GppProgressStatus.DOING;
+        } else {
+            newStatus = GppProgressStatus.END;
+        }
+
+        this.gppProgressStatus = newStatus.name();
     }
 
     // 조회 수 증가 - 영속 엔티티 상태 변경, 영속성 컨텍스트를 거침

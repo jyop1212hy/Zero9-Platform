@@ -21,7 +21,6 @@ public class ProductPostGetDetailResponse {
     private final List<ProductPostOptionCreateResponse> optionList;
     private final String image;
     private final String progressStatus;
-    private final String saleStatus;
     private final LocalDateTime startDate;
     private final LocalDateTime endDate;
     private final LocalDateTime createdAt;
@@ -43,7 +42,6 @@ public class ProductPostGetDetailResponse {
                 optionList,
                 productPost.getImage(),
                 productPost.getProgressStatus(),
-                productPost.getSaleStatus(),
                 productPost.getStartDate(),
                 productPost.getEndDate(),
                 productPost.getCreatedAt(),

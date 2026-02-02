@@ -29,8 +29,8 @@ public class GroupPurchasePostDetailResponse {
 
     public static GroupPurchasePostDetailResponse from(GroupPurchasePost groupPurchasePost) {
 
-        Category category = Category.valueOf(groupPurchasePost.getCategory());
-        GppProgressStatus gppProgressStatus = GppProgressStatus.valueOf(groupPurchasePost.getGppProgressStatus());
+//        Category category = Category.valueOf(groupPurchasePost.getCategory());
+//        GppProgressStatus gppProgressStatus = GppProgressStatus.valueOf(groupPurchasePost.getGppProgressStatus());
 
         return new GroupPurchasePostDetailResponse(
                 groupPurchasePost.getId(),
@@ -41,8 +41,8 @@ public class GroupPurchasePostDetailResponse {
                 groupPurchasePost.getViewCount(),
                 groupPurchasePost.getPrice(),
                 groupPurchasePost.getLinkUrl(),
-                category.getDescription(),
-                gppProgressStatus.getDescription(),
+                groupPurchasePost.getCategoryDescription(),
+                groupPurchasePost.getProgressStatusDescription(),
                 groupPurchasePost.getStartDate(),
                 groupPurchasePost.getEndDate(),
                 groupPurchasePost.getCreatedAt(),

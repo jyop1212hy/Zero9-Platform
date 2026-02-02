@@ -12,10 +12,17 @@ spring:
     password: ${DB_PASSWORD}
 
   jpa:
+    open-in-view: false #트랜잭션을 컨트롤러에서 끊고, 영속성 컨텍스트를 서비스까지만 열어두는 설정
     hibernate:
       ddl-auto: update
     properties:
       hibernate:
+
+        #jdbc: # INSERT / UPDATE SQL을 1000개씩 묶어서 DB로 보낸다
+        #  batch_size: 1000
+        #order_inserts: true
+        #order_updates: true
+
         format_sql: false
     show-sql: true
 

@@ -12,8 +12,7 @@ public class ActivityFeedResponse {
     private final Long id;
     private final String type;
     private final String message;
-    private final Long productPostId;
-    private final Long userId;
+    private final Long targetId;
     private final LocalDateTime createdAt;
 
     public static ActivityFeedResponse from(ActivityFeed feed) {
@@ -21,8 +20,7 @@ public class ActivityFeedResponse {
                 feed.getId(),
                 feed.getType(),
                 feed.getMessage(),
-                feed.getProductPostId(),
-                feed.getUserId(),
+                feed.getTargetId(),
                 feed.getCreatedAt()
         );
     }
