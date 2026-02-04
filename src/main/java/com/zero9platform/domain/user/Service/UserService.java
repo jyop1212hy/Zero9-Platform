@@ -1,19 +1,18 @@
 package com.zero9platform.domain.user.Service;
 
+import com.amazonaws.services.s3.AmazonS3;
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.aws.s3.S3Service;
-import com.zero9platform.domain.auth.refresh_token.RefreshTokenRepository;
 import com.zero9platform.domain.user.entity.Influencer;
 import com.zero9platform.domain.user.repository.InfluencerRepository;
 import com.zero9platform.domain.user.entity.User;
 import com.zero9platform.domain.user.model.request.*;
 import com.zero9platform.domain.user.model.response.*;
 import com.zero9platform.domain.user.repository.UserRepository;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,14 +22,18 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class UserService {
 
+    private final AmazonS3 amazonS3;
     private final UserRepository userRepository;
     private final InfluencerRepository influencerRepository;
     private final PasswordEncoder passwordEncoder;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final S3Service s3Service;
 
     private static final String ADMIN_EN = "admin";
     private static final String ADMIN_KR = "관리자";
+    private static final String S3_FOLDER = "user";
+
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucket;
 
     /**
      * 회원가입
@@ -92,8 +95,15 @@ public class UserService {
             throw new CustomException(ExceptionCode.INFLUENCER_NOT_APPROVED);
         }
 
-        // 자기 자신을 조회할때의 데이터는 다르게 나옴
-        return isMy ? UserMyDetailResponse.from(user, user.getPhone(), user.getEmail()) : UserDetailResponse.from(user);
+        // 프로필 이미지 URL 생성 (key → url)
+        String profileImgUrl = user.getProfileImage() != null ? amazonS3.getUrl(bucket, user.getProfileImage()).toString() : null;
+
+        // 자기 자신 조회 여부에 따른 응답 분기
+        if (isMy) {
+            return UserMyDetailResponse.from(user, profileImgUrl, user.getPhone(), user.getEmail());
+        }
+
+        return UserDetailResponse.from(user, profileImgUrl);
     }
 
     /**
@@ -104,20 +114,38 @@ public class UserService {
 
         User user = findById(userId);
 
-        // 나를 제외한 중복되는 이메일 조회
+        // 나를 제외한 중복 체크
         checkDuplicate(userRepository.existsByEmailAndIdNot(request.getEmail(), userId), ExceptionCode.EMAIL_EXIST);
-
-        // 나를 제외한 중복되는 닉네임 조회
         checkDuplicate(userRepository.existsByNicknameAndIdNot(request.getNickname(), userId), ExceptionCode.NICKNAME_EXIST);
-
-        // 나를 제외한 중복되는 핸드폰번호 조회
         checkDuplicate(userRepository.existsByPhoneAndIdNot(request.getPhone(), userId), ExceptionCode.PHONE_EXIST);
 
-        String profileImageUrl = profileImage != null && !profileImage.isEmpty() ? s3Service.upload(profileImage) : "";
+        String newProfileImageKey = null;
+        String oldProfileImageKey = user.getProfileImage();
 
-        user.userUpdate(request.getEmail(), request.getNickname(), request.getPhone(), profileImageUrl);
+        // 새 이미지가 들어온 경우
+        if (profileImage != null && !profileImage.isEmpty()) {
+            newProfileImageKey = s3Service.upload(profileImage, S3_FOLDER);
+        }
 
-        return UserUpdateResponse.from(user);
+        // 사용자 정보 수정
+        user.userUpdate(
+                request.getEmail(),
+                request.getNickname(),
+                request.getPhone(),
+                newProfileImageKey
+        );
+
+        // 이미지가 안 들어온 경우 → 기존 이미지 삭제
+        if ((profileImage == null || profileImage.isEmpty()) && oldProfileImageKey != null) {
+            s3Service.s3Delete(oldProfileImageKey);
+        }
+
+        // 새 이미지가 들어온 경우 → 기존 이미지 삭제
+        if (newProfileImageKey != null && oldProfileImageKey != null) {
+            s3Service.s3Delete(oldProfileImageKey);
+        }
+
+        return UserUpdateResponse.from(user, newProfileImageKey);
     }
 
     /**
@@ -136,6 +164,23 @@ public class UserService {
 
         user.userDelete();
     }
+
+    /**
+     * 프로필 이미지 삭제
+     */
+    /*
+    @Transactional
+    public void profileImgDelete(Long userId, String profileImgKey) {
+
+        User user = findById(userId);
+
+        if(user.getProfileImage() != null && !user.getProfileImage().equals(profileImgKey)) {
+            throw new CustomException(ExceptionCode.PROFILE_IMAGE_NOT_FOUND_OR_INVALID);
+        }
+
+
+    }
+    */
 
     /**
      * 공통 검증 메서드

@@ -29,38 +29,44 @@ public interface GroupPurchasePostRepository extends JpaRepository<GroupPurchase
             """)
     int increaseViewCount(@Param("gppId") Long gppId);
 
-    // 공동구매 게시물 모집상태 변경 대상(준비중->모집중 or 모집중->종료됨) 조회 [삭제처리 제외]
-    @Query("""
-    select g
-    from GroupPurchasePost g
-    where g.deletedAt is null
-      and (
-           (g.gppProgressStatus = 'READY' and g.startDate <= :now) or (g.gppProgressStatus = 'DOING' and g.endDate <= :now)
-      )
-""")
-    List<GroupPurchasePost> findProgressStatusChangeTargets(@Param("now") LocalDateTime now);
+//    // 공동구매 게시물 모집상태 변경 대상(준비중->모집중 or 모집중->종료됨) 조회 - [삭제처리 제외]
+//    @Query("""
+//    select g
+//    from GroupPurchasePost g
+//    where g.deletedAt is null
+//      and (
+//           (g.gppProgressStatus = 'READY' and g.startDate <= :now) or (g.gppProgressStatus = 'DOING' and g.endDate <= :now)
+//      )
+//""")
+//    List<GroupPurchasePost> findProgressStatusChangeTargets(@Param("now") LocalDateTime now);
 
-//    // READY -> DOING
-//    @Modifying(clearAutomatically = true, flushAutomatically = true)
-//    @Query("""
-//    update GroupPurchasePost g
-//    set g.gppProgressStatus = 'DOING'
-//    where g.deletedAt is null
-//      and g.gppProgressStatus = 'READY'
-//      and g.startDate <= :now
-//""")
-//    int updateReadyToDoing(@Param("now") LocalDateTime now);
-//
-//    // DOING -> END
-//    @Modifying(clearAutomatically = true, flushAutomatically = true)
-//    @Query("""
-//    update GroupPurchasePost g
-//    set g.gppProgressStatus = 'END'
-//    where g.deletedAt is null
-//      and g.gppProgressStatus = 'DOING'
-//      and g.endDate <= :now
-//""")
-//    int updateDoingToEnd(@Param("now") LocalDateTime now);
+    // 모집상태 변경 대상의 상태를 즉시 변경
+    // 엔티티 생성/로딩 없이 DB에서 직접 한 번에 처리
+    // 영속성 컨테이너의 관리를 받지않고 즉시 조작하므로, 스케줄러 외의 곳에서는 사용 자제...
+    // 엔티티에서 접근하여 조회한 상태와 불일치 가능 (엔티티를 관리하는 영속성 컨텍스트(1차 캐시) vs 아래의 벌크 업데이트 쿼리메서드는 즉시 DB조작)
+    // 한 트랜잭션 안에서 영속상태의 엔티티를 로드->접근하는 코드 사이에 아래의 벌크업데이트가 공존할 경우, 데이터 불일치
+    // READY -> DOING
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+    update GroupPurchasePost g
+    set g.gppProgressStatus = 'DOING'
+    where g.deletedAt is null
+      and g.gppProgressStatus = 'READY'
+      and g.startDate <= :now
+""")
+    // 벌크 업데이트 쿼리의 반환값은 조작 수(영향받은 row count), 따라서 데이터 타입은 int
+    int updateReadyToDoing(@Param("now") LocalDateTime now);
+
+    // DOING -> END
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+    update GroupPurchasePost g
+    set g.gppProgressStatus = 'END'
+    where g.deletedAt is null
+      and g.gppProgressStatus = 'DOING'
+      and g.endDate <= :now
+""")
+    int updateDoingToEnd(@Param("now") LocalDateTime now);
 
     // ViewCount 랭킹 조회
     List<GroupPurchasePost> findTop10ByDeletedAtIsNullOrderByViewCountDesc();

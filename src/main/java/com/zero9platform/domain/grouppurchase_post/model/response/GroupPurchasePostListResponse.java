@@ -26,7 +26,7 @@ public class GroupPurchasePostListResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public static GroupPurchasePostListResponse from(GroupPurchasePost groupPurchasePost) {
+    public static GroupPurchasePostListResponse from(GroupPurchasePost groupPurchasePost, String image) {
 
 //        Category category = Category.valueOf(groupPurchasePost.getCategory());
 //        GppProgressStatus gppProgressStatus = GppProgressStatus.valueOf(groupPurchasePost.getGppProgressStatus());
@@ -35,7 +35,7 @@ public class GroupPurchasePostListResponse {
                 groupPurchasePost.getId(),
                 groupPurchasePost.getProductName(),
                 groupPurchasePost.getUser().getId(),
-                groupPurchasePost.getImage(),
+                image,
                 groupPurchasePost.getViewCount(),
 //                0L, // favoriteCount 임시값 (추후 연관관계 추가 시 수정)
                 groupPurchasePost.getPrice(),

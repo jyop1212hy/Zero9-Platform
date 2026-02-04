@@ -26,6 +26,7 @@ public enum ExceptionCode {
     NICKNAME_EXIST(HttpStatus.CONFLICT, "중복되는 닉네임이 존재합니다."),
     INSUFFICIENT_STOCK(HttpStatus.BAD_REQUEST, "재고가 부족합니다. 남은 수량: %d"),
     PRODUCT_DELETED_CANNOT_VIEW_PRODUCT_POST(HttpStatus.BAD_REQUEST, "해당 상품이 삭제되어 상품 게시물을 조회할 수 없습니다."),
+    PROFILE_IMAGE_NOT_FOUND_OR_INVALID(HttpStatus.BAD_REQUEST, "삭제할 프로필 이미지가 없거나 올바르지 않습니다."),
 
     // 404
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."),

@@ -17,23 +17,19 @@ public class ProductPostGetListResponse {
     private final String name;
     private final Long originalPrice;
     private final String image;
-    private final String progressStatus;
+//    private final String progressStatus;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    public static ProductPostGetListResponse from(ProductPost productPost) {
-
-        List<ProductPostOptionCreateResponse> optionList = productPost.getProductPostOptionList().stream()
-                .map(ProductPostOptionCreateResponse::from)
-                .toList();
+    public static ProductPostGetListResponse from(ProductPost productPost, String image) {
 
         return new ProductPostGetListResponse(
                 productPost.getId(),
                 productPost.getTitle(),
                 productPost.getName(),
                 productPost.getOriginalPrice(),
-                productPost.getImage(),
-                productPost.getProgressStatus(),
+                image,
+//                productPost.getProgressStatus(),
                 productPost.getCreatedAt(),
                 productPost.getUpdatedAt()
         );

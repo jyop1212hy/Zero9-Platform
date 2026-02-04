@@ -27,7 +27,7 @@ public class GroupPurchasePostDetailResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public static GroupPurchasePostDetailResponse from(GroupPurchasePost groupPurchasePost) {
+    public static GroupPurchasePostDetailResponse from(GroupPurchasePost groupPurchasePost, String image) {
 
 //        Category category = Category.valueOf(groupPurchasePost.getCategory());
 //        GppProgressStatus gppProgressStatus = GppProgressStatus.valueOf(groupPurchasePost.getGppProgressStatus());
@@ -37,7 +37,7 @@ public class GroupPurchasePostDetailResponse {
                 groupPurchasePost.getProductName(),
                 groupPurchasePost.getUser().getId(),
                 groupPurchasePost.getContent(),
-                groupPurchasePost.getImage(),
+                image,
                 groupPurchasePost.getViewCount(),
                 groupPurchasePost.getPrice(),
                 groupPurchasePost.getLinkUrl(),

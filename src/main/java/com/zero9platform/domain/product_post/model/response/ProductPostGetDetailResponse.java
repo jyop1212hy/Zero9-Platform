@@ -14,19 +14,19 @@ public class ProductPostGetDetailResponse {
 
     private final Long id;
     private final String category;
+    private final String progressStatus;
     private final String title;
     private final String name;
     private final String content;
     private final Long originalPrice;
     private final List<ProductPostOptionCreateResponse> optionList;
     private final String image;
-    private final String progressStatus;
     private final LocalDateTime startDate;
     private final LocalDateTime endDate;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    public static ProductPostGetDetailResponse from(ProductPost productPost) {
+    public static ProductPostGetDetailResponse from(ProductPost productPost, String image) {
 
         List<ProductPostOptionCreateResponse> optionList = productPost.getProductPostOptionList().stream()
                 .map(ProductPostOptionCreateResponse::from)
@@ -35,13 +35,13 @@ public class ProductPostGetDetailResponse {
         return new ProductPostGetDetailResponse(
                 productPost.getId(),
                 productPost.getCategory(),
+                productPost.getProgressStatus(),
                 productPost.getTitle(),
                 productPost.getName(),
                 productPost.getContent(),
                 productPost.getOriginalPrice(),
                 optionList,
-                productPost.getImage(),
-                productPost.getProgressStatus(),
+                image,
                 productPost.getStartDate(),
                 productPost.getEndDate(),
                 productPost.getCreatedAt(),

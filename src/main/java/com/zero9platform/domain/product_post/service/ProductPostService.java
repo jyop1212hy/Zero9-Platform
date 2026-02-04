@@ -1,5 +1,7 @@
 package com.zero9platform.domain.product_post.service;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.zero9platform.common.aws.s3.S3Service;
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.enums.StockStatus;
 import com.zero9platform.common.enums.UserRole;
@@ -19,10 +21,12 @@ import com.zero9platform.domain.product_post_option.model.request.ProductPostOpt
 import com.zero9platform.domain.user.entity.User;
 import com.zero9platform.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -34,12 +38,19 @@ public class ProductPostService {
     private final UserRepository userRepository;
     private final ProductPostRepository productPostRepository;
     private final ActivityFeedService activityFeedService;
+    private final S3Service s3Service;
+    private final AmazonS3 amazonS3;
+
+    private static final String S3_FOLDER = "product_post";
+
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucket;
 
     /**
      * 상품 판매 게시물 생성 - Influencer, Admin
      */
     @Transactional
-    public ProductPostCreateResponse productPostCreate(Long userId, ProductPostCreateRequest request) {
+    public ProductPostCreateResponse productPostCreate(Long userId, ProductPostCreateRequest request, MultipartFile file) {
 
         // 인가 확인 (사용자 제외)
         User user = validPermission(userId);
@@ -47,8 +58,14 @@ public class ProductPostService {
         // 판매일 검증
         validProductPostSaleDate(request.getStartDate(), request.getEndDate());
 
+        // 이미지 파일 업로드 S3 서비스 호출
+        String contentImageKey = null;
+        if (file != null && !file.isEmpty()) {
+            contentImageKey = s3Service.upload(file, S3_FOLDER);
+        }
+
         // 상품판매 게시물 생성
-        ProductPost productPost = new ProductPost(user, request.getTitle(), request.getName(), request.getContent(), request.getOriginalPrice(), request.getImage(), request.getCategory().name(), request.getStartDate(), request.getEndDate());
+        ProductPost productPost = new ProductPost(user, request.getTitle(), request.getName(), request.getContent(), request.getOriginalPrice(), contentImageKey, request.getCategory().name(), request.getProgressStatus().name(), request.getStartDate(), request.getEndDate());
 
         // 옵션 생성
         for (ProductPostOptionCreateRequest optionRequest: request.getOptionList()) {
@@ -68,33 +85,34 @@ public class ProductPostService {
     /**
      * 상품 게시물 상세 조회
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public ProductPostGetDetailResponse productPostGetDetail(Long productPostId) {
 
         ProductPost productPost = productPostRepository.findById(productPostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
 
-        return ProductPostGetDetailResponse.from(productPost);
+        String productImage = productPost.getImage() != null ? amazonS3.getUrl(bucket, productPost.getImage()).toString() : null;
+
+        return ProductPostGetDetailResponse.from(productPost, productImage);
     }
 
-    /**
-     * 상품 게시물 목록 조회
-     */
     @Transactional(readOnly = true)
-    public PageResponse<ProductPostGetListResponse> productPostGetList(Pageable pageable) {
+    public Page<ProductPostGetListResponse> productPostGetList(Pageable pageable) {
 
         Page<ProductPost> productPostsPage = productPostRepository.findAllByOrderByUpdatedAtDesc(pageable);
 
-        Page<ProductPostGetListResponse> responsePage = productPostsPage.map(ProductPostGetListResponse::from);
-
-        return PageResponse.from(responsePage);
+        return productPostsPage.map(productPost -> ProductPostGetListResponse.from(
+                        productPost,
+                        productPost.getImage() != null ? amazonS3.getUrl(bucket, productPost.getImage()).toString() : null
+                )
+        );
     }
 
     /**
      * 상품 게시물 수정
      */
     @Transactional
-    public ProductPostUpdateResponse productPostUpdate(Long userId, Long productPostId, ProductPostUpdateRequest request) {
+    public ProductPostUpdateResponse productPostUpdate(Long userId, Long productPostId, ProductPostUpdateRequest request, MultipartFile file) {
 
         // 인가 확인 (사용자 제외)
         User user = validPermission(userId);
@@ -105,9 +123,26 @@ public class ProductPostService {
         // 본인만 수정 가능
         validProductPostOwner(user, productPost);
 
-        String category = request.getCategory() != null ? request.getCategory().name() : null;
+        // 이미지 파일 업로드 S3 서비스 호출
+        String newImageKey = null;
+        String oldImageKey = productPost.getImage();
 
-        productPost.update(category, request.getTitle(), request.getName(), request.getContent(), request.getOriginalPrice(), request.getImage(), request.getStartDate(), request.getEndDate());
+        if (file != null && !file.isEmpty()) {
+            newImageKey = s3Service.upload(file, S3_FOLDER);
+        }
+
+        String category = request.getCategory() != null ? request.getCategory().name() : null;
+        String progressStatus = request.getProgressStatus() != null ? request.getProgressStatus().name() : null;
+
+        // 이미지 교체 로직
+        String finalImageKey = newImageKey != null ? newImageKey : oldImageKey;
+
+        productPost.update(category, progressStatus, request.getTitle(), request.getName(), request.getContent(), request.getOriginalPrice(), finalImageKey, request.getStartDate(), request.getEndDate());
+
+        // 기존 이미지 삭제 (새 이미지가 있을 때만)
+        if (newImageKey != null && oldImageKey != null) {
+            s3Service.s3Delete(oldImageKey);
+        }
 
         return ProductPostUpdateResponse.from(productPost);
     }
