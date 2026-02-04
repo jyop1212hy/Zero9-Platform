@@ -6,15 +6,11 @@ import com.zero9platform.domain.auth.model.AuthUser;
 import com.zero9platform.domain.product_post.entity.ProductPost;
 import com.zero9platform.domain.product_post.repository.ProductPostRepository;
 import com.zero9platform.domain.product_post_favorite.repository.ProductPostFavoriteRepository;
-import com.zero9platform.domain.searchLog.entity.SearchContext;
 import com.zero9platform.domain.searchLog.entity.SearchLog;
 import com.zero9platform.domain.searchLog.model.SearchLogItemResponse;
-import com.zero9platform.domain.searchLog.model.SearchLogListResponse;
-import com.zero9platform.domain.searchLog.repository.SearchContextRepository;
 import com.zero9platform.domain.searchLog.repository.SearchLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +23,6 @@ import java.util.stream.Collectors;
 public class SearchLogService {
 
     private final SearchLogRepository searchLogRepository;
-    private final SearchContextRepository searchContextRepository;
     private final ProductPostRepository productPostRepository;
     private final ProductPostFavoriteRepository productPostFavoriteRepository;
 
@@ -83,7 +78,7 @@ public class SearchLogService {
     }
 
     /**
-     * 검색 로그 + 컨텍스트 저장
+     * 검색 로그 저장
      */
     @Transactional
     public void saveSearchLogs(String keyword, List<ProductPost> posts, Long userId) {
@@ -101,20 +96,6 @@ public class SearchLogService {
         searchLog.increaseCount();
 
         searchLogRepository.save(searchLog);
-
-        // 로그인 유저가 아니면 컨텍스트 저장 안 함
-        if (userId == null || posts.isEmpty()) {
-            return;
-        }
-
-        // 검색 결과 게시물 기준으로 컨텍스트 생성
-        List<SearchContext> contexts = posts
-                .stream()
-                .map(post -> new SearchContext(keyword, post.getId(), userId))
-                .toList();
-
-        // 일괄 저장
-        searchContextRepository.saveAll(contexts);
     }
 
     /**
