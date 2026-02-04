@@ -8,5 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface KeywordRankingSnapshotRepository extends JpaRepository<KeywordRankingSnapshot, Long> {
 
-    Page<KeywordRankingSnapshot> findByPeriodOrderByCountDesc(RankingPeriod period, Pageable pageable);
+    Page<KeywordRankingSnapshot> findByPeriodOrderByKeywordCountDesc(RankingPeriod period, Pageable pageable);
 }
