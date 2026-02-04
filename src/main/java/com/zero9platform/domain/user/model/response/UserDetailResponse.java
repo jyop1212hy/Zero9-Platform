@@ -9,11 +9,13 @@ import lombok.Getter;
 public class UserDetailResponse {
 
     private final String nickname;
+    private final String profileImg;
     private final String role;
 
-    public static UserDetailResponse from(User user) {
+    public static UserDetailResponse from(User user, String profileImg) {
         return new UserDetailResponse(
                 user.getNickname(),
+                profileImg,
                 user.getRole()
         );
     }

@@ -18,6 +18,25 @@ public class GroupPurchasePostScheduler {
 
     private final GroupPurchasePostRepository groupPurchasePostRepository;
 
+//    @Transactional
+//    @Scheduled(cron = "0 0 0 * * *")
+////    @Scheduled(cron = "0 */10 * * * *") // 10분마다
+//    public void updateGppProgressStatus() {
+//
+//        LocalDateTime now = LocalDateTime.now();
+//
+//        // 오늘을 기준으로 모집상태 변경이 필요한 대상 타겟 조회
+//        List<GroupPurchasePost> targets = groupPurchasePostRepository.findProgressStatusChangeTargets(now);
+//
+//        // 대상 모집상태 업데이트
+//        for (GroupPurchasePost gpp : targets) {
+//            gpp.updateProgressStatus(now);
+//        }
+//        // Dirty Checking + 자동 flush
+//
+//        log.info("GPP 상태 변경 대상 수: {}", targets.size());
+//    }
+
     /**
      * 매일 00시에 모집 상태 자동 변경
      */
@@ -28,27 +47,10 @@ public class GroupPurchasePostScheduler {
 
         LocalDateTime now = LocalDateTime.now();
 
-        // 오늘을 기준으로 모집상태 변경이 필요한 대상 타겟 조회
-        List<GroupPurchasePost> targets = groupPurchasePostRepository.findProgressStatusChangeTargets(now);
+        int readyToDoing = groupPurchasePostRepository.updateReadyToDoing(now);
+        int doingToEnd = groupPurchasePostRepository.updateDoingToEnd(now);
 
-        // 대상 모집상태 업데이트
-        for (GroupPurchasePost gpp : targets) {
-            gpp.updateProgressStatus(now);
-        }
-        // Dirty Checking + 자동 flush
-
-        log.info("GPP 상태 변경 대상 수: {}", targets.size());
+        log.info("GPP 상태 변경 - READY->DOING: {}, DOING->END: {}", readyToDoing, doingToEnd);
     }
 
-//    @Transactional
-//    @Scheduled(cron = "0 0 0 * * *")
-//    public void updateGppProgressStatus() {
-//
-//        LocalDateTime now = LocalDateTime.now();
-//
-//        int readyToDoing = groupPurchasePostRepository.updateReadyToDoing(now);
-//        int doingToEnd = groupPurchasePostRepository.updateDoingToEnd(now);
-//
-//        log.info("GPP 상태 변경 - READY->DOING: {}, DOING->END: {}", readyToDoing, doingToEnd);
-//    }
 }

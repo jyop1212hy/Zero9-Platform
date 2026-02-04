@@ -18,13 +18,13 @@ public class UserUpdateResponse {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    public static UserUpdateResponse from(User user) {
+    public static UserUpdateResponse from(User user, String profileImageUrl) {
         return new UserUpdateResponse(
                 user.getId(),
                 user.getEmail(),
                 user.getNickname(),
                 user.getPhone(),
-                user.getProfileImage(),
+                profileImageUrl,
                 user.getCreatedAt(),
                 user.getUpdatedAt()
         );

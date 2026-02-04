@@ -14,13 +14,13 @@ public class ProductPostCreateResponse {
 
     private final Long id;
     private final String category;
+    private final String progressStatus;
     private final String title;
     private final String name;
     private final String content;
     private final Long originalPrice;
     private final List<ProductPostOptionCreateResponse> optionList;
     private final String image;
-    private final String progressStatus;
     private final LocalDateTime startDate;
     private final LocalDateTime endDate;
     private final LocalDateTime createdAt;
@@ -35,13 +35,13 @@ public class ProductPostCreateResponse {
         return new ProductPostCreateResponse(
                 productPost.getId(),
                 productPost.getCategory(),
+                productPost.getProgressStatus(),
                 productPost.getTitle(),
                 productPost.getName(),
                 productPost.getContent(),
                 productPost.getOriginalPrice(),
                 optionList,
                 productPost.getImage(),
-                productPost.getProgressStatus(),
                 productPost.getStartDate(),
                 productPost.getEndDate(),
                 productPost.getCreatedAt(),

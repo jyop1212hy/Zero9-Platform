@@ -1,5 +1,6 @@
 package com.zero9platform.domain.grouppurchase_post.service;
 
+import com.amazonaws.services.s3.AmazonS3;
 import com.zero9platform.common.aws.s3.S3Service;
 import com.zero9platform.common.enums.Category;
 import com.zero9platform.common.enums.ExceptionCode;
@@ -14,6 +15,7 @@ import com.zero9platform.domain.grouppurchase_post.repository.GroupPurchasePostR
 import com.zero9platform.domain.user.entity.User;
 import com.zero9platform.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,12 @@ public class GroupPurchasePostService {
     private final UserRepository userRepository;
     private final GroupPurchasePostViewCountService groupPurchasePostViewCountService;
     private final S3Service s3Service;
+    private final AmazonS3 amazonS3;
+
+    private static final String S3_FOLDER = "gp_post";
+
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucket;
 
     /**
      * 공동구매 게시물 작성
@@ -63,7 +71,7 @@ public class GroupPurchasePostService {
         // 4. 이미지 파일 업로드 S3 서비스 호출
         String contentImage = "";
         if (file != null && !file.isEmpty()) {
-            contentImage = s3Service.upload(file);
+            contentImage = s3Service.upload(file, S3_FOLDER);
         }
 
         // 5. Entity 생성
@@ -86,7 +94,7 @@ public class GroupPurchasePostService {
         GroupPurchasePost savedGpp = groupPurchasePostRepository.save(gpp);
 
         // 6️. Response 변환
-        return GroupPurchasePostDetailResponse.from(savedGpp);
+        return GroupPurchasePostDetailResponse.from(savedGpp, contentImage);
     }
 
     /**
@@ -99,7 +107,10 @@ public class GroupPurchasePostService {
         Page<GroupPurchasePost> page = groupPurchasePostRepository.findAllByDeletedAtIsNull(pageable);
 
         // 2. 응답객체 매핑 후 반환
-        return page.map(GroupPurchasePostListResponse::from);
+        return page.map(gpp -> GroupPurchasePostListResponse.from(
+                gpp,
+                gpp.getImage() != null ? amazonS3.getUrl(bucket, gpp.getImage()).toString() : null
+        ));
     }
     
     /**
@@ -115,11 +126,13 @@ public class GroupPurchasePostService {
         // 2. 조회수 증가 (아직 동시성 문제 고려 안했음, 추후 고민할 것)
         groupPurchasePostViewCountService.increaseViewCount(gppId);
 
+        String imgUrl = gpp.getImage() != null ? amazonS3.getUrl(bucket, gpp.getImage()).toString() : null;
+
         // 3. 저장 (영속 상태라 사실상 생략 가능)
 //        groupPurchasePostRepository.save(gpp);
 
         // 4. Response 변환
-        return GroupPurchasePostDetailResponse.from(gpp);
+        return GroupPurchasePostDetailResponse.from(gpp, imgUrl);
     }
 
     /**
@@ -145,21 +158,26 @@ public class GroupPurchasePostService {
         }
 
         // 4. 이미지 파일 업로드 S3 서비스 호출
-        String contentImage = "";
+        String oldImageKey = gpp.getImage();
+        String newImageKey = null;
+
         if (file != null && !file.isEmpty()) {
-            contentImage = s3Service.upload(file);
+            newImageKey = s3Service.upload(file, S3_FOLDER);
         }
 
         // 5. Enum 변환 - 카테고리, 진행상태
         Category category = request.getCategory();
 //        GppProgressStatus gppProgressStatus = request.getGppProgressStatus();
 
+        // 이미지 교체 로직
+        String finalImageKey = newImageKey != null ? newImageKey : oldImageKey;
+
         // 6. 엔티티 수정
         LocalDateTime now = LocalDateTime.now();
         gpp.update(
                 request.getProductName(),
                 request.getContent(),
-                contentImage,
+                finalImageKey,
                 request.getPrice(),
                 request.getLinkUrl(),
                 category.name(),
@@ -169,8 +187,13 @@ public class GroupPurchasePostService {
                 now
         );
 
+        // 기존 이미지 삭제 (새 이미지가 있을 때만)
+        if (newImageKey != null && oldImageKey != null) {
+            s3Service.s3Delete(oldImageKey);
+        }
+
         // 6. 응답 변환
-        return GroupPurchasePostDetailResponse.from(gpp);
+        return GroupPurchasePostDetailResponse.from(gpp, finalImageKey);
     }
 
 

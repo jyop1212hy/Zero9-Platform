@@ -12,14 +12,15 @@ import com.zero9platform.domain.product_post.model.response.ProductPostUpdateRes
 import com.zero9platform.domain.product_post.service.ProductPostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-@Controller
+@RestController
 @RequestMapping("/zero9")
 @RequiredArgsConstructor
 public class ProductPostController {
@@ -30,10 +31,10 @@ public class ProductPostController {
      * 상품 게시물 생성
      */
     @PostMapping("/product-posts")
-    public ResponseEntity<CommonResponse<ProductPostCreateResponse>> productPostCreateHandler(@AuthenticationPrincipal AuthUser authUser, @Valid @RequestBody ProductPostCreateRequest request) {
+    public ResponseEntity<CommonResponse<ProductPostCreateResponse>> productPostCreateHandler(@AuthenticationPrincipal AuthUser authUser, @RequestPart("ppCreateRequest") @Valid ProductPostCreateRequest request, @RequestPart(value = "contentImage", required = false) MultipartFile file) {
         Long userId = authUser.getId();
 
-        ProductPostCreateResponse response = productPostService.productPostCreate(userId, request);
+        ProductPostCreateResponse response = productPostService.productPostCreate(userId, request, file);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("상품 게시물 생성 성공", response));
     }
@@ -53,22 +54,23 @@ public class ProductPostController {
      * 상품 게시물 목록 조회
      */
     @GetMapping("/product-posts")
-    public ResponseEntity<CommonResponse<PageResponse<ProductPostGetListResponse>>> productPostGetListHandler(Pageable pageable) {
+    public ResponseEntity<CommonResponse<PageResponse<ProductPostGetListResponse>>>
+    productPostGetListHandler(Pageable pageable) {
 
-        PageResponse<ProductPostGetListResponse> responsePage = productPostService.productPostGetList(pageable);
+        PageResponse<ProductPostGetListResponse> response = PageResponse.from(productPostService.productPostGetList(pageable));
 
-        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("상품 게시물 목록 조회 성공", responsePage));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("상품 게시물 목록 조회 성공", response));
     }
 
     /**
      * 상품 게시물 수정
      */
     @PatchMapping("/product-posts/{productPostId}")
-    public ResponseEntity<CommonResponse<ProductPostUpdateResponse>> productPostUpdateHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productPostId, @RequestBody ProductPostUpdateRequest request) {
+    public ResponseEntity<CommonResponse<ProductPostUpdateResponse>> productPostUpdateHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long productPostId, @RequestPart("ppUpdateRequest") ProductPostUpdateRequest request, @RequestPart(value = "contentImage", required = false) MultipartFile file) {
 
         Long userId = authUser.getId();
 
-        ProductPostUpdateResponse response = productPostService.productPostUpdate(userId, productPostId, request);
+        ProductPostUpdateResponse response = productPostService.productPostUpdate(userId, productPostId, request, file);
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("상품 게시물 수정 성공", response));
     }

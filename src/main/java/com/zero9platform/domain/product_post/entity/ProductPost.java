@@ -68,7 +68,7 @@ public class ProductPost extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime endDate;
 
-    public ProductPost(User user, String title, String name, String content, Long originalPrice, String image, String category, LocalDateTime startDate, LocalDateTime endDate) {
+    public ProductPost(User user, String title, String name, String content, Long originalPrice, String image, String category, String progressStatus, LocalDateTime startDate, LocalDateTime endDate) {
         this.user = user;
         this.title = title;
         this.name = name;
@@ -76,6 +76,7 @@ public class ProductPost extends BaseEntity {
         this.originalPrice = originalPrice;
         this.image = image;
         this.category = category;
+        this.progressStatus = progressStatus;
 
         if (startDate == null || endDate == null) {
             throw new CustomException(ExceptionCode.PP_DATE_REQUIRED);
@@ -87,11 +88,11 @@ public class ProductPost extends BaseEntity {
 
         this.startDate = startDate;
         this.endDate = endDate;
-        updateProgressStatus();
     }
 
-    public void update(String category, String title, String name, String content, Long originalPrice, String image, LocalDateTime startDate, LocalDateTime endDate) {
+    public void update(String category, String progressStatus, String title, String name, String content, Long originalPrice, String image, LocalDateTime startDate, LocalDateTime endDate) {
         if (category != null) this.category = category;
+        if (progressStatus != null) this.progressStatus = progressStatus;
         if (title != null) this.title = title;
         if (name != null) this.name = name;
         if (content != null) this.content = content;
@@ -101,30 +102,8 @@ public class ProductPost extends BaseEntity {
         if (endDate != null) this.endDate = endDate;
     }
 
-    // 판매 기간 상태
-    private void updateProgressStatus() {
-
-        // 준비, 진행, 종료
-        // 준비: 현재 시각 < 시작일
-        // 진행: 시작일 < 현재 시각 && 현재 시각 < 종료일
-        // 종료: 종료일 < 현재 시각
-        if (this.startDate.isAfter(LocalDateTime.now())) {
-            this.progressStatus = ProgressStatus.READY.name();
-        } else if (this.startDate.isBefore(LocalDateTime.now()) && this.endDate.isAfter(LocalDateTime.now())) {
-            this.progressStatus = ProgressStatus.DOING.name();
-        } else if (this.endDate.isBefore(LocalDateTime.now())) {
-            this.progressStatus = ProgressStatus.END.name();
-        }
-    }
-
-
     public void addOption(ProductPostOption option) {
         productPostOptionList.add(option);
         option.setProductPost(this);
     }
-
-//    public void setProductPostStatus(String productPostStatus) {
-//        this.productPostStatus = productPostStatus;
-//    }
-
 }
