@@ -51,7 +51,7 @@ public class RankingService {
 
         // 찜 개수 기준 상위 10개 상품 게시물 집계 조회
         List<ProductPostFavoriteRankingAggregateResponse> favorite = productPostFavoriteRepository
-                .findTop10ProductPostByFavorite(ProgressStatus.DOING, PageRequest.of(0, 10));
+                .findTop10ProductPostByFavorite(ProgressStatus.DOING.name(), PageRequest.of(0, 10));
 
         AtomicInteger rank = new AtomicInteger(1);
 
