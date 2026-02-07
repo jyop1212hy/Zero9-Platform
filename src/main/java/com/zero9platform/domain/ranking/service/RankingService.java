@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,12 +38,10 @@ public class RankingService {
                                 rank.getAndIncrement(),
                                 aggregate.getId(),
                                 aggregate.getProductName(),
-                                aggregate.getViewCount()
-                        )
+                                aggregate.getViewCount())
                 )
                 .toList();
     }
-
 
     /**
      * 상품판매 게시물 랭킹 (찜 기준)
@@ -54,7 +51,7 @@ public class RankingService {
 
         // 찜 개수 기준 상위 10개 상품 게시물 집계 조회
         List<ProductPostFavoriteRankingAggregateResponse> favorite = productPostFavoriteRepository
-                .findTop10ProductPostByFavorite(ProgressStatus.DOING, PageRequest.of(0, 10));
+                .findTop10ProductPostByFavorite(ProgressStatus.DOING.name(), PageRequest.of(0, 10));
 
         AtomicInteger rank = new AtomicInteger(1);
 
@@ -65,8 +62,7 @@ public class RankingService {
                                 rank.getAndIncrement(),
                                 aggregate.getProductPostId(),
                                 aggregate.getTitle(),
-                                aggregate.getFavoriteCount()
-                        )
+                                aggregate.getFavoriteCount())
                 )
                 .toList();
     }
@@ -90,8 +86,7 @@ public class RankingService {
                         SearchLogRankingListResponse.from(
                                 rank.getAndIncrement(),
                                 aggregate.getKeyword(),
-                                aggregate.getCount()
-                        )
+                                aggregate.getCount())
                 )
                 .toList();
     }
