@@ -3,10 +3,8 @@ package com.zero9platform.domain.product_post_favorite;
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.enums.FeedType;
 import com.zero9platform.common.exception.CustomException;
-import com.zero9platform.common.model.PageResponse;
 import com.zero9platform.domain.activity_feed.service.ActivityFeedService;
 import com.zero9platform.domain.auth.model.AuthUser;
-import com.zero9platform.domain.grouppurchase_post.repository.GroupPurchasePostRepository;
 import com.zero9platform.domain.product_post.entity.ProductPost;
 import com.zero9platform.domain.product_post.repository.ProductPostRepository;
 import com.zero9platform.domain.product_post_favorite.entity.ProductPostFavorite;
@@ -20,7 +18,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Optional;
 
 @Service
@@ -29,7 +26,6 @@ public class ProductPostFavoriteService {
 
     private final ProductPostFavoriteRepository productPostFavoriteRepository;
     private final UserRepository userRepository;
-    private final GroupPurchasePostRepository groupPurchasePostRepository;
     private final ProductPostRepository productPostRepository;
     private final ActivityFeedService activityFeedService;
 
