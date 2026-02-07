@@ -1,7 +1,6 @@
 package com.zero9platform.domain.grouppurchase_post.model.request;
 
 import com.zero9platform.common.enums.Category;
-import com.zero9platform.common.enums.GppProgressStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;

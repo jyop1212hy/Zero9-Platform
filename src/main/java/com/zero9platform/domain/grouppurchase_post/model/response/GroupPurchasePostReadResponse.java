@@ -8,15 +8,16 @@ import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
-public class GroupPurchasePostListResponse {
+public class GroupPurchasePostReadResponse {
 
     private Long id;
     private String productName;
     private Long userId;
+    private String content;
     private String image;
     private Long viewCount;
-//    private Long favoriteCount; // 추후 좋아요 기능 연동
     private Long price;
+    private String linkUrl;
     private String category;
     private String gppProgressStatus;
     private LocalDateTime startDate;
@@ -24,16 +25,17 @@ public class GroupPurchasePostListResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public static GroupPurchasePostListResponse from(GroupPurchasePost groupPurchasePost, String image) {
+    public static GroupPurchasePostReadResponse from(GroupPurchasePost groupPurchasePost, String image, long realtimeViewCount) {
 
-        return new GroupPurchasePostListResponse(
+        return new GroupPurchasePostReadResponse(
                 groupPurchasePost.getId(),
                 groupPurchasePost.getProductName(),
                 groupPurchasePost.getUser().getId(),
+                groupPurchasePost.getContent(),
                 image,
-                groupPurchasePost.getViewCount(),
-//                0L, // favoriteCount 임시값 (추후 연관관계 추가 시 수정)
+                realtimeViewCount,
                 groupPurchasePost.getPrice(),
+                groupPurchasePost.getLinkUrl(),
                 groupPurchasePost.getCategoryDescription(),
                 groupPurchasePost.getProgressStatusDescription(),
                 groupPurchasePost.getStartDate(),

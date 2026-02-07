@@ -29,6 +29,14 @@ public interface GroupPurchasePostRepository extends JpaRepository<GroupPurchase
             """)
     int increaseViewCount(@Param("gppId") Long gppId);
 
+    @Modifying
+    @Query("""
+    update GroupPurchasePost g
+    set g.viewCount = g.viewCount + :delta
+    where g.id = :gppId
+""")
+    void increaseViewCountBatch(@Param("gppId") Long gppId, @Param("delta") Long delta);
+
 //    // 공동구매 게시물 모집상태 변경 대상(준비중->모집중 or 모집중->종료됨) 조회 - [삭제처리 제외]
 //    @Query("""
 //    select g
