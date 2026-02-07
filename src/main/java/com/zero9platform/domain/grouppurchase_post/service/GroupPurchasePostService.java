@@ -4,13 +4,13 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.zero9platform.common.aws.s3.S3Service;
 import com.zero9platform.common.enums.Category;
 import com.zero9platform.common.enums.ExceptionCode;
-import com.zero9platform.common.enums.GppProgressStatus;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.domain.grouppurchase_post.entity.GroupPurchasePost;
 import com.zero9platform.domain.grouppurchase_post.model.request.GroupPurchasePostCreateRequest;
 import com.zero9platform.domain.grouppurchase_post.model.request.GroupPurchasePostUpdateRequest;
 import com.zero9platform.domain.grouppurchase_post.model.response.GroupPurchasePostDetailResponse;
 import com.zero9platform.domain.grouppurchase_post.model.response.GroupPurchasePostListResponse;
+import com.zero9platform.domain.grouppurchase_post.model.response.GroupPurchasePostReadResponse;
 import com.zero9platform.domain.grouppurchase_post.repository.GroupPurchasePostRepository;
 import com.zero9platform.domain.user.entity.User;
 import com.zero9platform.domain.user.repository.UserRepository;
@@ -31,7 +31,8 @@ public class GroupPurchasePostService {
 
     private final GroupPurchasePostRepository groupPurchasePostRepository;
     private final UserRepository userRepository;
-    private final GroupPurchasePostViewCountService groupPurchasePostViewCountService;
+//    private final GroupPurchasePostViewCountService groupPurchasePostViewCountService;
+    private final GroupPurchasePostViewCountRedisService groupPurchasePostViewCountRedisService;
     private final S3Service s3Service;
     private final AmazonS3 amazonS3;
 
@@ -117,22 +118,27 @@ public class GroupPurchasePostService {
      * 공동구매 게시물 상세 조회
      */
     @Transactional(readOnly = true)
-    public GroupPurchasePostDetailResponse gpPostReadDetail(Long gppId) {
+    public GroupPurchasePostReadResponse gpPostReadDetail(Long gppId) {
 
         // 1. 공동구매 게시물 조회 [삭제처리 제외 + 유효성 검사]
         GroupPurchasePost gpp = groupPurchasePostRepository.findByIdAndDeletedAtIsNull(gppId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.GPP_NOT_FOUND));
 
-        // 2. 조회수 증가 (아직 동시성 문제 고려 안했음, 추후 고민할 것)
-        groupPurchasePostViewCountService.increaseViewCount(gppId);
+        // 2. 조회수 증가 V1 (아트래픽 문제 고려 X, Redis를 사용하지 못하는 환경에서 사용 가능)
+//        groupPurchasePostViewCountService.increaseViewCount(gppId);
+        // 2. 조회수 증가 V2 (Redis)
+        groupPurchasePostViewCountRedisService.increaseViewCountRedis(gppId);
+
+        // 3. 실시간 조회수 조회 (DB + Redis-delta)
+        // 아직 반영되지 않은 조회수 delta 조회
+        long redisDelta = groupPurchasePostViewCountRedisService.getViewCountDelta(gppId);
+        // DB 조회수 + Redis 조회수 = 실시간 조회수 (사용자가 보는 화면)
+        long realtimeViewCount = gpp.getViewCount() + redisDelta;
 
         String imgUrl = gpp.getImage() != null ? amazonS3.getUrl(bucket, gpp.getImage()).toString() : null;
 
-        // 3. 저장 (영속 상태라 사실상 생략 가능)
-//        groupPurchasePostRepository.save(gpp);
-
         // 4. Response 변환
-        return GroupPurchasePostDetailResponse.from(gpp, imgUrl);
+        return GroupPurchasePostReadResponse.from(gpp, imgUrl, realtimeViewCount);
     }
 
     /**

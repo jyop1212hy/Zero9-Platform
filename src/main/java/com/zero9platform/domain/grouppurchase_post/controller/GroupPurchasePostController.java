@@ -7,6 +7,7 @@ import com.zero9platform.domain.grouppurchase_post.model.request.GroupPurchasePo
 import com.zero9platform.domain.grouppurchase_post.model.request.GroupPurchasePostUpdateRequest;
 import com.zero9platform.domain.grouppurchase_post.model.response.GroupPurchasePostDetailResponse;
 import com.zero9platform.domain.grouppurchase_post.model.response.GroupPurchasePostListResponse;
+import com.zero9platform.domain.grouppurchase_post.model.response.GroupPurchasePostReadResponse;
 import com.zero9platform.domain.grouppurchase_post.service.GroupPurchasePostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -56,9 +57,9 @@ public class GroupPurchasePostController {
      * 공동구매 게시물 상세 조회
      */
     @GetMapping("/gp-posts/{gppId}")
-    public ResponseEntity<CommonResponse<GroupPurchasePostDetailResponse>> GPPReadDetailHandler(@PathVariable Long gppId) {
+    public ResponseEntity<CommonResponse<GroupPurchasePostReadResponse>> GPPReadDetailHandler(@PathVariable Long gppId) {
 
-        GroupPurchasePostDetailResponse response = gppService.gpPostReadDetail(gppId);
+        GroupPurchasePostReadResponse response = gppService.gpPostReadDetail(gppId);
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("공동구매 게시물 상세 조회 성공", response));
     }
