@@ -117,7 +117,7 @@ public class RankingCounter {
     public String buildRedisKey(String type, RankingPeriod period, LocalDateTime dateTime) {
 
         // 날짜 패턴 생성
-        String datePattern = dateRedisKey(period, dateTime);
+        String datePattern = getDatePattern(period, dateTime);
 
         // 최종 키 생성: {서비스접두어}:{타입}:{기간}:{날짜}
         // 결과 예시: ZERO9:RANKING:SEARCH:DAILY:2026-02-08
@@ -127,7 +127,7 @@ public class RankingCounter {
     /**
      * DB 저장용 날짜 패턴 생성 (과거 이력 조회용 컬럼값)
      */
-    public String dateRedisKey(RankingPeriod period, LocalDateTime targetTime) {
+    public String getDatePattern(RankingPeriod period, LocalDateTime targetTime) {
         return switch (period) {
             case DAILY -> targetTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));   // 2026-02-08
             case WEEKLY -> targetTime.format(DateTimeFormatter.ofPattern("yyyyWww"));     // 2026W06 (6주차)

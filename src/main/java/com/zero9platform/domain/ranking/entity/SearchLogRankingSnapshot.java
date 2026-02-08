@@ -11,10 +11,10 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table(name = "keyword_ranking_snapshots", uniqueConstraints = {
+@Table(name = "searchLog_ranking_snapshots", uniqueConstraints = {
                 @UniqueConstraint(name = "uk_keyword_period_date", columnNames = {"keyword", "period", "target_date"})}
 )
-public class KeywordRankingSnapshot {
+public class SearchLogRankingSnapshot {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,7 +39,7 @@ public class KeywordRankingSnapshot {
     @Column(nullable = false)
     private LocalDateTime snapshotAt;
 
-    public KeywordRankingSnapshot(String keyword, RankingPeriod period, Long keywordCount, String targetDate) {
+    public SearchLogRankingSnapshot(String keyword, RankingPeriod period, Long keywordCount, String targetDate) {
         this.keyword = keyword;
         this.period = period;
         this.keywordCount = keywordCount;

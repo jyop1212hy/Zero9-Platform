@@ -8,7 +8,7 @@ import com.zero9platform.domain.product_post.repository.ProductPostRepository;
 import com.zero9platform.domain.ranking.model.response.ProductPostFavoriteRankingListResponse;
 import com.zero9platform.domain.ranking.model.response.SearchLogRankingListResponse;
 import com.zero9platform.domain.ranking.repository.FavoriteRankingSnapshotRepository;
-import com.zero9platform.domain.ranking.repository.KeywordRankingSnapshotRepository;
+import com.zero9platform.domain.ranking.repository.SearchLogRankingSnapshotRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.PageRequest;
@@ -28,7 +28,7 @@ public class RankingService {
     private final RankingCounter rankingCounter;
     private final ProductPostRepository productPostRepository;
     private final FavoriteRankingSnapshotRepository favoriteSnapshotRepository;
-    private final KeywordRankingSnapshotRepository keywordRankingSnapshotRepository;
+    private final SearchLogRankingSnapshotRepository searchLogRankingSnapshotRepository;
 //    private final GroupPurchasePostRepository groupPurchasePostRepository;
 //    private final SearchLogRepository searchLogRepository;
 
@@ -66,8 +66,8 @@ public class RankingService {
         // Redis가 비었으면(=스냅샷 전 단계) DB 스냅샷으로 fallback
         if (search.isEmpty()) {
             LocalDateTime targetTime = getTargetTime(resolved);
-            String targetDate = rankingCounter.dateRedisKey(resolved, targetTime);
-            return keywordRankingSnapshotRepository.findByPeriodAndTargetDateOrderByKeywordCountDesc(resolved, targetDate, PageRequest.of(0, 10))
+            String targetDate = rankingCounter.getDatePattern(resolved, targetTime);
+            return searchLogRankingSnapshotRepository.findByPeriodAndTargetDateOrderByKeywordCountDesc(resolved, targetDate, PageRequest.of(0, 10))
                     .stream()
                     .map(s -> SearchLogRankingListResponse.of(
                             rank.getAndIncrement(),
@@ -121,7 +121,7 @@ public class RankingService {
         // DAILY / WEEKLY / MONTHLY → DB
         if (favorite.isEmpty()) {
             LocalDateTime targetTime = getTargetTime(resolved);
-            String targetDate = rankingCounter.dateRedisKey(resolved, targetTime);
+            String targetDate = rankingCounter.getDatePattern(resolved, targetTime);
             return favoriteSnapshotRepository.findByPeriodAndTargetDateOrderByFavoriteCountDesc(resolved, targetDate, PageRequest.of(0, 10))
                     .stream()
                     .map(s -> {

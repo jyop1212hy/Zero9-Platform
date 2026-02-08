@@ -2,9 +2,9 @@ package com.zero9platform.domain.ranking.scheduler;
 
 import com.zero9platform.common.enums.RankingPeriod;
 import com.zero9platform.domain.ranking.entity.FavoriteRankingSnapshot;
-import com.zero9platform.domain.ranking.entity.KeywordRankingSnapshot;
+import com.zero9platform.domain.ranking.entity.SearchLogRankingSnapshot;
 import com.zero9platform.domain.ranking.repository.FavoriteRankingSnapshotRepository;
-import com.zero9platform.domain.ranking.repository.KeywordRankingSnapshotRepository;
+import com.zero9platform.domain.ranking.repository.SearchLogRankingSnapshotRepository;
 import com.zero9platform.domain.ranking.service.RankingCounter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -24,7 +24,7 @@ public class RankingFlushScheduler {
 
     private final RankingCounter rankingCounter;
     private final FavoriteRankingSnapshotRepository favoriteRankingSnapshotRepository;
-    private final KeywordRankingSnapshotRepository keywordRankingSnapshotRepository;
+    private final SearchLogRankingSnapshotRepository searchLogRankingSnapshotRepository;
 
     /**
      * DAILY 랭킹 스냅샷 저장 - 실행 시점: 매일 자정 00시
@@ -65,7 +65,7 @@ public class RankingFlushScheduler {
         String searchRedisKey = rankingCounter.buildRedisKey("SEARCH", period, targetTime);
 
         // 이 시점의 날짜 패턴 미리 추출 (중복 호출 방지)
-        String targetDate = rankingCounter.dateRedisKey(period, targetTime);
+        String targetDate = rankingCounter.getDatePattern(period, targetTime);
 
         // 상품 찜 랭킹 스냅샷 저장
         Set<ZSetOperations.TypedTuple<String>> favoriteRankings = rankingCounter.findSnapshotKey(favoriteRedisKey);
@@ -84,14 +84,14 @@ public class RankingFlushScheduler {
         // 검색어 랭킹 스냅샷 저장
         Set<ZSetOperations.TypedTuple<String>> keywordRankings = rankingCounter.findSnapshotKey(searchRedisKey);
         if (!keywordRankings.isEmpty()) {
-            List<KeywordRankingSnapshot> keywordSnapshotList = keywordRankings.stream()
-                    .map(tuple -> new KeywordRankingSnapshot(
+            List<SearchLogRankingSnapshot> keywordSnapshotList = keywordRankings.stream()
+                    .map(tuple -> new SearchLogRankingSnapshot(
                             tuple.getValue(),
                             period,
                             tuple.getScore().longValue(),
                             targetDate))
                     .toList();
-            keywordRankingSnapshotRepository.saveAll(keywordSnapshotList);
+            searchLogRankingSnapshotRepository.saveAll(keywordSnapshotList);
             rankingCounter.deleteKey(searchRedisKey);
         }
 
