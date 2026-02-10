@@ -1,6 +1,5 @@
 package com.zero9platform.common.exception;
 
-
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.model.CommonResponse;

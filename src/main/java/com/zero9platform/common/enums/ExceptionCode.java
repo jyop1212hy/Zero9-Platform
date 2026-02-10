@@ -65,6 +65,11 @@ public enum ExceptionCode {
     CATEGORY_FALSE(HttpStatus.NOT_FOUND, "category는 product_title, product_name 또는 influencer 둘 중 하나여야 합니다."),
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 상품이 없습니다."),
     NOT_FOUND_SEARCH_CONTEXT(HttpStatus.NOT_FOUND, "검색리스트가 없습니다."),
+    PROFANITY_FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "비속어 설정 파일을 찾을 수 없습니다."),
+    PROFANITY_FILE_IO_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "비속어 파일 처리 중 오류가 발생했습니다."),
+    PROFANITY_ALREADY_EXISTS(HttpStatus.CONFLICT, "[%s]은(는) 이미 등록된 단어입니다."),
+    PROFANITY_NOT_FOUND(HttpStatus.NOT_FOUND, "[%s]은(는) 등록되지 않은 단어입니다."),
+    PROFANITY_NOT_ALLOWED(HttpStatus.BAD_REQUEST, " 입력하신 [%s]은(는) 비속어 단어 입니다."),
 
     //찜
     ALREADY_FAVORITE(HttpStatus.BAD_REQUEST, "이미 찜한 상품입니다."),

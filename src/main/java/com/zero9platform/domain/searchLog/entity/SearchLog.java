@@ -18,22 +18,18 @@ public class SearchLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 255, unique = true)
+    @Column(nullable = true)
+    private Long userId;
+
+    @Column(nullable = false, length = 255)
     private String keyword;
 
-    @Column(nullable = false)
-    private Long count = 0L;
-
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
-    public SearchLog(String keyword) {
+    public SearchLog(String keyword,Long userId) {
         this.keyword = keyword;
-        this.count = 1L;
+        this.userId = userId;
+        this.createdAt = LocalDateTime.now();
     }
-
-    public void increaseCount() {
-        this.count++;
-    }
-
 }

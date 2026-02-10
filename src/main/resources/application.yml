@@ -30,6 +30,10 @@ spring:
         format_sql: false
     show-sql: true
 
+# elasticsearch 설정
+elasticsearch:
+  uris: http://localhost:9200
+
 # JWT 설정
 jwt:
   secret:

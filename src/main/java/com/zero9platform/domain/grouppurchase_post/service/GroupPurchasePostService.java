@@ -12,10 +12,12 @@ import com.zero9platform.domain.grouppurchase_post.model.response.GroupPurchaseP
 import com.zero9platform.domain.grouppurchase_post.model.response.GroupPurchasePostListResponse;
 import com.zero9platform.domain.grouppurchase_post.model.response.GroupPurchasePostReadResponse;
 import com.zero9platform.domain.grouppurchase_post.repository.GroupPurchasePostRepository;
+import com.zero9platform.domain.searchLog.model.event.SearchEvent;
 import com.zero9platform.domain.user.entity.User;
 import com.zero9platform.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -35,6 +37,7 @@ public class GroupPurchasePostService {
     private final GroupPurchasePostViewCountRedisService groupPurchasePostViewCountRedisService;
     private final S3Service s3Service;
     private final AmazonS3 amazonS3;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final String S3_FOLDER = "gp_post";
 
@@ -94,6 +97,9 @@ public class GroupPurchasePostService {
 
         // 5️. 데이터 저장
         GroupPurchasePost savedGpp = groupPurchasePostRepository.save(gpp);
+
+        // 엘라스틱서치 비동기 데이터 추가
+        eventPublisher.publishEvent(SearchEvent.from(savedGpp, false));
 
         // 6️. Response 변환
         return GroupPurchasePostDetailResponse.from(savedGpp, contentImage);
@@ -199,6 +205,9 @@ public class GroupPurchasePostService {
             s3Service.s3Delete(oldImageKey);
         }
 
+        // 엘라스틱서치 비동기 데이터 추가
+        eventPublisher.publishEvent(SearchEvent.from(gpp, false));
+
         // 6. 응답 변환
         return GroupPurchasePostDetailResponse.from(gpp, finalImageKey);
     }
@@ -230,6 +239,9 @@ public class GroupPurchasePostService {
         // 4. Soft Delete
         LocalDateTime now = LocalDateTime.now();
         gpp.softDelete(now);
+
+        // 엘라스틱서치 비동기 데이터 삭제
+        eventPublisher.publishEvent(SearchEvent.from(gpp, true));
     }
 
 }

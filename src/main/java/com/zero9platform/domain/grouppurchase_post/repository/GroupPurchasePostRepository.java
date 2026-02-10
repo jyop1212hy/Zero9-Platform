@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -31,10 +32,10 @@ public interface GroupPurchasePostRepository extends JpaRepository<GroupPurchase
 
     @Modifying
     @Query("""
-    update GroupPurchasePost g
-    set g.viewCount = g.viewCount + :delta
-    where g.id = :gppId
-""")
+                update GroupPurchasePost g
+                set g.viewCount = g.viewCount + :delta
+                where g.id = :gppId
+            """)
     void increaseViewCountBatch(@Param("gppId") Long gppId, @Param("delta") Long delta);
 
 //    // 공동구매 게시물 모집상태 변경 대상(준비중->모집중 or 모집중->종료됨) 조회 - [삭제처리 제외]
@@ -56,26 +57,37 @@ public interface GroupPurchasePostRepository extends JpaRepository<GroupPurchase
     // READY -> DOING
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
-    update GroupPurchasePost g
-    set g.gppProgressStatus = 'DOING'
-    where g.deletedAt is null
-      and g.gppProgressStatus = 'READY'
-      and g.startDate <= :now
-""")
+                update GroupPurchasePost g
+                set g.gppProgressStatus = 'DOING'
+                where g.deletedAt is null
+                  and g.gppProgressStatus = 'READY'
+                  and g.startDate <= :now
+            """)
     // 벌크 업데이트 쿼리의 반환값은 조작 수(영향받은 row count), 따라서 데이터 타입은 int
     int updateReadyToDoing(@Param("now") LocalDateTime now);
 
     // DOING -> END
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
-    update GroupPurchasePost g
-    set g.gppProgressStatus = 'END'
-    where g.deletedAt is null
-      and g.gppProgressStatus = 'DOING'
-      and g.endDate <= :now
-""")
+                update GroupPurchasePost g
+                set g.gppProgressStatus = 'END'
+                where g.deletedAt is null
+                  and g.gppProgressStatus = 'DOING'
+                  and g.endDate <= :now
+            """)
     int updateDoingToEnd(@Param("now") LocalDateTime now);
 
-    // ViewCount 랭킹 조회
-    List<GroupPurchasePost> findTop10ByDeletedAtIsNullOrderByViewCountDesc();
+
+    // 공동구매 게시물 통합 검색
+    @Query("""
+        SELECT g
+        FROM GroupPurchasePost g
+        JOIN g.user u
+        WHERE g.deletedAt IS NULL
+        AND ((:condition = 'product_name' AND g.productName LIKE CONCAT('%', :keyword, '%'))
+        OR(:condition = 'content' AND g.content LIKE CONCAT('%', :keyword, '%'))
+        OR(:condition = 'influencer' AND u.nickname LIKE CONCAT('%', :keyword, '%'))
+        OR(:condition IS NULL OR :condition = '' AND (g.productName LIKE %:keyword% OR g.content LIKE %:keyword% OR u.nickname LIKE %:keyword%)))
+    """)
+    Page<GroupPurchasePost> searchByKeyword(@Param("keyword") String keyword, @Param("condition") String condition, Pageable pageable);
 }
