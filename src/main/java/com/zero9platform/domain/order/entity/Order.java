@@ -22,7 +22,7 @@ public class Order extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_item_id", unique = true)
     private OrderItem orderItem;
 
@@ -37,6 +37,9 @@ public class Order extends BaseEntity {
 
     @Column
     private LocalDateTime canceledAt;
+
+    @Column
+    private String canceledReason;
 
     public Order(OrderItem orderItem, String orderNo, Long totalAmount, String orderStatus) {
         this.orderItem = orderItem;
@@ -66,5 +69,12 @@ public class Order extends BaseEntity {
      */
     public void paymentStatusUpdate(OrderStatus status) {
         this.orderStatus = status.toString();
+    }
+
+    /**
+     * 취소 사유 업데이트
+     */
+    public void canceledReasonUpdate(String reason) {
+        this.canceledReason = reason;
     }
 }

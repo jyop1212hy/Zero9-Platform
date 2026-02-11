@@ -1,8 +1,11 @@
 package com.zero9platform.domain.admin;
 
 import com.zero9platform.common.enums.ExceptionCode;
+import com.zero9platform.common.enums.OrderStatus;
 import com.zero9platform.common.exception.CustomException;
+import com.zero9platform.domain.admin.model.response.order.OrderPaymentDetailResponse;
 import com.zero9platform.domain.admin.model.response.user.UserDetailResponse;
+import com.zero9platform.domain.order.repository.OrderRepository;
 import com.zero9platform.domain.user.repository.InfluencerRepository;
 import com.zero9platform.domain.user.entity.User;
 import com.zero9platform.domain.admin.model.response.influencer.InfluencerDetailResponse;
@@ -16,12 +19,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class AdminService {
 
     private final InfluencerRepository influencerRepository;
     private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
 
     /**
      * 인플루언서 목록 조회
@@ -64,5 +70,14 @@ public class AdminService {
 
         return userRepository.findAllUser(nickname, pageable)
                 .map(UserDetailResponse::from);
+    }
+
+    /**
+     * 관리자 결제 내역 조회
+     */
+    @Transactional(readOnly = true)
+    public List<OrderPaymentDetailResponse> orderPaymentList(String status) {
+
+        return orderRepository.findPaidOrderPaymentList(status);
     }
 }

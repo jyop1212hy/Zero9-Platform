@@ -92,7 +92,7 @@ public class ProductPostOption  extends BaseEntity {
 
         this.stockQuantity += orderQuantity;
 
-        if (this.stockStatus == StockStatus.SOLD_OUT.name() && this.stockQuantity > 0) {
+        if (StockStatus.SOLD_OUT.name().equals(this.stockStatus) && this.stockQuantity > 0) {
             this.stockStatus = StockStatus.IN_STOCK.name();
         }
     }

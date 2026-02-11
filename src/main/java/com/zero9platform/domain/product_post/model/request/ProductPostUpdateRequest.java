@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 public class ProductPostUpdateRequest {
 
     private Category category;
-    private ProgressStatus progressStatus;
     private String title;
     private String name;
     private String content;

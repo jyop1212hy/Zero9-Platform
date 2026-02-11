@@ -3,9 +3,11 @@ package com.zero9platform.domain.product_post.service;
 import com.amazonaws.services.s3.AmazonS3;
 import com.zero9platform.common.aws.s3.S3Service;
 import com.zero9platform.common.enums.ExceptionCode;
+import com.zero9platform.common.enums.ProgressStatus;
 import com.zero9platform.common.enums.StockStatus;
 import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.exception.CustomException;
+import com.zero9platform.common.model.PageResponse;
 import com.zero9platform.domain.activity_feed.service.ActivityFeedService;
 import com.zero9platform.domain.product_post.entity.ProductPost;
 import com.zero9platform.domain.product_post.model.request.ProductPostCreateRequest;
@@ -15,9 +17,9 @@ import com.zero9platform.domain.product_post.model.response.ProductPostGetDetail
 import com.zero9platform.domain.product_post.model.response.ProductPostGetListResponse;
 import com.zero9platform.domain.product_post.model.response.ProductPostUpdateResponse;
 import com.zero9platform.domain.product_post.repository.ProductPostRepository;
+import com.zero9platform.domain.product_post_favorite.repository.ProductPostFavoriteRepository;
 import com.zero9platform.domain.product_post_option.entity.ProductPostOption;
 import com.zero9platform.domain.product_post_option.model.request.ProductPostOptionCreateRequest;
-import com.zero9platform.domain.searchLog.model.event.SearchEvent;
 import com.zero9platform.domain.user.entity.User;
 import com.zero9platform.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +46,7 @@ public class ProductPostService {
     private final ApplicationEventPublisher eventPublisher;
 
     private static final String S3_FOLDER = "product_post";
+    private final ProductPostFavoriteRepository productPostFavoriteRepository;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -66,8 +69,11 @@ public class ProductPostService {
             contentImageKey = s3Service.upload(file, S3_FOLDER);
         }
 
+        // 현재 시간 생성
+        LocalDateTime now = LocalDateTime.now();
+
         // 상품판매 게시물 생성
-        ProductPost productPost = new ProductPost(user, request.getTitle(), request.getName(), request.getContent(), request.getOriginalPrice(), contentImageKey, request.getCategory().name(), request.getProgressStatus().name(), request.getStartDate(), request.getEndDate());
+        ProductPost productPost = new ProductPost(user, request.getTitle(), request.getName(), request.getContent(), request.getOriginalPrice(), contentImageKey, request.getCategory().name(), request.getStartDate(), request.getEndDate(), now);
 
         // 옵션 생성
         for (ProductPostOptionCreateRequest optionRequest: request.getOptionList()) {
@@ -81,9 +87,6 @@ public class ProductPostService {
         //엘라스틱서치 비동기 업데이트
         eventPublisher.publishEvent(SearchEvent.from(savedProductPost, false));
 
-        // 피드 생성 호출
-        //activityFeedService.feedCreate("SOON", savedProductPost.getId(), savedProductPost.getTitle());
-
         return ProductPostCreateResponse.from(savedProductPost);
     }
 
@@ -96,9 +99,11 @@ public class ProductPostService {
         ProductPost productPost = productPostRepository.findById(productPostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
 
+        Long favoriteCount = productPostFavoriteRepository.countByProductPost_Id(productPost.getId());
+
         String productImage = productPost.getImage() != null ? amazonS3.getUrl(bucket, productPost.getImage()).toString() : null;
 
-        return ProductPostGetDetailResponse.from(productPost, productImage);
+        return ProductPostGetDetailResponse.from(productPost, productImage, favoriteCount);
     }
 
     @Transactional(readOnly = true)
@@ -106,11 +111,16 @@ public class ProductPostService {
 
         Page<ProductPost> productPostsPage = productPostRepository.findAllByOrderByUpdatedAtDesc(pageable);
 
-        return productPostsPage.map(productPost -> ProductPostGetListResponse.from(
-                        productPost,
-                        productPost.getImage() != null ? amazonS3.getUrl(bucket, productPost.getImage()).toString() : null
-                )
-        );
+        return productPostsPage.map(productPost ->
+        {
+            // 찜 개수 조회
+            Long favoriteCount = productPostFavoriteRepository.countByProductPost_Id(productPost.getId());
+
+            // 이미지 URL 생성
+            String imageUrl = (productPost.getImage() != null) ? amazonS3.getUrl(bucket, productPost.getImage()).toString() : null;
+
+            return ProductPostGetListResponse.from(productPost, imageUrl, favoriteCount);
+        });
     }
 
     /**
@@ -125,6 +135,11 @@ public class ProductPostService {
         ProductPost productPost = productPostRepository.findById(productPostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
 
+        // 상품판매 게시물의 상태가 'READY'일 때만 수정 가능
+        if (!productPost.getProgressStatus().equals(ProgressStatus.READY.name())) {
+            throw new CustomException(ExceptionCode.PP_CANNOT_UPDATE_ALREADY_STARTED);
+        }
+
         // 본인만 수정 가능
         validProductPostOwner(user, productPost);
 
@@ -137,12 +152,9 @@ public class ProductPostService {
         }
 
         String category = request.getCategory() != null ? request.getCategory().name() : null;
-        String progressStatus = request.getProgressStatus() != null ? request.getProgressStatus().name() : null;
 
         // 이미지 교체 로직
         String finalImageKey = newImageKey != null ? newImageKey : oldImageKey;
-
-        productPost.update(category, progressStatus, request.getTitle(), request.getName(), request.getContent(), request.getOriginalPrice(), finalImageKey, request.getStartDate(), request.getEndDate());
 
         //엘라스틱서치 비동기 업데이트
         eventPublisher.publishEvent(SearchEvent.from(productPost, false));
@@ -151,6 +163,11 @@ public class ProductPostService {
         if (newImageKey != null && oldImageKey != null) {
             s3Service.s3Delete(oldImageKey);
         }
+
+        // 현재 시간 생성
+        LocalDateTime now = LocalDateTime.now();
+
+        productPost.update(category, request.getTitle(), request.getName(), request.getContent(), request.getOriginalPrice(), finalImageKey, request.getStartDate(), request.getEndDate(), now);
 
         return ProductPostUpdateResponse.from(productPost);
     }

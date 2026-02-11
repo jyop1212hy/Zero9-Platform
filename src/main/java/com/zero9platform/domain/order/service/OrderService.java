@@ -1,18 +1,23 @@
 package com.zero9platform.domain.order.service;
 
+import com.zero9platform.common.enums.*;
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.enums.OrderStatus;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.util.OrderCodeGenerator;
 import com.zero9platform.common.util.payment.toss.TossPaymentClient;
 import com.zero9platform.domain.order.entity.Order;
+import com.zero9platform.domain.order.entity.Payment;
+import com.zero9platform.domain.order.model.request.OrderPaymentCancelReasonRequest;
 import com.zero9platform.domain.order.model.request.OrderPaymentRequest;
 import com.zero9platform.domain.order.model.response.OrderCancelResponse;
 import com.zero9platform.domain.order.model.response.OrderCreateResponse;
 import com.zero9platform.domain.order.model.response.OrderGetDetailResponse;
 import com.zero9platform.domain.order.repository.OrderRepository;
+import com.zero9platform.domain.order.repository.PaymentRepository;
 import com.zero9platform.domain.orderitem.entity.OrderItem;
 import com.zero9platform.domain.orderitem.repository.OrderItemRepository;
+import com.zero9platform.domain.product_post.entity.ProductPost;
 import com.zero9platform.domain.product_post_option.entity.ProductPostOption;
 import com.zero9platform.domain.product_post_option.repository.ProductPostOptionRepository;
 import com.zero9platform.domain.user.entity.User;
@@ -35,6 +40,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final ProductPostOptionRepository productPostOptionRepository;
     private final TossPaymentClient tossPaymentClient;
+    private final PaymentRepository paymentRepository;
 
     /**
      * 주문 생성
@@ -46,41 +52,39 @@ public class OrderService {
         OrderItem orderItem = orderItemRepository.findById(orderItemId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.ORDERITEM_NOT_FOUND));
 
+        ProductPost productPost = orderItem.getProductPost();
+
+        // 상품판매 게시물이 "DOING"일 때만 주문 생성 가능
+        if (!ProgressStatus.DOING.name().equals(productPost.getProgressStatus())) {
+            throw new CustomException(ExceptionCode.SALE_NOT_IN_PROGRESS);
+        }
+
+        // 본인의 주문 상품이 맞는지 검증
         if (!Objects.equals(userId, orderItem.getUser().getId())) {
             throw new CustomException(ExceptionCode.NO_PERMISSION);
         }
 
+        // 이미 주문한 상품이라면 예외처리
         if (orderItem.getOrder() != null) {
             throw new CustomException(ExceptionCode.ALREADY_ORDERED);
         }
 
         // 총 결제 금액
-        ProductPostOption option = orderItem.getProductPostOption();
+        Long optionId = orderItem.getProductPostOption().getId();
+
+        // 비관락으로 재고 조회
+        ProductPostOption option = productPostOptionRepository.findByIdWithLock(optionId)
+                .orElseThrow(() -> new CustomException(ExceptionCode.OPTION_NOT_FOUND));
+
         Long salePrice = option.getSalePrice(); // 옵션가
-        Integer stockQuantity = option.getStockQuantity();    // 재고 수량
         Integer orderQuantity = orderItem.getOrderQuantity(); // 주문 수량
         Long totalAmount = salePrice * orderQuantity; // 총 결제 금액
-
-        // 재고 검증
-        // 재고보다 선택한 수량이 많을 때 예외 처리 및 남아있는 재고 반환
-//        if (orderQuantity > stockQuantity) {
-//            throw new CustomException(ExceptionCode.INSUFFICIENT_STOCK, stockQuantity);
-//        }
-
-        // 결제 상태 변경
-        // 현재는 페이먼츠와 연동 전이므로 "결제 완료"로 상태로 처리
-        String orderStatus = OrderStatus.PENDING.name();
 
         // 재고 차감
         option.decreaseStock(orderQuantity);
 
-//        if (productPost.getStock() == 0) {
-//            // 품절 = 재고가 0개
-//            activityFeedService.feedCreate("SOLD_OUT", productPost.getId(), productPost.getTitle());
-//        } else if (productPost.getStock() <= 10) {
-//            // 재고가 10개 이하
-//            activityFeedService.feedCreate("LOW_STOCK", productPost.getId(), productPost.getTitle());
-//        }
+        // 결제 상태 변경
+        String orderStatus = OrderStatus.PENDING.name();
 
         // 주문 고유번호 생성
         String orderNo = OrderCodeGenerator.generate();
@@ -89,9 +93,6 @@ public class OrderService {
         Order order = new Order(orderItem, orderNo, totalAmount, orderStatus);
 
         Order savedOrder = orderRepository.save(order);
-
-        // 피드 생성
-        //activityFeedService.feedCreate("PAYMENT", savedOrder.getOrderItem().getProductPost().getId(), savedOrder.getOrderItem().getProductPost().getTitle());
 
         return OrderCreateResponse.from(savedOrder);
     }
@@ -134,46 +135,62 @@ public class OrderService {
         orderRepository.findByOrderNo(request.getOrderNo())
                 .orElseThrow(() -> new CustomException(ExceptionCode.ORDER_NOT_FOUND));
 
+//        주문 상태가 대기인 것만 가능한 방어로직 ??
+//        if (!order.getOrderStatus().equals(OrderStatus.PENDING.name())) {
+//            throw new CustomException(ExceptionCode.);
+//        }
+
         // 결제 금액 검증
         if (request.getAmount() != order.getTotalAmount()) {
             throw new CustomException(ExceptionCode.ORDER_AMOUNT_MISMATCH);
         }
 
         // TossPayments 결제 승인
-        tossPaymentClient.tossPayment(
-                request.getPaymentKey(),
-                request.getOrderNo(),
-                request.getAmount()
-        );
+        tossPaymentClient.tossPayment(request.getPaymentKey(), request.getOrderNo(), request.getAmount());
 
         order.paymentStatusUpdate(OrderStatus.PAID);
+
+        Payment payment = new Payment(order, request.getPaymentKey());
+
+        paymentRepository.save(payment);
     }
 
     /**
      * 주문 취소
      */
     @Transactional
-    public OrderCancelResponse orderCancel(Long userId, Long orderId) {
+    public OrderCancelResponse orderCancel(Long userId, Long orderId, OrderPaymentCancelReasonRequest request) {
 
         // 주문 권한 체크
         Order order = checkOrderPermission(orderRepository.findById(orderId), userId);
 
-        // 결제 상태 변경
-        OrderStatus.CANCELED.name();
+        // 이미 취소된 주문일 시, 예외 처리
+        if (order.getOrderStatus().equals(OrderStatus.CANCELED.name())) {
+            throw new CustomException(ExceptionCode.ALREADY_CANCELLED);
+        }
 
-        // 재고 증가
+        // 주문의 상태가 "결제 완료"시 - 주문 번호 (orderNo, paymentKey) 일치 확인 로직 추가 / 결제 대기시는 방어 로직 x
+
         OrderItem orderItem = orderItemRepository.findById(order.getOrderItem().getId())
                 .orElseThrow(() -> new CustomException(ExceptionCode.ORDERITEM_NOT_FOUND));
 
         Integer orderQuantity = orderItem.getOrderQuantity(); // 구매 수량
         Long optionId = orderItem.getProductPostOption().getId();
 
-        ProductPostOption option = productPostOptionRepository.findById(optionId)
+        // 재고 복구
+        ProductPostOption option = productPostOptionRepository.findByIdWithLock(optionId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.OPTION_NOT_FOUND));
 
         option.increaseStock(orderQuantity);
 
+        // 결제 취소 (상태 변경)
         order.cancel();
+
+        // 결제 키 찾을 수 없음
+        Payment payment = paymentRepository.findPaymentKeyByOrder_Id(orderId)
+                .orElseThrow(() -> new CustomException(ExceptionCode.PAYMENT_KEY_NOT_FOUND));
+
+        tossPaymentClient.cancelPayment(payment.getPaymentKey(), request.getCanceledReason());
 
         return OrderCancelResponse.from(order);
     }
@@ -188,7 +205,12 @@ public class OrderService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
 
-        // 본인 인증
+        // 권한 체크 (관리자면 즉시 통과)
+        if (user.getRole().equals(UserRole.ADMIN.name())) {
+            return order;
+        }
+
+        // 본인 여부 확인
         if (!Objects.equals(order.getOrderItem().getUser().getId(), user.getId())) {
             throw new CustomException(ExceptionCode.NO_PERMISSION);
         }

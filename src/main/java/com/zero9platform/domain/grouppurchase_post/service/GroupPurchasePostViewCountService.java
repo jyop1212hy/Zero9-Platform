@@ -10,6 +10,15 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+/**
+ * 조회수 즉시 증가
+ * - (동시성/정합성 문제는 없음)
+
+ * - 인기 게시물에 트래픽이 몰릴 경우, 하나의 row를 대상으로 Update를 한줄씩 처리하는 병목이 발생
+ *  * - (일괄처리 X, 트래픽 대응 안됨)
+
+ * - (Redis를 사용할 수 없는 환경일 경우 사용 가능)
+ */
 public class GroupPurchasePostViewCountService {
 
     private final GroupPurchasePostRepository groupPurchasePostRepository;

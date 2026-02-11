@@ -1,5 +1,8 @@
 package com.zero9platform.common.util.payment.toss;
 
+import com.zero9platform.common.enums.ExceptionCode;
+import com.zero9platform.common.exception.CustomException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -13,8 +16,13 @@ public class TossPaymentClient {
 
     private static final String CONFIRM_URL = "https://api.tosspayments.com/v1/payments/confirm";
     private final HttpClient httpClient = HttpClient.newHttpClient();
-    private static final String SECRET_KEY = "test_sk_5OWRapdA8dQk67BBBmKn3o1zEqZK"; // 환경 변수로 지정 해야함.
 
+    @Value("${toss.payment.secret-key}")
+    private String SECRET_KEY; // 환경 변수로 지정 해야함.
+
+    /**
+     * 토스페이먼츠 결제 승인
+     */
     public void tossPayment(String paymentKey, String orderId, int amount) {
 
         String body = String.format("""
@@ -33,14 +41,43 @@ public class TossPaymentClient {
                 .build();
 
         try {
-            HttpResponse<String> response =
-                    httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() != 200) {
-                throw new IllegalStateException("토스 결제 승인 실패: " + response.body());
+                throw new CustomException(ExceptionCode.TOSS_PAYMENT_CONFIRM_FAIL);
             }
         } catch (Exception e) {
-            throw new RuntimeException("토스 결제 승인 중 오류", e);
+            throw new CustomException(ExceptionCode.TOSS_PAYMENT_CONFIRM_ERROR);
+        }
+    }
+
+    /**
+     * 토스페이먼츠 결제 취소
+     */
+    public void cancelPayment(String paymentKey, String cancelReason) {
+
+        String body = String.format("""
+        {
+          "cancelReason": "%s"
+        }
+    """, cancelReason);
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel"))
+                .header("Authorization", "Basic " + base64SecretKey())
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+        try {
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                throw new CustomException(ExceptionCode.TOSS_PAYMENT_CANCEL_FAIL);
+            }
+
+        } catch (Exception e) {
+            throw new CustomException(ExceptionCode.TOSS_PAYMENT_CANCEL_ERROR);
         }
     }
 

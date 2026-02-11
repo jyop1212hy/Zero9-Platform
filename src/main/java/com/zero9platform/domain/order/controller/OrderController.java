@@ -3,6 +3,7 @@ package com.zero9platform.domain.order.controller;
 import com.zero9platform.common.model.CommonResponse;
 import com.zero9platform.common.model.PageResponse;
 import com.zero9platform.domain.auth.model.AuthUser;
+import com.zero9platform.domain.order.model.request.OrderPaymentCancelReasonRequest;
 import com.zero9platform.domain.order.model.request.OrderPaymentRequest;
 import com.zero9platform.domain.order.model.response.OrderCancelResponse;
 import com.zero9platform.domain.order.model.response.OrderCreateResponse;
@@ -82,12 +83,12 @@ public class OrderController {
     /**
      * 주문 취소
      */
-    @PatchMapping("/zero9/orders/{orderId}")
-    public ResponseEntity<CommonResponse<OrderCancelResponse>> orderCancelHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long orderId) {
+    @PutMapping("/zero9/orders/{orderId}/cancel")
+    public ResponseEntity<CommonResponse<OrderCancelResponse>> orderCancelHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long orderId, @RequestBody OrderPaymentCancelReasonRequest request) {
 
         Long userId = authUser.getId();
 
-        OrderCancelResponse response = orderService.orderCancel(userId, orderId);
+        OrderCancelResponse response = orderService.orderCancel(userId, orderId, request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("주문 취소 성공", response));
     }

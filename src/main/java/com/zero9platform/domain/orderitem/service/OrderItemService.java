@@ -46,7 +46,7 @@ public class OrderItemService {
         ProductPost productPost = productPostRepository.findById(productPostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
 
-        // 상품 게시물이 "DOING"일 때만 주문 상품 생성 가능
+        // 상품판매 게시물이 "DOING"일 때만 주문 상품 생성 가능
         if (!productPost.getProgressStatus().equals(ProgressStatus.DOING.name())) {
             throw new CustomException(ExceptionCode.SALE_NOT_IN_PROGRESS);
         }

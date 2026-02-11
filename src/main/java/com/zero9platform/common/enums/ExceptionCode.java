@@ -36,6 +36,9 @@ public enum ExceptionCode {
     PRODUCT_POST_NOT_FOUND(HttpStatus.NOT_FOUND, "상품 게시물이 존재하지 않습니다."),
     PRODUCT_POST_OPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "상품 게시물 옵션을 찾을 수 없습니다."),
 
+    // 상품 판매 게시물
+    PP_CANNOT_UPDATE_ALREADY_STARTED(HttpStatus.BAD_REQUEST, "판매가 이미 시작되었거나 종료된 게시물은 수정할 수 없습니다."),
+
     // jwt
     TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "토큰을 찾을 수 없습니다."),
 
@@ -47,6 +50,7 @@ public enum ExceptionCode {
     PP_INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "시작일은 오늘 이전일 수 없으며, 종료일은 시작일 이후여야 합니다."),
     PP_DATE_REQUIRED(HttpStatus.BAD_REQUEST, "시작일과 종료일은 필수입니다."),
     ORDER_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "결제 금액이 주문 금액과 일치하지 않습니다."),
+    PAYMENT_KEY_NOT_FOUND(HttpStatus.BAD_REQUEST, "결제 키를 찾을 수 없습니다."),
 
     // GPP - 401 FORBIDDEN
     GPP_NO_PERMISSION(HttpStatus.FORBIDDEN, "공동구매 게시물에 대한 권한이 없습니다."),
@@ -59,6 +63,7 @@ public enum ExceptionCode {
     PP_PROGRESS_STATUS_NOT_FOUND(HttpStatus.NOT_FOUND, "진행상태를 찾을 수 없습니다."),
     ORDER_STATUS_NOT_FOUND(HttpStatus.NOT_FOUND, "주문 진행상태를 찾을 수 없습니다."),
     ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 주문을 찾을 수 없습니다."),
+    ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "이미 취소된 주문입니다."),
 
     //검색
     INVALID_KEYWORD(HttpStatus.BAD_REQUEST, "검색어가 비어있을 수 없습니다"),
@@ -114,6 +119,13 @@ public enum ExceptionCode {
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.BAD_REQUEST, "Refresh Token이 없습니다."),
     REFRESH_TOKEN_INVALID(HttpStatus.BAD_REQUEST, "유효하지 않은 Refresh Token입니다."),
     REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "Refresh Token이 만료되었습니다."),
+    REFRESH_TOKEN_REUSED(HttpStatus.UNAUTHORIZED, "Refresh Token 재사용이 감지되었습니다."),
+
+    // 토스 페이먼츠
+    TOSS_PAYMENT_CONFIRM_FAIL(HttpStatus.BAD_REQUEST, "토스 결제 승인에 실패했습니다."),
+    TOSS_PAYMENT_CONFIRM_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "토스 결제 승인 처리 중 서버 오류가 발생했습니다."),
+    TOSS_PAYMENT_CANCEL_FAIL(HttpStatus.BAD_REQUEST, "토스 결제 취소에 실패했습니다."),
+    TOSS_PAYMENT_CANCEL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "토스 결제 취소 처리 중 서버 오류가 발생했습니다."),
     REFRESH_TOKEN_REUSED(HttpStatus.UNAUTHORIZED, "Refresh Token 재사용이 감지되었습니다.")
     ;
 

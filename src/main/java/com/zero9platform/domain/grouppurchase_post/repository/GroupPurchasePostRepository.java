@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -30,13 +29,14 @@ public interface GroupPurchasePostRepository extends JpaRepository<GroupPurchase
             """)
     int increaseViewCount(@Param("gppId") Long gppId);
 
-    @Modifying
+    // 조회수 일괄 증가 - [삭제처리 제외]
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
                 update GroupPurchasePost g
-                set g.viewCount = g.viewCount + :delta
-                where g.id = :gppId
-            """)
-    void increaseViewCountBatch(@Param("gppId") Long gppId, @Param("delta") Long delta);
+                set g.viewCount = g.viewCount + :cached
+                where g.id = :gppId and g.deletedAt is null
+""")
+    void increaseViewCountBatch(@Param("gppId") Long gppId, @Param("cached") Long cached);
 
 //    // 공동구매 게시물 모집상태 변경 대상(준비중->모집중 or 모집중->종료됨) 조회 - [삭제처리 제외]
 //    @Query("""
@@ -74,9 +74,14 @@ public interface GroupPurchasePostRepository extends JpaRepository<GroupPurchase
                 where g.deletedAt is null
                   and g.gppProgressStatus = 'DOING'
                   and g.endDate <= :now
-            """)
+""")
     int updateDoingToEnd(@Param("now") LocalDateTime now);
 
+    // id에 대응되는 GPP 리스트 조회 - [삭제처리 제외]
+    List<GroupPurchasePost> findAllByIdInAndDeletedAtIsNull(List<Long> ids);
+
+    // ViewCount 랭킹 조회
+    List<GroupPurchasePost> findTop10ByDeletedAtIsNullOrderByViewCountDesc();
 
     // 공동구매 게시물 통합 검색
     @Query("""

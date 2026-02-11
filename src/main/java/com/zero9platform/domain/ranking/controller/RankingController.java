@@ -2,9 +2,10 @@ package com.zero9platform.domain.ranking.controller;
 
 import com.zero9platform.common.enums.RankingPeriod;
 import com.zero9platform.common.model.CommonResponse;
+import com.zero9platform.domain.ranking.model.response.*;
+import com.zero9platform.domain.ranking.service.RankingService;
 import com.zero9platform.domain.ranking.model.response.ProductPostFavoriteRankingListResponse;
 import com.zero9platform.domain.ranking.model.response.SearchLogRankingListResponse;
-import com.zero9platform.domain.ranking.service.RankingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,33 +44,6 @@ public class RankingController {
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("상품 판매 게시물 랭킹 조회 성공", productPostFavoriteRankingListResponse));
     }
-
-//    /**
-//     * 공동구매 게시물 랭킹 (조회수 기준)
-//     */
-//    @GetMapping("/ranking/gpp")
-//    public ResponseEntity<CommonResponse<List<GroupPurchasePostRankingListResponse>>> groupPurchasePostRankingHandler(@RequestParam(required = false) RankingPeriod period) {
-//
-//        // 검색 서비스 호출
-//        List<GroupPurchasePostRankingListResponse> groupPurchasePostRankingListResponse = rankingService.groupPurchasePostRanking(period);
-//
-//        // 공통 응답 포맷으로 반환
-//        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("공동구매 게시물 랭킹 조회 성공", groupPurchasePostRankingListResponse));
-//    }
-//
-//    /**
-//     * 상품판매 게시물 랭킹 (찜 기준) - 관리자용
-//     */
-//    @GetMapping("/admin/ranking/favorite")
-//    public ResponseEntity<CommonResponse<List<ProductPostFavoriteRankingListResponse>>> productPostFavoriteRankingAdminHandler(@AuthenticationPrincipal AuthUser authUser, @RequestParam(required = false) RankingPeriod period, @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from, @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
-//
-//        // 검색 서비스 호출
-//        List<ProductPostFavoriteRankingListResponse> productPostFavoriteRankingListResponse = rankingService.loadPeriodFavoriteRanking(authUser, period, from, to);
-//
-//        // 공통 응답 포맷으로 반환
-//        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("상품 판매 게시물 랭킹 조회 성공", productPostFavoriteRankingListResponse));
-//    }
-
 }
 
 

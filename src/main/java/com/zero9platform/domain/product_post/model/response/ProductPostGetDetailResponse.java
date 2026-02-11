@@ -19,6 +19,7 @@ public class ProductPostGetDetailResponse {
     private final String name;
     private final String content;
     private final Long originalPrice;
+    private final Long favoriteCount;
     private final List<ProductPostOptionCreateResponse> optionList;
     private final String image;
     private final LocalDateTime startDate;
@@ -26,7 +27,7 @@ public class ProductPostGetDetailResponse {
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    public static ProductPostGetDetailResponse from(ProductPost productPost, String image) {
+    public static ProductPostGetDetailResponse from(ProductPost productPost, String image, Long favoriteCount) {
 
         List<ProductPostOptionCreateResponse> optionList = productPost.getProductPostOptionList().stream()
                 .map(ProductPostOptionCreateResponse::from)
@@ -40,6 +41,7 @@ public class ProductPostGetDetailResponse {
                 productPost.getName(),
                 productPost.getContent(),
                 productPost.getOriginalPrice(),
+                favoriteCount,
                 optionList,
                 image,
                 productPost.getStartDate(),

@@ -131,16 +131,14 @@ public class GroupPurchasePostService {
         GroupPurchasePost gpp = groupPurchasePostRepository.findByIdAndDeletedAtIsNull(gppId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.GPP_NOT_FOUND));
 
-        // 2. 조회수 증가 V1 (아트래픽 문제 고려 X, Redis를 사용하지 못하는 환경에서 사용 가능)
+        // 2. 조회수 증가 V1 (트래픽 문제 고려 X, Redis를 사용하지 못하는 환경에서 사용 가능)
 //        groupPurchasePostViewCountService.increaseViewCount(gppId);
         // 2. 조회수 증가 V2 (Redis)
-        groupPurchasePostViewCountRedisService.increaseViewCountRedis(gppId);
+        long incrementedValue = groupPurchasePostViewCountRedisService.increaseViewCountRedisCache(gppId);
 
         // 3. 실시간 조회수 조회 (DB + Redis-delta)
-        // 아직 반영되지 않은 조회수 delta 조회
-        long redisDelta = groupPurchasePostViewCountRedisService.getViewCountDelta(gppId);
         // DB 조회수 + Redis 조회수 = 실시간 조회수 (사용자가 보는 화면)
-        long realtimeViewCount = gpp.getViewCount() + redisDelta;
+        long realtimeViewCount = gpp.getViewCount() + incrementedValue;
 
         String imgUrl = gpp.getImage() != null ? amazonS3.getUrl(bucket, gpp.getImage()).toString() : null;
 

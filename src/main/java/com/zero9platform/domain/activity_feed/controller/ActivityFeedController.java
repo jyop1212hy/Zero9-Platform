@@ -15,8 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/zero9/feeds")
 @RequiredArgsConstructor
@@ -46,4 +44,3 @@ public class ActivityFeedController {
         return ResponseEntity.ok(CommonResponse.success("내 피드 목록 조회 성공", response));
     }
 }
-

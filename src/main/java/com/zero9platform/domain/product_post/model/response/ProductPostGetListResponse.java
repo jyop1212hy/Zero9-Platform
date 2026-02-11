@@ -17,11 +17,12 @@ public class ProductPostGetListResponse {
     private final String name;
     private final Long originalPrice;
     private final String image;
+    private final Long favoriteCount;
 //    private final String progressStatus;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
-    public static ProductPostGetListResponse from(ProductPost productPost, String image) {
+    public static ProductPostGetListResponse from(ProductPost productPost, String image, Long favoriteCount) {
 
         return new ProductPostGetListResponse(
                 productPost.getId(),
@@ -30,6 +31,7 @@ public class ProductPostGetListResponse {
                 productPost.getOriginalPrice(),
                 image,
 //                productPost.getProgressStatus(),
+                favoriteCount,
                 productPost.getCreatedAt(),
                 productPost.getUpdatedAt()
         );

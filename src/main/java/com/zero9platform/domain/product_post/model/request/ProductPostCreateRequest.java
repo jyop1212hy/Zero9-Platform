@@ -13,13 +13,12 @@ import java.util.List;
 @AllArgsConstructor
 public class ProductPostCreateRequest {
 
+    private Category category;
     private String title;
     private String name;
     private String content;
     private Long originalPrice;
     private List<ProductPostOptionCreateRequest> optionList;
-    private Category category;
-    private ProgressStatus progressStatus;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 }
