@@ -54,8 +54,7 @@ public class ProductPostController {
      * 상품 게시물 목록 조회
      */
     @GetMapping("/product-posts")
-    public ResponseEntity<CommonResponse<PageResponse<ProductPostGetListResponse>>>
-    productPostGetListHandler(Pageable pageable) {
+    public ResponseEntity<CommonResponse<PageResponse<ProductPostGetListResponse>>> productPostGetListHandler(Pageable pageable) {
 
         PageResponse<ProductPostGetListResponse> response = PageResponse.from(productPostService.productPostGetList(pageable));
 

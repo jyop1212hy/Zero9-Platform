@@ -285,8 +285,8 @@ public class SearchLogService {
     /**
      * DB의 모든 데이터를 ES로 전송 (Bulk Indexing)
      */
-    @Async("SEARCH_LOG")
-    @Transactional(readOnly = true)
+//    @Async("SEARCH_LOG")
+    @Transactional
     public void bulkIndexing() {
 
         log.info("[Bulk Indexing] 시작");

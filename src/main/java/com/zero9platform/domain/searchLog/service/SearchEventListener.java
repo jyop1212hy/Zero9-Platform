@@ -20,7 +20,7 @@ public class SearchEventListener {
     /**
      * 엘라스틱서치 비동기 이벤트 리스너
      */
-    @Async("SEARCH_LOG")
+//    @Async("SEARCH_LOG")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT) // DB 저장 성공 시에만 실행
     public void searchEventHandle(SearchEvent event){
 

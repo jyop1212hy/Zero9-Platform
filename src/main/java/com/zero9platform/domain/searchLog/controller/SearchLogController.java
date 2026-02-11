@@ -9,6 +9,7 @@ import com.zero9platform.domain.searchLog.model.response.SearchLogItemResponse;
 import com.zero9platform.domain.searchLog.service.SearchLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/zero9")
@@ -49,9 +51,7 @@ public class SearchLogController {
      * 나의 최근 검색 히스토리 조회 (최근 검색어 리스트)
      */
     @GetMapping("/search-logs/recent")
-    public ResponseEntity<CommonResponse<List<RecentSearchResponse>>> getRecentSearchHistory(
-            @AuthenticationPrincipal AuthUser authUser,
-            HttpServletRequest request) {
+    public ResponseEntity<CommonResponse<List<RecentSearchResponse>>> getRecentSearchHistory(@AuthenticationPrincipal AuthUser authUser, HttpServletRequest request) {
 
         List<RecentSearchResponse> history = searchLogService.getMySearchHistory(authUser, request);
 
@@ -75,7 +75,7 @@ public class SearchLogController {
      */
     @PostMapping("/admin/profanities/{word}")
     public ResponseEntity<CommonResponse<String>> addWord(@PathVariable String word) {
-
+        log.info("sdsdgghhjgsgfgdfgdffdsgsfdsdf545 {}" ,word);
         profanityFilter.addWord(word);
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("[" + word + "]이(가) 사전에 추가되었으며 파일에도 기록되었습니다.", null));
@@ -95,7 +95,7 @@ public class SearchLogController {
     /**
      * DB 데이터를 ES로 전송 (데이터 보정용)
      */
-    @PostMapping("/admin/search/reindex")
+    @PostMapping("/admin/search-logs/reindex")
     public ResponseEntity<CommonResponse<String>> reindex() {
 
         searchLogService.bulkIndexing();

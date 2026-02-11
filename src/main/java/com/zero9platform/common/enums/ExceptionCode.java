@@ -126,7 +126,6 @@ public enum ExceptionCode {
     TOSS_PAYMENT_CONFIRM_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "토스 결제 승인 처리 중 서버 오류가 발생했습니다."),
     TOSS_PAYMENT_CANCEL_FAIL(HttpStatus.BAD_REQUEST, "토스 결제 취소에 실패했습니다."),
     TOSS_PAYMENT_CANCEL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "토스 결제 취소 처리 중 서버 오류가 발생했습니다."),
-    REFRESH_TOKEN_REUSED(HttpStatus.UNAUTHORIZED, "Refresh Token 재사용이 감지되었습니다.")
     ;
 
     private final HttpStatus status;
