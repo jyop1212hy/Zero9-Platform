@@ -3,7 +3,6 @@ package com.zero9platform.domain.grouppurchase_post.model.response;
 import com.zero9platform.domain.grouppurchase_post.entity.GroupPurchasePost;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
 import java.time.LocalDateTime;
 
 @Getter
@@ -44,5 +43,4 @@ public class GroupPurchasePostDetailResponse {
                 groupPurchasePost.getUpdatedAt()
         );
     }
-
 }

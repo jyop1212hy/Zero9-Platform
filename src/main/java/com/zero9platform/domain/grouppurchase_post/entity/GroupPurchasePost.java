@@ -8,7 +8,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 
 @Getter
@@ -31,7 +30,7 @@ public class GroupPurchasePost extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(nullable = true)
+    @Column
     private String image;
 
     @Column(nullable = false)
@@ -94,18 +93,14 @@ public class GroupPurchasePost extends BaseEntity {
         this.startDate = startDate;
         this.endDate = endDate;
 
-        // 순서 매우 중요, 바꾸지 말것
-        // start/endDate 변경 이후 현재 시점 기준으로 상태 재계산
-        updateProgressStatus(now); // 날짜 변경 시 상태 재계산
+        // 순서 매우 중요, 바꾸지 말것산
+        updateProgressStatus(now); // start/endDate 변경 감지, 이후 현재 시점 기준으로 상태 재계산
     }
 
     /**
      * gpp 게시물 삭제
      */
-//    public void softDelete() {
-//        this.deletedAt = LocalDateTime.now();
-//    }
-    // 현재시간을 외부에서 주입받도록 수정함
+    // 현재시간을 외부에서 주입
     public void softDelete(LocalDateTime now) {
         this.deletedAt = now;
     }
@@ -122,10 +117,11 @@ public class GroupPurchasePost extends BaseEntity {
 
     /**
      * 모집상태 전환 -> 해당 엔티티 클래스 안에서만 사용 가능 (protected 접근 제어)
+     * "생성 / 수정" 시점에만 사용
      */
     protected void updateProgressStatus(LocalDateTime now) {
-        // 이 메서드는 "생성 / 수정" 시점에만 사용
-        // 모집상태 전환은 Scheduler + Bulk Update 쿼리 메서드로만 처리
+
+        // 모집상태 전환 DB 반영은 Scheduler + Bulk Update 쿼리 메서드로만 처리
         GppProgressStatus newStatus;
 
         if (now.isBefore(startDate)) {
@@ -139,11 +135,8 @@ public class GroupPurchasePost extends BaseEntity {
         this.gppProgressStatus = newStatus.name();
     }
 
-    // 조회 수 증가 - 영속 엔티티 상태 변경, 영속성 컨텍스트를 거침
-    // 트랜잭션 종료 시 flush
-    // 대량 트래픽에 비효율적
+    // V1 조회 수 증가 - 영속 엔티티 상태 변경, 영속성 컨텍스트를 거침
 //    public void increaseViewCount() {
 //        this.viewCount++;
 //    }
-
 }

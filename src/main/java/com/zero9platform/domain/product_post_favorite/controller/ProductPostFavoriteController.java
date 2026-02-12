@@ -55,6 +55,4 @@ public class ProductPostFavoriteController {
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("찜 목록 조회 성공", pageResponse));
     }
-
 }
-

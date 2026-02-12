@@ -1,15 +1,15 @@
-package com.zero9platform.domain.gpp_follow;
+package com.zero9platform.domain.gpp_follow.controller;
 
 import com.zero9platform.common.model.CommonResponse;
 import com.zero9platform.common.model.PageResponse;
 import com.zero9platform.domain.auth.model.AuthUser;
+import com.zero9platform.domain.gpp_follow.FollowService;
 import com.zero9platform.domain.gpp_follow.model.response.GppFollowGetDetailResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,7 +22,7 @@ public class FollowController {
     /**
      * 공동구매 게시물 일정 팔로우
      */
-    @PostMapping("/{gppId}/follows")
+    @PostMapping("/gp-posts/{gppId}/follows")
     public ResponseEntity<CommonResponse<Void>> gppFollowCreateHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long gppId) {
 
         Long userId = authUser.getId();
@@ -35,7 +35,7 @@ public class FollowController {
     /**
      * 공동구매 게시물 일정 팔로우 취소
      */
-    @DeleteMapping("/{gppId}/follows")
+    @DeleteMapping("/gp-posts/{gppId}/follows")
     public ResponseEntity<CommonResponse<Void>> gppFollowDeleteHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long gppId) {
 
         Long userId = authUser.getId();
@@ -48,7 +48,7 @@ public class FollowController {
     /**
      * 공동구매 게시물 일정 팔로우 목록 조회
      */
-    @GetMapping("/follows")
+    @GetMapping("/gp-posts/follows")
     public ResponseEntity<CommonResponse<PageResponse<GppFollowGetDetailResponse>>> gppFollowGetListHandler(@AuthenticationPrincipal AuthUser authUser, Pageable pageable) {
 
         Long userId = authUser.getId();

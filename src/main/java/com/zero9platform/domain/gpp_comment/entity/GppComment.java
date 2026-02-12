@@ -35,10 +35,12 @@ public class GppComment extends BaseEntity {
         this.content = content;
     }
 
+    /**
+     * 댓글 수정
+     */
     public void update(String content) {
         if (content != null) {
             this.content = content;
         }
     }
-
 }

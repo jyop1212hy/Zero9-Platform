@@ -18,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/zero9/posts")
@@ -40,10 +39,10 @@ public class PostController {
     /**
      *  일반 게시물 상세조회
      */
-    @GetMapping("/{id}")
-    public ResponseEntity<CommonResponse<PostGetDetailResponse>> postGetDetailHandler(@PathVariable Long id) {
+    @GetMapping("/{postId}")
+    public ResponseEntity<CommonResponse<PostGetDetailResponse>> postGetDetailHandler(@PathVariable Long postId) {
 
-        PostGetDetailResponse response = postService.postGetDetail(id);
+        PostGetDetailResponse response = postService.postGetDetail(postId);
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("일반 게시물 상세조회 성공", response));
     }
@@ -62,10 +61,10 @@ public class PostController {
     /**
      *  일반 게시물 수정
      */
-    @PutMapping("/{id}")
-    public ResponseEntity<CommonResponse<PostUpdateResponse>> postUpdateHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long id, @Valid @RequestBody PostUpdateRequest request) {
+    @PutMapping("/{postId}")
+    public ResponseEntity<CommonResponse<PostUpdateResponse>> postUpdateHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long postId, @Valid @RequestBody PostUpdateRequest request) {
 
-        PostUpdateResponse response = postService.postUpdate(authUser.getId(), id, request);
+        PostUpdateResponse response = postService.postUpdate(authUser.getId(), postId, request);
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("일반 게시물 수정 성공", response));
     }
@@ -73,10 +72,10 @@ public class PostController {
     /**
      *  일반 게시물 삭제
      */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<CommonResponse<Void>> postDeleteHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long id) {
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<CommonResponse<Void>> postDeleteHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long postId) {
 
-        postService.postDelete(authUser, id);
+        postService.postDelete(authUser, postId);
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("일반 게시물 삭제 성공", null));
     }

@@ -21,6 +21,7 @@ public class UserCreateResponse {
     private final LocalDateTime updatedAt;
 
     public static UserCreateResponse from(User user) {
+
         return new UserCreateResponse(
                 user.getId(),
                 user.getRole(),

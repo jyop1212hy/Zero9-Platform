@@ -34,4 +34,3 @@ public class ProductPostFavorite {
         this.productPost = productPost;
     }
 }
-

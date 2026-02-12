@@ -1,9 +1,10 @@
-package com.zero9platform.domain.auth;
+package com.zero9platform.domain.auth.controller;
 
 import com.zero9platform.common.model.CommonResponse;
 import com.zero9platform.domain.auth.model.AuthUser;
 import com.zero9platform.domain.auth.model.request.AuthLoginRequest;
 import com.zero9platform.domain.auth.model.response.AuthLoginResponse;
+import com.zero9platform.domain.auth.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;

@@ -32,6 +32,20 @@ spring:
         format_sql: false
     show-sql: true
 
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    listener:
+      simple:
+        prefetch: 10   # 한 번에 처리할 메시지 개수
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
 # elasticsearch 설정
 elasticsearch:
   uris: http://localhost:9200

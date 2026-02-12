@@ -1,12 +1,9 @@
 package com.zero9platform.domain.product_post_option.service;
 
-
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.enums.ProgressStatus;
-import com.zero9platform.common.enums.StockStatus;
 import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.exception.CustomException;
-import com.zero9platform.common.model.PageResponse;
 import com.zero9platform.domain.product_post.entity.ProductPost;
 import com.zero9platform.domain.product_post.repository.ProductPostRepository;
 import com.zero9platform.domain.product_post_option.entity.ProductPostOption;
@@ -14,8 +11,6 @@ import com.zero9platform.domain.product_post_option.model.request.ProductPostOpt
 import com.zero9platform.domain.product_post_option.model.response.*;
 import com.zero9platform.domain.product_post_option.repository.ProductPostOptionRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -105,11 +100,11 @@ public class ProductPostOptionService {
         }
 
         if (userRole != UserRole.INFLUENCER) {
-            throw new CustomException(ExceptionCode.NO_PERMISSION);
+            throw new CustomException(ExceptionCode.AUTH_NO_PERMISSION);
         }
 
         if (!ownerId.equals(userId)) {
-            throw new CustomException(ExceptionCode.NO_PERMISSION);
+            throw new CustomException(ExceptionCode.AUTH_NO_PERMISSION);
         }
     }
 
@@ -117,6 +112,7 @@ public class ProductPostOptionService {
      * 옵션 추가 생성 & 삭제: 상품판메 게시물 "READY" 상태일 때만 가능
      */
     private static void validateOptionChangeAllowed(ProductPost productPost) {
+
         if (!productPost.getProgressStatus().equals(ProgressStatus.READY.name())) {
             throw new CustomException(ExceptionCode.OPTION_CHANGE_NOT_ALLOWED_AFTER_SALE_START);
         }

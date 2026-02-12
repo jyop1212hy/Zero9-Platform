@@ -1,6 +1,5 @@
 package com.zero9platform.domain.order.repository;
 
-import com.zero9platform.domain.order.entity.Order;
 import com.zero9platform.domain.order.entity.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
 

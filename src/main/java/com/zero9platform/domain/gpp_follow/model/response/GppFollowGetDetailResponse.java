@@ -3,7 +3,6 @@ package com.zero9platform.domain.gpp_follow.model.response;
 import com.zero9platform.domain.grouppurchase_post.entity.GroupPurchasePost;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import java.time.LocalDateTime;
 
 @Getter
@@ -25,5 +24,4 @@ public class GppFollowGetDetailResponse {
                 gpp.getEndDate()
         );
     }
-
 }

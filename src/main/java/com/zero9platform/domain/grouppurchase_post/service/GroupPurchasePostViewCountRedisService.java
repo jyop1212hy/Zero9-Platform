@@ -3,7 +3,6 @@ package com.zero9platform.domain.grouppurchase_post.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,6 +26,7 @@ public class GroupPurchasePostViewCountRedisService {
     public long increaseViewCountRedisCache(Long gppId) {
 
         String key = VIEW_COUNT_KEY_PREFIX + gppId;
+
 //        redisTemplate.opsForValue().increment(key); // INCR는 Redis atomic (원자성이므로, 동시성을 제어)
         // 조회수 증가 (증가 후 값 반환)
         Long incrementedValue = redisTemplate.opsForValue().increment(key);
@@ -39,11 +39,13 @@ public class GroupPurchasePostViewCountRedisService {
 
         // 오늘의 실시간 랭킹 증가
         String dailyKey = getTodayRankingKey();
+
         redisTemplate.opsForZSet().incrementScore(dailyKey, gppId.toString(), 1);
 
         // 오늘의 실시간 랭킹 TTL 설정
         // TTL이 없을 때만 설정
         Long ttl = redisTemplate.getExpire(dailyKey);
+
         if (ttl == null || ttl == -1) {
             setDailyRankingTTL(dailyKey);
         }
@@ -58,7 +60,9 @@ public class GroupPurchasePostViewCountRedisService {
      * 조회수 증가 구조변경에 의해 사용안함.
      */
     public long getCachedViewCount(Long gppId) {
+
         String key = VIEW_COUNT_KEY_PREFIX + gppId;
+
         String cached = redisTemplate.opsForValue().get(key);
 
         // Redis에 value가 없으면 0 반환
@@ -90,5 +94,4 @@ public class GroupPurchasePostViewCountRedisService {
         // 일일 키값당 만료시간 설정
         redisTemplate.expire(dailyKey, Duration.ofSeconds(secondsUntilMidnight));
     }
-
 }

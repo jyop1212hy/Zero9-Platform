@@ -3,7 +3,6 @@ package com.zero9platform.domain.admin.model.response.user;
 import com.zero9platform.domain.user.entity.User;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import java.time.LocalDateTime;
 
 @Getter

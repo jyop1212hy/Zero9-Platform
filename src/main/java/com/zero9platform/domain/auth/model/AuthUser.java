@@ -3,10 +3,8 @@ package com.zero9platform.domain.auth.model;
 import com.zero9platform.common.enums.UserRole;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-
 import java.util.Collection;
 import java.util.List;
 

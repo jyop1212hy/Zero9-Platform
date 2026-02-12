@@ -25,7 +25,9 @@ public class SearchLogItemResponse {
     private final LocalDateTime endDate;
 
     public static SearchLogItemResponse from(SearchDocument doc, String matchType, Long favoriteCount) {
+
         Long originalId = doc.getNumericId();
+
         return new SearchLogItemResponse(
                 originalId,
                 doc.getPostType(),

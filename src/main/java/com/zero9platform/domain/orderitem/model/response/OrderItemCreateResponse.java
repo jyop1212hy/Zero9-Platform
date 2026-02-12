@@ -24,5 +24,4 @@ public class OrderItemCreateResponse {
                 orderItem.getOrderQuantity()
         );
     }
-
 }

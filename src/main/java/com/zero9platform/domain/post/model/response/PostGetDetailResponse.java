@@ -20,6 +20,7 @@ public class PostGetDetailResponse {
     private final LocalDateTime updatedAt;
 
     public static PostGetDetailResponse from(Post post) {
+
         return new PostGetDetailResponse(
                 post.getId(),
                 post.getUser().getId(),

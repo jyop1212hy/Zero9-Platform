@@ -92,7 +92,7 @@ public class GppCommentService {
     private void validOwner(GppComment gppComment, Long userId) {
 
         if (!gppComment.getUser().getId().equals(userId)) {
-            throw new CustomException(ExceptionCode.NO_PERMISSION);
+            throw new CustomException(ExceptionCode.AUTH_NO_PERMISSION);
         }
     }
 }

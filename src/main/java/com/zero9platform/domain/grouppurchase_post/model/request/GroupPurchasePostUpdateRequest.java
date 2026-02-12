@@ -6,11 +6,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 public class GroupPurchasePostUpdateRequest {
 
     @NotBlank(message = "상품명은 필수입니다.")
@@ -39,5 +41,4 @@ public class GroupPurchasePostUpdateRequest {
 
     @NotNull(message = "종료일은 필수입니다.")
     private LocalDate endDate;
-
 }

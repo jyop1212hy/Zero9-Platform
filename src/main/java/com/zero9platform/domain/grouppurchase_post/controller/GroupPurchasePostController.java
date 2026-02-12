@@ -86,12 +86,13 @@ public class GroupPurchasePostController {
     public ResponseEntity<CommonResponse<Void>> GPPDeleteHandler(@PathVariable Long gppId, @AuthenticationPrincipal AuthUser authUser) {
 
         boolean isAdmin = false;
+
         if (authUser.getUserRole() == UserRole.ADMIN) {
             isAdmin = true;
         }
 
         gppService.gpPostDelete(gppId, authUser.getId(), isAdmin);
 
-        return ResponseEntity.ok(CommonResponse.success("공동구매 게시물 삭제 성공", null));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("공동구매 게시물 삭제 성공", null));
     }
 }

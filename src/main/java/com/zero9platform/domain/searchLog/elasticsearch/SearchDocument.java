@@ -1,7 +1,5 @@
 package com.zero9platform.domain.searchLog.elasticsearch;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,9 +47,7 @@ public class SearchDocument {
     private LocalDateTime endDate;
 
     @Builder
-    public SearchDocument(String id, Long userId, String postType, String title, String content,
-                          String nickname, Long price, String image,
-                          LocalDateTime startDate, LocalDateTime endDate) {
+    public SearchDocument(String id, Long userId, String postType, String title, String content, String nickname, Long price, String image, LocalDateTime startDate, LocalDateTime endDate) {
         this.id = id;
         this.userId = userId;
         this.postType = postType;
@@ -65,9 +61,14 @@ public class SearchDocument {
     }
 
     public Long getNumericId() {
-        if (this.id == null) return null;
+
+        if (this.id == null) {
+            return null;
+        }
+
         try {
             String[] parts = this.id.split("_");
+
             return Long.parseLong(parts[parts.length - 1]);
         } catch (Exception e) {
             return null;

@@ -7,7 +7,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Set;
 
 @Service
@@ -45,7 +44,6 @@ public class GroupPurchasePostViewCountScheduler {
         }
 
         for (String gppIdStr : gppIds) {
-
             String key = VIEW_COUNT_KEY_PREFIX + gppIdStr;
 
             // 각 gpp의 조회수 추출 + 완료체크(0)
@@ -55,6 +53,7 @@ public class GroupPurchasePostViewCountScheduler {
             if (value == null) {
                 // value(key값->조회수)가 없으면 집합에서도 제거
                 redisTemplate.opsForSet().remove(VIEW_COUNT_KEY_SET, gppIdStr);
+
                 continue;
             }
 
@@ -66,6 +65,7 @@ public class GroupPurchasePostViewCountScheduler {
                 // 0이면 key + 집합 모두 정리
                 redisTemplate.delete(key);
                 redisTemplate.opsForSet().remove(VIEW_COUNT_KEY_SET, gppIdStr);
+
                 continue;
             }
 
@@ -84,5 +84,4 @@ public class GroupPurchasePostViewCountScheduler {
 
         log.info("GPP 조회수 동기화 완료 - 대상 수: {}", gppIds.size());
     }
-
 }

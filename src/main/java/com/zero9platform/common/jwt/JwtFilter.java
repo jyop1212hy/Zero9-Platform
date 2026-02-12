@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -49,10 +48,12 @@ public class JwtFilter extends OncePerRequestFilter {
             Claims claims = jwtUtil.extractClaims(jwt);
             if (claims == null) {
                 filterChain.doFilter(request, response);
+
                 return;
             }
 
             String subject = claims.getSubject();
+
             if (subject == null) {
                 throw new BadCredentialsException("JWT에 userId(sub)가 없습니다.");
             }
@@ -62,6 +63,7 @@ public class JwtFilter extends OncePerRequestFilter {
             UserRole userRole = UserRole.valueOf(claims.get("userRole", String.class));
 
             AuthUser authUser = new AuthUser(userId, nickname, userRole);
+
             Authentication authentication = new UserIdAuthenticationToken(authUser);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -70,15 +72,19 @@ public class JwtFilter extends OncePerRequestFilter {
 
         } catch (SecurityException | MalformedJwtException e) {
             log.error("Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.", e);
+
             throw new BadCredentialsException("유효하지 않는 JWT 서명입니다.");
         } catch (ExpiredJwtException e) {
             log.error("Expired JWT token, 만료된 JWT token 입니다.", e);
+
             throw new CredentialsExpiredException("만료된 JWT 토큰입니다.");
         } catch (UnsupportedJwtException e) {
             log.error("Unsupported JWT token, 지원되지 않는 JWT 토큰 입니다.", e);
+
             throw new BadCredentialsException("지원되지 않는 JWT 토큰입니다.");
         } catch (Exception e) {
             log.error("Internal server error", e);
+
             throw new AuthenticationServiceException("인증 처리 중 서버 오류가 발생했습니다.", e);
         }
     }

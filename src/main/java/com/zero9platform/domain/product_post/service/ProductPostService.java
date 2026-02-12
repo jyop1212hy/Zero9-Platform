@@ -40,7 +40,6 @@ public class ProductPostService {
 
     private final UserRepository userRepository;
     private final ProductPostRepository productPostRepository;
-    private final ActivityFeedService activityFeedService;
     private final S3Service s3Service;
     private final AmazonS3 amazonS3;
     private final ApplicationEventPublisher eventPublisher;
@@ -111,8 +110,7 @@ public class ProductPostService {
 
         Page<ProductPost> productPostsPage = productPostRepository.findAllByOrderByUpdatedAtDesc(pageable);
 
-        return productPostsPage.map(productPost ->
-        {
+        return productPostsPage.map(productPost -> {
             // 찜 개수 조회
             Long favoriteCount = productPostFavoriteRepository.countByProductPost_Id(productPost.getId());
 
@@ -137,7 +135,7 @@ public class ProductPostService {
 
         // 상품판매 게시물의 상태가 'READY'일 때만 수정 가능
         if (!productPost.getProgressStatus().equals(ProgressStatus.READY.name())) {
-            throw new CustomException(ExceptionCode.PP_CANNOT_UPDATE_ALREADY_STARTED);
+            throw new CustomException(ExceptionCode.PRODUCT_POST_CANNOT_UPDATE_ALREADY_STARTED);
         }
 
         // 본인만 수정 가능
@@ -177,7 +175,7 @@ public class ProductPostService {
      */
     private static void validProductPostOwner(User user, ProductPost productPost) {
         if (!Objects.equals(user.getId(), productPost.getUser().getId())) {
-            throw new CustomException(ExceptionCode.NO_PERMISSION);
+            throw new CustomException(ExceptionCode.AUTH_NO_PERMISSION);
         }
     }
 
@@ -190,7 +188,7 @@ public class ProductPostService {
                 .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
 
         if (UserRole.valueOf(user.getRole()) == UserRole.USER) {
-            throw new CustomException(ExceptionCode.NO_PERMISSION);
+            throw new CustomException(ExceptionCode.AUTH_NO_PERMISSION);
         }
 
         return user;
@@ -203,12 +201,12 @@ public class ProductPostService {
 
         // 판매 시작일
         if (startDate.isBefore(LocalDateTime.now())) {
-            throw new CustomException(ExceptionCode.PP_INVALID_DATE_RANGE);
+            throw new CustomException(ExceptionCode.PRODUCT_POST_INVALID_DATE_RANGE);
         }
 
         // 판매 종료일
         if (endDate.isBefore(startDate)) {
-            throw new CustomException(ExceptionCode.PP_INVALID_DATE_RANGE);
+            throw new CustomException(ExceptionCode.PRODUCT_POST_INVALID_DATE_RANGE);
         }
     }
 }

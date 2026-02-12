@@ -1,6 +1,5 @@
 package com.zero9platform.domain.order.model.response;
 
-import com.zero9platform.common.enums.Category;
 import com.zero9platform.common.enums.OrderStatus;
 import com.zero9platform.domain.order.entity.Order;
 import lombok.Getter;

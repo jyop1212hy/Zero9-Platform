@@ -13,6 +13,7 @@ public class UserDetailResponse {
     private final String role;
 
     public static UserDetailResponse from(User user, String profileImg) {
+
         return new UserDetailResponse(
                 user.getNickname(),
                 profileImg,

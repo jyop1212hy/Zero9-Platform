@@ -3,8 +3,6 @@ package com.zero9platform.domain.order.entity;
 import com.zero9platform.common.entity.BaseEntity;
 import com.zero9platform.common.enums.OrderStatus;
 import com.zero9platform.domain.orderitem.entity.OrderItem;
-import com.zero9platform.domain.orderitem.service.OrderItemService;
-import com.zero9platform.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

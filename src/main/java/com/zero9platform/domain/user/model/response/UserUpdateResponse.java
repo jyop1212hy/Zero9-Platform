@@ -19,6 +19,7 @@ public class UserUpdateResponse {
     private final LocalDateTime updatedAt;
 
     public static UserUpdateResponse from(User user, String profileImageUrl) {
+
         return new UserUpdateResponse(
                 user.getId(),
                 user.getEmail(),

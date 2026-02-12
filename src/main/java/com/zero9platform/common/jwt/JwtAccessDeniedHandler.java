@@ -21,7 +21,7 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
 
-        ExceptionCode code = ExceptionCode.NO_PERMISSION;
+        ExceptionCode code = ExceptionCode.AUTH_NO_PERMISSION;
 
         response.setStatus(code.getStatus().value());
         response.setContentType("application/json;charset=UTF-8");

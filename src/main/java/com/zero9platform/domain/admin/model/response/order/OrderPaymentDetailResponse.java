@@ -1,9 +1,7 @@
 package com.zero9platform.domain.admin.model.response.order;
 
-import com.zero9platform.common.enums.OrderStatus;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import java.time.LocalDateTime;
 
 @Getter

@@ -1,6 +1,5 @@
 package com.zero9platform.domain.gpp_follow.entity;
 
-
 import com.zero9platform.domain.grouppurchase_post.entity.GroupPurchasePost;
 import com.zero9platform.domain.user.entity.User;
 import jakarta.persistence.*;

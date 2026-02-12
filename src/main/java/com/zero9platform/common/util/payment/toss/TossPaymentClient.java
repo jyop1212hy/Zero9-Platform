@@ -60,7 +60,7 @@ public class TossPaymentClient {
         {
           "cancelReason": "%s"
         }
-    """, cancelReason);
+        """, cancelReason);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("https://api.tosspayments.com/v1/payments/" + paymentKey + "/cancel"))
@@ -75,7 +75,6 @@ public class TossPaymentClient {
             if (response.statusCode() != 200) {
                 throw new CustomException(ExceptionCode.TOSS_PAYMENT_CANCEL_FAIL);
             }
-
         } catch (Exception e) {
             throw new CustomException(ExceptionCode.TOSS_PAYMENT_CANCEL_ERROR);
         }
@@ -85,5 +84,3 @@ public class TossPaymentClient {
         return Base64.getEncoder().encodeToString((SECRET_KEY + ":").getBytes());
     }
 }
-
-

@@ -16,7 +16,6 @@ public class CommonResponse<T> {
     private final LocalDateTime timestamp;
 
     public CommonResponse(boolean success, String message, T data) {
-
         this.success = success;
         this.message = message;
         this.data = data;

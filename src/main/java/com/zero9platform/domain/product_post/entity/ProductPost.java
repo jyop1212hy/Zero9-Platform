@@ -11,7 +11,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,11 +41,7 @@ public class ProductPost extends BaseEntity {
     @Column(nullable = false)
     private Long originalPrice;     // 정가
 
-    @OneToMany(
-            mappedBy = "productPost",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "productPost", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductPostOption> productPostOptionList = new ArrayList<>();
 
     @Column
@@ -74,11 +69,11 @@ public class ProductPost extends BaseEntity {
         this.category = category;
 
         if (startDate == null || endDate == null) {
-            throw new CustomException(ExceptionCode.PP_DATE_REQUIRED);
+            throw new CustomException(ExceptionCode.PRODUCT_POST_DATE_REQUIRED);
         }
 
         if (endDate.isBefore(startDate)) {
-            throw new CustomException(ExceptionCode.PP_INVALID_DATE_RANGE);
+            throw new CustomException(ExceptionCode.PRODUCT_POST_INVALID_DATE_RANGE);
         }
 
         this.startDate = startDate;
@@ -99,7 +94,7 @@ public class ProductPost extends BaseEntity {
 
         // 수정된 날짜가 유효한지 다시 확인
         if (this.startDate != null && this.endDate != null && this.endDate.isBefore(this.startDate)) {
-            throw new CustomException(ExceptionCode.PP_INVALID_DATE_RANGE);
+            throw new CustomException(ExceptionCode.PRODUCT_POST_INVALID_DATE_RANGE);
         }
 
         updateProductProgressStatus(now);

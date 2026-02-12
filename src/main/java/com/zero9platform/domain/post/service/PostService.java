@@ -3,7 +3,6 @@ package com.zero9platform.domain.post.service;
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.exception.CustomException;
-import com.zero9platform.common.model.PageResponse;
 import com.zero9platform.domain.auth.model.AuthUser;
 import com.zero9platform.domain.post.entity.Post;
 import com.zero9platform.domain.post.model.request.PostCreateRequest;
@@ -25,7 +24,6 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-
     /**
      *  일반 게시물 생성
      */
@@ -45,13 +43,16 @@ public class PostService {
      */
     @Transactional
     public PostGetDetailResponse postGetDetail(Long id) {
+
         Post post = postRepository.findByIdAndDeletedAtIsNull(id)
-                .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_POST));
+                .orElseThrow(() -> new CustomException(ExceptionCode.POST_NOT_FOUND));
 
         int updated = postRepository.increaseViewCount(id);
+
         if (updated == 0) {
+
             // 증가가 안 됐다 = 삭제 처리됐거나 대상 없음
-            throw new CustomException(ExceptionCode.NOT_FOUND_POST);
+            throw new CustomException(ExceptionCode.POST_NOT_FOUND);
         }
 
         return PostGetDetailResponse.from(post);
@@ -65,7 +66,7 @@ public class PostService {
 
         Page<Post> page = postRepository.findAllByDeletedAtIsNull(pageable);
 
-        return  page.map(PostGetListResponse::from);
+        return page.map(PostGetListResponse::from);
     }
 
     /**
@@ -75,14 +76,13 @@ public class PostService {
     public PostUpdateResponse postUpdate(Long userId, Long id, PostUpdateRequest request) {
 
         Post post = postRepository.findByIdAndDeletedAtIsNull(id)
-                .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_POST));
+                .orElseThrow(() -> new CustomException(ExceptionCode.POST_NOT_FOUND));
 
         validOwner(post, userId);
 
         post.update(request.getTitle(), request.getContent(), request.getImage());
 
         return PostUpdateResponse.from(post);
-
     }
 
     /**
@@ -92,7 +92,7 @@ public class PostService {
     public void postDelete(AuthUser authUser, Long id) {
 
         Post post = postRepository.findByIdAndDeletedAtIsNull(id)
-                .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_POST));
+                .orElseThrow(() -> new CustomException(ExceptionCode.POST_NOT_FOUND));
 
         validOwnerOrAdmin(post, authUser.getId(), authUser.getUserRole());
 
@@ -107,7 +107,7 @@ public class PostService {
         Long ownerId = post.getUser().getId();
 
         if(!ownerId.equals(userId)) {
-            throw new CustomException(ExceptionCode.NO_PERMISSION);
+            throw new CustomException(ExceptionCode.AUTH_NO_PERMISSION);
         }
     }
 
@@ -119,8 +119,7 @@ public class PostService {
         Long ownerId = post.getUser().getId();
 
         if (!ownerId.equals(userId) && userRole != UserRole.ADMIN) {
-            throw new CustomException(ExceptionCode.NO_PERMISSION);
+            throw new CustomException(ExceptionCode.AUTH_NO_PERMISSION);
         }
     }
-
 }

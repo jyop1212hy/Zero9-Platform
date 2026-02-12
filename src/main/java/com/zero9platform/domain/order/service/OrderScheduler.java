@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,11 +24,12 @@ public class OrderScheduler {
 
         LocalDateTime limitTime = LocalDateTime.now().minusMinutes(30);
 
-        // 30분이 지난 미결제 주문들을 가져옴
+        // 주문 생성 후, 30분 이내 미결제 주문들 반환
         List<Order> orderList = orderRepository.findAllByOrderStatusAndCreatedAtBefore("PENDING", limitTime);
 
         for (Order order: orderList) {
             try {
+
                 // 주문 상태를 "결제 취소"로 변경
                 order.cancel();
 
@@ -39,7 +39,6 @@ public class OrderScheduler {
 
                 log.info("[자동취소 성공] 주문 ID: {} | 복구 재고: {}개", order.getId(), order.getOrderItem().getOrderQuantity());
             } catch (Exception e) {
-
                 log.info("[자동취소 실패] 주문 ID: {} | 사유: {}", order.getId(), e.getMessage());
             }
         }

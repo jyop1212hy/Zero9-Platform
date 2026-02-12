@@ -1,4 +1,4 @@
-package com.zero9platform.domain.auth;
+package com.zero9platform.domain.auth.service;
 
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.enums.UserRole;
@@ -52,7 +52,7 @@ public class AuthService {
 
         // 비밀번호 검사
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new CustomException(ExceptionCode.PASSWORD_NOT_MATCH);
+            throw new CustomException(ExceptionCode.USER_PASSWORD_NOT_MATCH);
         }
 
         // role 변환
@@ -65,7 +65,7 @@ public class AuthService {
                     .orElse(false);
 
             if (!approved) {
-                throw new CustomException(ExceptionCode.INFLUENCER_NOT_APPROVED);
+                throw new CustomException(ExceptionCode.USER_INFLUENCER_NOT_APPROVED);
             }
         }
 
@@ -155,6 +155,7 @@ public class AuthService {
         // 재사용 감지 (탈취)
         if (refreshToken.isUsed()) {
             refreshTokenRepository.deleteAllByUserId(refreshToken.getUserId());
+
             throw new CustomException(ExceptionCode.REFRESH_TOKEN_REUSED);
         }
 

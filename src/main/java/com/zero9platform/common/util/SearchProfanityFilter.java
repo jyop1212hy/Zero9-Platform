@@ -39,7 +39,9 @@ public class SearchProfanityFilter {
             badWords.clear();
 
             Path path = Paths.get(FILE_PATH);
+
             if (Files.exists(path)) {
+
                 // 파일 읽기 -> 공백 제거 -> 빈 줄 제외 -> HashSet에 저장
                 badWords.addAll(Files.readAllLines(path, StandardCharsets.UTF_8)
                         .stream()
@@ -50,7 +52,8 @@ public class SearchProfanityFilter {
             log.info("비속어 사전 동기화 완료: {}개 단어 로드됨", badWords.size());
         } catch (IOException e) {
             log.error("비속어 파일 읽기 실패: {}", e.getMessage());
-            throw new CustomException(ExceptionCode.PROFANITY_FILE_IO_ERROR);
+
+            throw new CustomException(ExceptionCode.SEARCH_LOGS_PROFANITY_FILE_IO_ERROR);
         }
     }
 
@@ -58,24 +61,31 @@ public class SearchProfanityFilter {
      * 단어 추가 + 파일 저장
      */
     public synchronized void addWord(String word) {
+
         String trimmedWord = word.trim();
-        if (trimmedWord.isEmpty()) return;
+
+        if (trimmedWord.isEmpty()) {
+            return;
+        }
 
         // 중복 체크
         if(badWords.contains(trimmedWord)) {
             log.warn("이미 존재하는 단어 추가 시도: {}", trimmedWord);
-            throw new CustomException(ExceptionCode.PROFANITY_ALREADY_EXISTS, trimmedWord);
+
+            throw new CustomException(ExceptionCode.SEARCH_LOGS_PROFANITY_ALREADY_EXISTS, trimmedWord);
         }
 
         badWords.add(trimmedWord);
-            try {
-                Files.writeString(Paths.get(FILE_PATH),
-                        System.lineSeparator() + trimmedWord,
-                        StandardCharsets.UTF_8,
-                        StandardOpenOption.APPEND);
-                log.info("단어 추가 및 저장 완료: {}", trimmedWord);
-            } catch (IOException e) {
-                throw new CustomException(ExceptionCode.PROFANITY_FILE_IO_ERROR);
+
+        try {
+            Files.writeString(Paths.get(FILE_PATH),
+                System.lineSeparator() + trimmedWord,
+                    StandardCharsets.UTF_8,
+                    StandardOpenOption.APPEND);
+
+            log.info("단어 추가 및 저장 완료: {}", trimmedWord);
+        } catch (IOException e) {
+            throw new CustomException(ExceptionCode.SEARCH_LOGS_PROFANITY_FILE_IO_ERROR);
         }
     }
 
@@ -89,16 +99,18 @@ public class SearchProfanityFilter {
         // 중복 체크
         if (!badWords.contains(trimmedWord)) {
             log.warn("존재하지 않는 단어 삭제 시도: {}", trimmedWord);
-            throw new CustomException(ExceptionCode.PROFANITY_NOT_FOUND, trimmedWord);
+
+            throw new CustomException(ExceptionCode.SEARCH_LOGS_PROFANITY_NOT_FOUND, trimmedWord);
         }
 
         // 삭제 및 파일 갱신
         if (badWords.remove(word.trim())) {
             try {
-            Files.write(Paths.get(FILE_PATH), badWords, StandardCharsets.UTF_8);
-            log.info("단어 삭제 및 파일 갱신 완료: {}", word);
+                Files.write(Paths.get(FILE_PATH), badWords, StandardCharsets.UTF_8);
+
+                log.info("단어 삭제 및 파일 갱신 완료: {}", word);
             } catch (IOException e) {
-                throw new CustomException(ExceptionCode.PROFANITY_FILE_IO_ERROR);
+                throw new CustomException(ExceptionCode.SEARCH_LOGS_PROFANITY_FILE_IO_ERROR);
             }
         }
     }
@@ -107,7 +119,10 @@ public class SearchProfanityFilter {
      * 정규식으로 비속어 방어
      */
     public boolean isBadWord(String text) {
-        if (text == null || text.isBlank()) return false;
+
+        if (text == null || text.isBlank()) {
+            return false;
+        }
 
         // 공백 및 특수문자 제거 (변조된 비속어 방어)
         String cleanText = text.replaceAll("[^ㄱ-ㅎㅏ-ㅣ가-힣a-zA-Z0-9]", "");
@@ -118,6 +133,7 @@ public class SearchProfanityFilter {
                 return true;
             }
         }
+
         return false;
     }
 }

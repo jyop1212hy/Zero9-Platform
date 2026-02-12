@@ -22,6 +22,7 @@ public class UserMyDetailResponse extends UserDetailResponse {
     }
 
     public static UserMyDetailResponse from(User user, String profileImg, String phone, String email) {
+
         return new UserMyDetailResponse(user, profileImg, phone, email);
     }
 }

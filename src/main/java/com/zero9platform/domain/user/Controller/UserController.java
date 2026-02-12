@@ -19,7 +19,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-
 @RestController
 @RequestMapping("/zero9")
 @RequiredArgsConstructor
@@ -94,5 +93,4 @@ public class UserController {
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("회원탈퇴가 완료 되었습니다.",null));
     }
-
 }

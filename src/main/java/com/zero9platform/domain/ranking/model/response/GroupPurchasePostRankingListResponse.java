@@ -12,7 +12,7 @@ public class GroupPurchasePostRankingListResponse {
     private final String groupPurchasePostTitle;
     private final Long viewCount;
 
-    public static GroupPurchasePostRankingListResponse of(int rank, Long groupPurchasePostId, String groupPurchasePostTitle, Long viewCount) {
+    public static GroupPurchasePostRankingListResponse from(int rank, Long groupPurchasePostId, String groupPurchasePostTitle, Long viewCount) {
         return new GroupPurchasePostRankingListResponse(
                 rank,
                 groupPurchasePostId,

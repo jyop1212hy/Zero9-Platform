@@ -63,5 +63,4 @@ public interface UserRepository extends JpaRepository<User,Long> {
     boolean existsByNicknameAndIdNot(String nickname, Long id);
 
     Optional<User> findByIdAndDeletedAtIsNull(Long userId);
-
 }

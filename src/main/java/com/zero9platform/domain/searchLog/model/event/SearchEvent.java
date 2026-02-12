@@ -25,6 +25,7 @@ public class SearchEvent {
 
     // ProductPost -> Event 변환
     public static SearchEvent from(ProductPost post, boolean deleted){
+
         return new SearchEvent(
                 "PRODUCT_POST_"+ post.getId().toString(),
                 "PRODUCT_POST",
@@ -43,6 +44,7 @@ public class SearchEvent {
 
     // GroupPurchasePost -> Event 변환
     public static SearchEvent from(GroupPurchasePost gpp, boolean isDelete) {
+
         return new SearchEvent(
                 "GROUP_PURCHASE_POST_" + gpp.getId().toString(),
                 "GROUP_PURCHASE_POST",

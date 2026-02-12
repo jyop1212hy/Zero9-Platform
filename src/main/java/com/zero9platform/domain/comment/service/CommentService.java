@@ -1,6 +1,5 @@
 package com.zero9platform.domain.comment.service;
 
-
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.model.PageResponse;
@@ -38,7 +37,7 @@ public class CommentService {
                 .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
 
         Post post = postRepository.findByIdAndDeletedAtIsNull(postId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_POST));
+                .orElseThrow(() -> new CustomException(ExceptionCode.POST_NOT_FOUND));
 
         Comment saved = commentRepository.save(new Comment(post, user, request.getContent()));
 
@@ -52,7 +51,7 @@ public class CommentService {
     public PageResponse<CommentGetListResponse> commentGetPage(Long postId, Pageable pageable) {
 
         postRepository.findByIdAndDeletedAtIsNull(postId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_POST));
+                .orElseThrow(() -> new CustomException(ExceptionCode.POST_NOT_FOUND));
 
         Page<CommentGetListResponse> page = commentRepository.findAllByPostId(postId, pageable)
                 .map(CommentGetListResponse::from);
@@ -67,7 +66,7 @@ public class CommentService {
     public void commentUpdate(Long userId, Long postId, Long commentId, CommentUpdateRequest request) {
 
         postRepository.findByIdAndDeletedAtIsNull(postId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_POST));
+                .orElseThrow(() -> new CustomException(ExceptionCode.POST_NOT_FOUND));
 
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_COMMENT));
@@ -86,7 +85,7 @@ public class CommentService {
     public void commentDelete(Long userId, Long postId, Long commentId) {
 
         postRepository.findByIdAndDeletedAtIsNull(postId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_POST));
+                .orElseThrow(() -> new CustomException(ExceptionCode.POST_NOT_FOUND));
 
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_COMMENT));
@@ -104,13 +103,15 @@ public class CommentService {
     private void validOwner(Comment comment, Long userId) {
 
         if (!comment.getUser().getId().equals(userId)) {
-            throw new CustomException(ExceptionCode.NO_PERMISSION);
+            throw new CustomException(ExceptionCode.AUTH_NO_PERMISSION);
         }
     }
+
     /**
      *  게시물에 속한 댓글인지 검증
      */
     private void validateCommentBelongsToPost(Comment comment, Long postId) {
+
         if (!comment.getPost().getId().equals(postId)) {
             throw new CustomException(ExceptionCode.NOT_FOUND_COMMENT);
         }

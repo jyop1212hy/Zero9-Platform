@@ -44,14 +44,6 @@ public class ProductPostOption  extends BaseEntity {
         updateStockStatus();
     }
 
-//    public void update(ProductPost productPost, String name, Long salePrice, Integer stockQuantity) {
-//
-//        if (productPost != null) this.productPost = productPost;
-//        if (name != null) this.name = name;
-//        if (salePrice != null) this.salePrice = salePrice;
-//        if (stockQuantity != null) this.stockQuantity = stockQuantity;
-//    }
-
     // 재고 상태 지정
     private void updateStockStatus() {
         if (this.stockQuantity != null && this.stockQuantity > 0) {
@@ -73,7 +65,7 @@ public class ProductPostOption  extends BaseEntity {
     public void decreaseStock(Integer orderQuantity) {
 
         if (orderQuantity > this.stockQuantity) {
-            throw new CustomException(ExceptionCode.INSUFFICIENT_STOCK);
+            throw new CustomException(ExceptionCode.OPTION_INSUFFICIENT_STOCK);
         }
 
         this.stockQuantity -= orderQuantity;

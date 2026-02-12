@@ -29,11 +29,10 @@ public class GroupPurchasePostRankingScheduler {
 
     /**
      * 매일 DB로부터 Redis Total 랭킹 새로고침
+     * 매 10분마다 갱신
+     * DB 부하를 덜기 위해 인덱싱 적용
      */
-    // 서버 시작 후 2분 뒤 최초 실행 / 이후 작업 완료 후 24시간 주기
-//    @Scheduled(initialDelay = 120_000, fixedDelay = 86_400_000)
-//    @EventListener(ApplicationReadyEvent.class)
-    @Scheduled(cron = "0 0 0 * * *") // cron도 내부적으로 이전 실행이 끝난 후 다음 스케줄을 처리
+    @Scheduled(cron = "0 */10 * * * *") // cron 내부적으로 이전 실행이 끝난 후 다음 스케줄을 처리
     public void refreshTotalRanking() {
 
         log.info("실행 스레드명 : {}", Thread.currentThread().getName());
@@ -50,5 +49,4 @@ public class GroupPurchasePostRankingScheduler {
             );
         });
     }
-
 }

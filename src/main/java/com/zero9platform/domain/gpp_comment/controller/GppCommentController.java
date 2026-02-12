@@ -9,7 +9,6 @@ import com.zero9platform.domain.gpp_comment.model.request.GppCommentUpdateReques
 import com.zero9platform.domain.gpp_comment.model.response.GppCommentCreateResponse;
 import com.zero9platform.domain.gpp_comment.model.response.GppCommentGetListResponse;
 import com.zero9platform.domain.gpp_comment.service.GppCommentService;
-import com.zero9platform.domain.grouppurchase_post.model.response.GroupPurchasePostListResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -55,7 +54,7 @@ public class GppCommentController {
 
         gppCommentService.gppCommentUpdate(authUser.getId(), gppCommentId, request);
 
-        return ResponseEntity.ok(CommonResponse.success("공동구매 게시물 댓글 수정 성공", null));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("공동구매 게시물 댓글 수정 성공", null));
     }
 
     /**

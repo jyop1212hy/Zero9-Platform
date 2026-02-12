@@ -45,16 +45,16 @@ public class UserService {
         validateNotAdmin(request);
 
         // 중복검사 아이디
-        checkDuplicate(userRepository.existsByLoginId(request.getLoginId()), ExceptionCode.LOGINID_EXIST);
+        checkDuplicate(userRepository.existsByLoginId(request.getLoginId()), ExceptionCode.USER_LOGIN_ID_DUPLICATED);
 
         // 중복검사 이메일
-        checkDuplicate(userRepository.existsByEmail(request.getEmail()), ExceptionCode.EMAIL_EXIST);
+        checkDuplicate(userRepository.existsByEmail(request.getEmail()), ExceptionCode.USER_EMAIL_DUPLICATED);
 
         // 중복검사 핸드폰
-        checkDuplicate(userRepository.existsByPhone(request.getPhone()), ExceptionCode.PHONE_EXIST);
+        checkDuplicate(userRepository.existsByPhone(request.getPhone()), ExceptionCode.USER_PHONE_DUPLICATED);
 
         // 중복검사 닉네임
-        checkDuplicate(userRepository.existsByNickname(request.getNickname()), ExceptionCode.NICKNAME_EXIST);
+        checkDuplicate(userRepository.existsByNickname(request.getNickname()), ExceptionCode.USER_NICKNAME_DUPLICATED);
 
         User user = new User(request.getLoginId(), passwordEncoder.encode(request.getPassword()), request.getEmail(), request.getName(), request.getRole().name(), request.getPhone(), request.getNickname());
 
@@ -84,7 +84,7 @@ public class UserService {
         // 관리자 프로필 보호 조건
         if (!isAdmin) {
             if (UserRole.valueOf(user.getRole()) == UserRole.ADMIN) {
-                throw new CustomException(ExceptionCode.NO_PERMISSION);
+                throw new CustomException(ExceptionCode.AUTH_NO_PERMISSION);
             }
         }
 
@@ -92,7 +92,7 @@ public class UserService {
         boolean notProvedInfluencer = influencerRepository.existsByUserIdAndInfluencerApprovalStatusFalse(userId);
 
         if (notProvedInfluencer) {
-            throw new CustomException(ExceptionCode.INFLUENCER_NOT_APPROVED);
+            throw new CustomException(ExceptionCode.USER_INFLUENCER_NOT_APPROVED);
         }
 
         // 프로필 이미지 URL 생성 (key → url)
@@ -115,9 +115,9 @@ public class UserService {
         User user = findById(userId);
 
         // 나를 제외한 중복 체크
-        checkDuplicate(userRepository.existsByEmailAndIdNot(request.getEmail(), userId), ExceptionCode.EMAIL_EXIST);
-        checkDuplicate(userRepository.existsByNicknameAndIdNot(request.getNickname(), userId), ExceptionCode.NICKNAME_EXIST);
-        checkDuplicate(userRepository.existsByPhoneAndIdNot(request.getPhone(), userId), ExceptionCode.PHONE_EXIST);
+        checkDuplicate(userRepository.existsByEmailAndIdNot(request.getEmail(), userId), ExceptionCode.USER_EMAIL_DUPLICATED);
+        checkDuplicate(userRepository.existsByNicknameAndIdNot(request.getNickname(), userId), ExceptionCode.USER_NICKNAME_DUPLICATED);
+        checkDuplicate(userRepository.existsByPhoneAndIdNot(request.getPhone(), userId), ExceptionCode.USER_PHONE_DUPLICATED);
 
         String newProfileImageKey = null;
         String oldProfileImageKey = user.getProfileImage();
@@ -128,12 +128,7 @@ public class UserService {
         }
 
         // 사용자 정보 수정
-        user.userUpdate(
-                request.getEmail(),
-                request.getNickname(),
-                request.getPhone(),
-                newProfileImageKey
-        );
+        user.userUpdate(request.getEmail(), request.getNickname(), request.getPhone(), newProfileImageKey);
 
         // 이미지가 안 들어온 경우 → 기존 이미지 삭제
         if ((profileImage == null || profileImage.isEmpty()) && oldProfileImageKey != null) {
@@ -159,28 +154,11 @@ public class UserService {
         boolean passwordMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
         if (!passwordMatches) {
-            throw new CustomException(ExceptionCode.PASSWORD_NOT_MATCH);
+            throw new CustomException(ExceptionCode.USER_PASSWORD_NOT_MATCH);
         }
 
         user.userDelete();
     }
-
-    /**
-     * 프로필 이미지 삭제
-     */
-    /*
-    @Transactional
-    public void profileImgDelete(Long userId, String profileImgKey) {
-
-        User user = findById(userId);
-
-        if(user.getProfileImage() != null && !user.getProfileImage().equals(profileImgKey)) {
-            throw new CustomException(ExceptionCode.PROFILE_IMAGE_NOT_FOUND_OR_INVALID);
-        }
-
-
-    }
-    */
 
     /**
      * 공통 검증 메서드
@@ -209,7 +187,7 @@ public class UserService {
     private void validateNotAdmin(UserCreateCommonRequest request) {
 
         if (ADMIN_EN.equals(request.getLoginId()) || ADMIN_KR.equals(request.getLoginId()) || ADMIN_KR.equals(request.getNickname())) {
-            throw new CustomException(ExceptionCode.ADMIN_DATA_NOT_ALLOWED);
+            throw new CustomException(ExceptionCode.USER_ADMIN_DATA_NOT_ALLOWED);
         }
     }
 }

@@ -34,17 +34,17 @@ public class FollowService {
 
         // 유저 조회 - 토큰 추가 후 롤 권한 확인 필요 체크
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_USER));
+                .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
 
         // 공동구매 게시물 조회
         GroupPurchasePost gpp = gppRepository.findById(gppId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_GPP));
+                .orElseThrow(() -> new CustomException(ExceptionCode.GPP_NOT_FOUND));
 
         // 이미 팔로우 했으면 예외 처리
         boolean existence = followRepository.existsByUserIdAndGroupPurchasePostId(user.getId(), gpp.getId());
 
         if (existence) {
-            throw new CustomException(ExceptionCode.ALREADY_SUBSCRIBED_GPP);
+            throw new CustomException(ExceptionCode.GROUP_PURCHASE_POST_ALREADY_SUBSCRIBED);
         }
 
         GppFollow gppFollow = new GppFollow(user, gpp);
@@ -59,21 +59,19 @@ public class FollowService {
     public void gppFollowDelete(Long userId, Long gppId) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_USER));
+                .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
 
         GroupPurchasePost gpp = gppRepository.findById(gppId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_GPP));
+                .orElseThrow(() -> new CustomException(ExceptionCode.GPP_NOT_FOUND));
 
         Optional<GppFollow> gppFollow = followRepository.findByUserIdAndGroupPurchasePostId(user.getId(), gpp.getId());
 
         if (gppFollow.isEmpty()) {
-            throw new CustomException(ExceptionCode.NOT_FOUND_GPP_SUBSCRIPTION);
+            throw new CustomException(ExceptionCode.GROUP_PURCHASE_POST_ALREADY_SUBSCRIBED);
         }
 
         followRepository.deleteById(gppFollow.get().getId());
     }
-
-    // 나 - 게시물1, 게시물2, 게시물3 ...
 
     /**
      * 공동구매 게시물 일정 팔로우 목록 조회 - 추후 Page 및 stream 변환 작업
@@ -82,7 +80,7 @@ public class FollowService {
     public PageResponse<GppFollowGetDetailResponse> gppFollowGetPage(Long userId, Pageable pageable) {
 
         userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ExceptionCode.NOT_FOUND_USER));
+                .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
 
         Page<GroupPurchasePost> gpp = gppRepository.findByUserIdAndFollowGpp(userId, pageable);
 

@@ -44,18 +44,17 @@ public class GroupPurchasePostService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
 
-
     /**
      * 공동구매 게시물 작성
      */
     @Transactional
     public GroupPurchasePostDetailResponse gpPostCreate(GroupPurchasePostCreateRequest request, Long userId, MultipartFile file) {
 
-        // 1️. User 조회 (AuthUser)
+        // 1. User 조회 (AuthUser)
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
 
-        // 2️. 유효성 검증 - 시작일/종료일 타당성
+        // 2. 유효성 검증 - 시작일/종료일 타당성
         // 종료일은 시작일 이전일 수 없음
         if (request.getEndDate().isBefore(request.getStartDate())) {
             throw new CustomException(ExceptionCode.GPP_INVALID_DATE_RANGE);
@@ -68,7 +67,7 @@ public class GroupPurchasePostService {
             throw new CustomException(ExceptionCode.GPP_INVALID_DATE_RANGE);
         }
 
-        // 3️. Enum 변환 - 카테고리, 진행상태
+        // 3. Enum 변환 - 카테고리, 진행상태
 //        Category category = request.getCategory();
         String category = request.getCategory().name();
 //        GppProgressStatus gppProgressStatus = request.getGppProgressStatus();
@@ -95,13 +94,13 @@ public class GroupPurchasePostService {
                 now
         );
 
-        // 5️. 데이터 저장
+        // 6. 데이터 저장
         GroupPurchasePost savedGpp = groupPurchasePostRepository.save(gpp);
 
         // 엘라스틱서치 비동기 데이터 추가
         eventPublisher.publishEvent(SearchEvent.from(savedGpp, false));
 
-        // 6️. Response 변환
+        // 7. Response 변환
         return GroupPurchasePostDetailResponse.from(savedGpp, contentImage);
     }
 
@@ -210,7 +209,6 @@ public class GroupPurchasePostService {
         return GroupPurchasePostDetailResponse.from(gpp, finalImageKey);
     }
 
-
     /**
      * 공동구매 게시물 삭제
      */
@@ -241,5 +239,4 @@ public class GroupPurchasePostService {
         // 엘라스틱서치 비동기 데이터 삭제
         eventPublisher.publishEvent(SearchEvent.from(gpp, true));
     }
-
 }

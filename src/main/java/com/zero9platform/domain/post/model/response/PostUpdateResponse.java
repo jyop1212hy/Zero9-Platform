@@ -20,6 +20,7 @@ public class PostUpdateResponse {
     private final LocalDateTime updatedAt;
 
     public static PostUpdateResponse from(Post post) {
+
         return new PostUpdateResponse(
                 post.getId(),
                 post.getUser().getId(),

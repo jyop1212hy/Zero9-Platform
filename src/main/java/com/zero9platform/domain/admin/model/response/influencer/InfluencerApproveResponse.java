@@ -4,7 +4,6 @@ import com.zero9platform.domain.user.entity.User;
 import com.zero9platform.domain.user.entity.Influencer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
 import java.time.LocalDateTime;
 
 @Getter
@@ -20,6 +19,7 @@ public class InfluencerApproveResponse {
     private final LocalDateTime approveAt;
 
     public static InfluencerApproveResponse from(Influencer influencer){
+
         User user = influencer.getUser();
 
         return new InfluencerApproveResponse(

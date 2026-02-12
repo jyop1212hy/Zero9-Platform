@@ -9,7 +9,6 @@ import com.zero9platform.domain.order.model.response.OrderCancelResponse;
 import com.zero9platform.domain.order.model.response.OrderCreateResponse;
 import com.zero9platform.domain.order.model.response.OrderGetDetailResponse;
 import com.zero9platform.domain.order.service.OrderService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,8 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -49,7 +46,7 @@ public class OrderController {
 
         OrderGetDetailResponse response = orderService.orderGetDetail(userId, orderId);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("주문 상세 조회 성공", response));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("주문 상세 조회 성공", response));
     }
 
     /**
@@ -64,7 +61,7 @@ public class OrderController {
 
         PageResponse<OrderGetDetailResponse> response = PageResponse.from(page);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("사용자의 주문 목록 조회 성공", response));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("사용자의 주문 목록 조회 성공", response));
     }
 
     /**
@@ -90,6 +87,6 @@ public class OrderController {
 
         OrderCancelResponse response = orderService.orderCancel(userId, orderId, request);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("주문 취소 성공", response));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("주문 취소 성공", response));
     }
 }

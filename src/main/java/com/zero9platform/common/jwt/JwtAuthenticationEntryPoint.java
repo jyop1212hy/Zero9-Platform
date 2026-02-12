@@ -21,7 +21,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
 
-        ExceptionCode code = ExceptionCode.LOGIN_REQUIRED;
+        ExceptionCode code = ExceptionCode.AUTH_LOGIN_REQUIRED;
 
         response.setStatus(code.getStatus().value());
         response.setContentType("application/json;charset=UTF-8");

@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
+
     Optional<Post> findByIdAndDeletedAtIsNull(Long id);
 
     Page<Post> findAllByDeletedAtIsNull(Pageable pageable);

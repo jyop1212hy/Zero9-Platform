@@ -26,7 +26,7 @@ public class ActivityFeedController {
      * 전체 피드 조회
      */
     @GetMapping("/all")
-    public ResponseEntity<CommonResponse<PageResponse<ActivityFeedResponse>>> feedsGetListHandler(@PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+    public ResponseEntity<CommonResponse<PageResponse<ActivityFeedResponse>>> feedsGetListHandler(@PageableDefault(size = 20, sort = "updatedAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
         PageResponse<ActivityFeedResponse> response = PageResponse.from(feedService.feedsGetList(pageable));
 
@@ -37,7 +37,7 @@ public class ActivityFeedController {
      * 로그인한 유저의 본인 피드 확인
      */
     @GetMapping("/me")
-    public ResponseEntity<CommonResponse<PageResponse<ActivityFeedResponse>>> feedsGetMyListHandler(@AuthenticationPrincipal AuthUser authUser, @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+    public ResponseEntity<CommonResponse<PageResponse<ActivityFeedResponse>>> feedsGetMyListHandler(@AuthenticationPrincipal AuthUser authUser, @PageableDefault(size = 20, sort = "updatedAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
         PageResponse<ActivityFeedResponse> response = PageResponse.from(feedService.feedsGetMyList(authUser.getId(), pageable));
 

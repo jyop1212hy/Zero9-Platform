@@ -1,14 +1,13 @@
 package com.zero9platform.common.enums;
 
-import com.zero9platform.common.exception.CustomException;
 import lombok.Getter;
-
-import java.util.Arrays;
 
 @Getter
 public enum GppProgressStatus {
 
-    READY("준비중"), DOING("진행중"), END("종료됨");
+    READY("준비중"),
+    DOING("진행중"),
+    END("종료됨");
 
     private final String description;
 

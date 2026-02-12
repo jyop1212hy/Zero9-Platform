@@ -5,13 +5,10 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.exception.CustomException;
-import com.zero9platform.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -41,50 +38,12 @@ public class S3Service {
             metadata.setContentLength(multipartFile.getSize());
             metadata.setContentType(multipartFile.getContentType());
 
-            amazonS3.putObject(
-                    new PutObjectRequest(
-                            bucket,
-                            fileName,
-                            multipartFile.getInputStream(),
-                            metadata
-                    )
-            );
+            amazonS3.putObject(new PutObjectRequest(bucket, fileName, multipartFile.getInputStream(), metadata));
 
             return fileName;
-            //return amazonS3.getUrl(bucket, fileName).toString();
-
         } catch (IOException e) {
             log.error("S3 업로드 실패 - fileName={}", fileName, e);
-            throw new CustomException(ExceptionCode.FILE_UPLOAD_FAIL);
-        }
-    }
 
-    public String uploadToTemp(MultipartFile multipartFile) {
-
-        if (multipartFile == null || multipartFile.isEmpty()) {
-            throw new CustomException(ExceptionCode.FILE_NOT_FOUND);
-        }
-
-        String tempKey = "temp/" + createFileName(multipartFile.getOriginalFilename());
-
-        try {
-            ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentLength(multipartFile.getSize());
-            metadata.setContentType(multipartFile.getContentType());
-
-            amazonS3.putObject(
-                    new PutObjectRequest(
-                            bucket,
-                            tempKey,
-                            multipartFile.getInputStream(),
-                            metadata
-                    )
-            );
-
-            return tempKey;
-
-        } catch (IOException e) {
-            log.error("S3 TEMP 업로드 실패 - key={}", tempKey, e);
             throw new CustomException(ExceptionCode.FILE_UPLOAD_FAIL);
         }
     }
@@ -102,7 +61,6 @@ public class S3Service {
             amazonS3.deleteObject(bucket, key);
 
             log.info("S3 삭제 성공 - key={}", key);
-
         } catch (Exception e) {
             log.error("S3 삭제 실패 - key={}", key, e);
         }

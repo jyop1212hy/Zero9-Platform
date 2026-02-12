@@ -29,7 +29,6 @@ public class CommentController {
     @PostMapping
     public ResponseEntity<CommonResponse<CommentCreateResponse>> commentCreateHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long postId, @Valid @RequestBody CommentCreateRequest request) {
 
-
         CommentCreateResponse response = commentService.commentCreate(authUser.getId(), postId, request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("댓글 생성 성공", response));
@@ -54,7 +53,7 @@ public class CommentController {
 
         commentService.commentUpdate(authUser.getId(), postId, commentId, request);
 
-        return ResponseEntity.ok(CommonResponse.success("댓글 수정 성공", null));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("댓글 수정 성공", null));
     }
 
     /**
@@ -65,7 +64,6 @@ public class CommentController {
 
         commentService.commentDelete(authUser.getId(), postId, commentId);
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(CommonResponse.success("댓글 삭제 성공", null));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("댓글 삭제 성공", null));
     }
 }

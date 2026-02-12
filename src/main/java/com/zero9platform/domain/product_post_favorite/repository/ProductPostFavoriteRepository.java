@@ -6,7 +6,6 @@ import com.zero9platform.domain.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -32,7 +31,7 @@ public interface ProductPostFavoriteRepository extends JpaRepository<ProductPost
             FROM ProductPostFavorite gf
             WHERE gf.productPost.id IN :gppIdList
             GROUP BY gf.productPost.id
-            """)
+    """)
     List<Object[]> countByGppIdList(@Param("gppIdList") List<Long> gppIdList);
 
     // 내부적으로는 아래와 같음
@@ -69,5 +68,4 @@ public interface ProductPostFavoriteRepository extends JpaRepository<ProductPost
 //            @Param("status") String status,
 //            Pageable pageable
 //    );
-
 }

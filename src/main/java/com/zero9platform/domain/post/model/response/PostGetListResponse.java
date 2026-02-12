@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 public class PostGetListResponse {
+
     private final Long id;
     private final Long userId;
     private final String title;
@@ -17,6 +18,7 @@ public class PostGetListResponse {
     private final LocalDateTime updatedAt;
 
     public static PostGetListResponse from(Post post) {
+
         return new PostGetListResponse(
                 post.getId(),
                 post.getUser().getId(),

@@ -1,9 +1,6 @@
 package com.zero9platform.common.enums;
 
-import com.zero9platform.common.exception.CustomException;
 import lombok.Getter;
-
-import java.util.Arrays;
 
 @Getter
 public enum Category {

@@ -3,7 +3,6 @@ package com.zero9platform.domain.gpp_comment.model.response;
 import com.zero9platform.domain.gpp_comment.entity.GppComment;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
 import java.time.LocalDateTime;
 
 @Getter

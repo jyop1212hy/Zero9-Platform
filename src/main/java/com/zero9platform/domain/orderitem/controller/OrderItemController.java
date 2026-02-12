@@ -2,7 +2,6 @@ package com.zero9platform.domain.orderitem.controller;
 
 import com.zero9platform.common.model.CommonResponse;
 import com.zero9platform.domain.auth.model.AuthUser;
-import com.zero9platform.domain.comment.entity.Comment;
 import com.zero9platform.domain.orderitem.model.request.OrderItemCreateRequest;
 import com.zero9platform.domain.orderitem.model.response.OrderItemCreateResponse;
 import com.zero9platform.domain.orderitem.model.response.OrderItemGetDetailResponse;
@@ -42,7 +41,7 @@ public class OrderItemController {
 
         OrderItemGetDetailResponse response = orderItemService.orderItemGetDetail(userId, orderItemId);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("주문 상품 상세 조회 성공", response));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("주문 상품 상세 조회 성공", response));
     }
 
     /**
@@ -55,6 +54,6 @@ public class OrderItemController {
 
         orderItemService.orderItemDelete(userId, orderItemId);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("주문 상품 삭제 성공", null));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("주문 상품 삭제 성공", null));
     }
 }

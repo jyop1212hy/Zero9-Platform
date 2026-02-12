@@ -3,7 +3,6 @@ package com.zero9platform.domain.comment.model.response;
 import com.zero9platform.domain.comment.entity.Comment;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
 import java.time.LocalDateTime;
 
 @Getter
