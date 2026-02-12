@@ -4,8 +4,11 @@ import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.exception.CustomException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,7 +23,7 @@ import java.util.stream.Collectors;
 public class SearchProfanityFilter {
 
     private final Set<String> badWords = new HashSet<>();
-    private final String FILE_PATH = System.getProperty("user.dir") + "/src/main/resources/bad-words.txt";
+    private final String FILE_PATH = "/src/main/resources/bad-words.txt";
 
     /**
      * 비속어 단어 업로드
@@ -38,16 +41,18 @@ public class SearchProfanityFilter {
             // 기존 메모리 데이터 초기화
             badWords.clear();
 
-            Path path = Paths.get(FILE_PATH);
+            ClassPathResource resource = new ClassPathResource(FILE_PATH);
 
-            if (Files.exists(path)) {
+            if (resource.exists()) {
 
-                // 파일 읽기 -> 공백 제거 -> 빈 줄 제외 -> HashSet에 저장
-                badWords.addAll(Files.readAllLines(path, StandardCharsets.UTF_8)
-                        .stream()
-                        .map(String::trim) // 앞뒤 공백 제거
-                        .filter(line -> !line.isEmpty()) // 빈 라인 제외
-                        .collect(Collectors.toSet()));
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
+
+                    // 파일 읽기 -> 공백 제거 -> 빈 줄 제외 -> HashSet에 저장
+                    badWords.addAll(reader.lines()
+                            .map(String::trim) // 앞뒤 공백 제거
+                            .filter(line -> !line.isEmpty())  // 빈 라인 제외
+                            .collect(Collectors.toSet()));
+                }
             }
             log.info("비속어 사전 동기화 완료: {}개 단어 로드됨", badWords.size());
         } catch (IOException e) {
@@ -69,7 +74,7 @@ public class SearchProfanityFilter {
         }
 
         // 중복 체크
-        if(badWords.contains(trimmedWord)) {
+        if (badWords.contains(trimmedWord)) {
             log.warn("이미 존재하는 단어 추가 시도: {}", trimmedWord);
 
             throw new CustomException(ExceptionCode.SEARCH_LOGS_PROFANITY_ALREADY_EXISTS, trimmedWord);
@@ -92,7 +97,7 @@ public class SearchProfanityFilter {
     /**
      * 단어 삭제 + 파일 갱신
      */
-    public synchronized void removeWord(String word){
+    public synchronized void removeWord(String word) {
 
         String trimmedWord = word.trim();
 

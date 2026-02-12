@@ -42,23 +42,17 @@ public class SearchLogController {
         // keyword가 null이면 빈 문자열로 대체해서 NPE 방지
         String cleanKeyword = (keyword == null) ? "" : keyword.trim();
 
-        // AuthUser 추출
-        AuthUser authUser = null;
-        if (authentication != null && authentication.getPrincipal() instanceof AuthUser) {
-            authUser = (AuthUser) authentication.getPrincipal();
-        }
-
         // 검색어가 없으면 빈 페이지를, 있으면 검색 수행
         Page<SearchLogItemResponse> page = isKeywordEmpty
                 ? Page.empty(pageable)
-                : searchLogService.searchLog(cleanKeyword, postType, pageable, authUser, request);
+                : searchLogService.searchLog(cleanKeyword, postType, pageable, authentication, request);
 
         // 공통 응답 포맷으로 반환
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success(message, PageResponse.from(page)));
     }
 
     /**
-     * 나의 최근 검색 히스토리 조회 (최근 검색어 리스트)
+     * 최근 검색 히스토리 조회 (최근 검색어 리스트)
      */
     @GetMapping("/search-logs/recent")
     public ResponseEntity<CommonResponse<List<RecentSearchResponse>>> getRecentSearchHistory(

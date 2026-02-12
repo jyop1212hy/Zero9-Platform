@@ -20,6 +20,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
@@ -47,7 +49,15 @@ public class SearchLogService {
      * 검색 대상 - 공동구매 상품명, 인플루언서 활동 닉네임
      */
     @Transactional(readOnly = true)
-    public Page<SearchLogItemResponse> searchLog(String cleanKeyword, String postType, Pageable pageable, AuthUser authUser, HttpServletRequest request) {
+    public Page<SearchLogItemResponse> searchLog(String cleanKeyword, String postType, Pageable pageable, Authentication authentication, HttpServletRequest request) {
+
+        // 서비스 내부에서 자체적으로 AuthUser 추출 (안전한 신분 확인)
+        AuthUser authUser = null;
+        if (authentication != null && authentication.isAuthenticated() && !(authentication instanceof AnonymousAuthenticationToken)) {
+            if (authentication.getPrincipal() instanceof AuthUser) {
+                authUser = (AuthUser) authentication.getPrincipal();
+            }
+        }
 
         // 검색 조건 검증 (허용되지 않은 조건 차단)
         validateSearchCondition(postType);

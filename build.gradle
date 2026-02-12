@@ -52,6 +52,7 @@ dependencies {
 
     // RabbitMQ
     implementation 'org.springframework.boot:spring-boot-starter-amqp'
+
     // 테스트 환경 RabbitMQ 검증
     testImplementation 'org.springframework.amqp:spring-rabbit-test'
 
