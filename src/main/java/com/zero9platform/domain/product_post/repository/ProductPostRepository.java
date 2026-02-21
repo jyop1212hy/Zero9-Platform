@@ -1,6 +1,7 @@
 package com.zero9platform.domain.product_post.repository;
 
 import com.zero9platform.domain.product_post.entity.ProductPost;
+import com.zero9platform.domain.product_post.model.response.ProductPostGetMyListResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -77,4 +78,22 @@ public interface ProductPostRepository extends JpaRepository<ProductPost, Long> 
         AND p.startDate <= :tomorrow
     """)
     List<ProductPost> findUpcomingPosts(@Param("now") LocalDateTime now, @Param("tomorrow") LocalDateTime tomorrow);
+
+    // 내가 작성한 판매 게시물 리미트 버전
+    @Query("""
+        SELECT new com.zero9platform.domain.product_post.model.response.ProductPostGetMyListResponse(
+            p.id,
+            p.title,
+            p.originalPrice,
+            p.startDate,
+            p.endDate,
+            count(f)
+        )
+        FROM ProductPost p
+        LEFT JOIN ProductPostFavorite f ON f.productPost.id = p.id
+        WHERE p.user.id = :userId
+        GROUP BY p
+        ORDER BY p.createdAt DESC
+    """)
+    List<ProductPostGetMyListResponse> findMyPostsWithFavoriteCount(@Param("userId") Long userId, Pageable pageable);
 }
