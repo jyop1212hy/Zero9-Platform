@@ -17,7 +17,9 @@ public enum FeedType {
     OPEN("[%s] 상품 외 여러 건이 지금 막 오픈되었습니다! 확인해보세요.", false),
     SOLD_OUT("[%s] 상품 외 여러 건의 판매가 종료되었습니다.", false),
     NOTICE("[공지] [%s]", false),     // 구현예정
-    EVENT("[이벤트] [%s]", false)       // 구현예정
+    EVENT("[이벤트] [%s]", false),
+    INQUIRY("[문의접수] '%s' 문의가 정상 접수되었습니다.", false),
+    INQUIRY_ANSWER("[답변완료] '%s' 문의에 대한 답변이 등록되었습니다.", false)
     ;
 
     // 양식

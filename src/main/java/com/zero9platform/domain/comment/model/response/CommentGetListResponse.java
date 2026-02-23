@@ -26,4 +26,14 @@ public class CommentGetListResponse {
                 comment.getUpdatedAt()
         );
     }
+    public static CommentGetListResponse maskContent(Comment comment) {
+        return new CommentGetListResponse(
+                comment.getId(),
+                comment.getUser().getId(),
+                comment.getUser().getNickname(),
+                "비밀글의 답변입니다.",
+                comment.getCreatedAt(),
+                comment.getUpdatedAt()
+        );
+    }
 }

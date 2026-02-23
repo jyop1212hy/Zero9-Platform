@@ -1,5 +1,6 @@
 package com.zero9platform.common.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -12,10 +13,19 @@ public class RedisConfig {
     /**
      * Redis 연결 설정
      */
+    @Value("${spring.data.redis.host:localhost}") // 값이 없으면 localhost 사용
+    private String host;
+
+    @Value("${spring.data.redis.port:6379}")
+    private int port;
+
+    /**
+     * Redis 연결 설정
+     */
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
         // application.yml 에서 spring.redis.* 설정을 자동 사용
-        return new LettuceConnectionFactory(); // 비동기 커넥션
+        return new LettuceConnectionFactory(host, port); // 비동기 커넥션
     }
 
     /**

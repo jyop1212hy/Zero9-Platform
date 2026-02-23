@@ -14,18 +14,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     Optional<Post> findByIdAndDeletedAtIsNull(Long id);
 
-    Page<Post> findAllByDeletedAtIsNull(Pageable pageable);
+    Page<Post> findAllByTypeAndDeletedAtIsNull(String type, Pageable pageable);
 
-    /**
-     * 조회수 증가 - 삭제되지 않은 게시물만
-     * DB에서 직접 증가, 영속성 컨텍스트를 거치지 않음
-     */
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("""
-        update Post p
-           set p.viewCount = p.viewCount + 1
-         where p.id = :postId
-           and p.deletedAt is null
-    """)
-    int increaseViewCount(@Param("postId") Long postId);
 }

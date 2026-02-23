@@ -29,7 +29,7 @@ public class GroupPurchasePostViewCountScheduler {
     @Scheduled(fixedDelay = 60_000) // 1분
     public void syncViewCountToDb() {
 
-        log.info("실행 스레드명 : {}", Thread.currentThread().getName());
+        log.info("GPP 조회수 갱신, 실행 스레드명 : {}", Thread.currentThread().getName());
 
         // 기존 get() + delete() 방식은 중간에 증가하면 유실 가능
         // getAndSet으로 0으로 초기화하면서 기존 값 가져옴 (원자적 처리)

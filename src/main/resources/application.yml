@@ -1,13 +1,12 @@
 spring:
   application:
     name: Zero9-Platform
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
 
   config:
     import: optional:file:.env[.properties]
+
+  profiles:
+    active: local   # 기본은 로컬
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -18,7 +17,7 @@ spring:
   jpa:
     open-in-view: false #트랜잭션을 컨트롤러에서 끊고, 영속성 컨텍스트를 서비스까지만 열어두는 설정
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     properties:
       hibernate:
         jdbc:
@@ -45,10 +44,6 @@ spring:
     enabled: true
     baseline-on-migrate: true
     locations: classpath:db/migration
-
-# elasticsearch 설정
-elasticsearch:
-  uris: http://localhost:9200
 
 # JWT 설정
 jwt:

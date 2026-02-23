@@ -1,0 +1,8 @@
+spring:
+  data:
+    redis:
+      host: redis
+      port: 6379
+
+  elasticsearch:
+    uris: http://elasticsearch:9200

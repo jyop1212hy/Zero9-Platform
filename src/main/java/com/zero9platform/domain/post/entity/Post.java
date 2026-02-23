@@ -22,34 +22,39 @@ public class Post extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Column(nullable = false, length = 50)
+    private String type;
+
     @Column(nullable = false, length = 255)
     private String title;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column
-    private String image;
-
     @Column(nullable = false)
-    private Long viewCount = 0L;
+    private boolean isSecret = false; // 실제 비밀글 여부 상태
+
+    @Column(length = 255)
+    private String password; // 비밀번호
 
     @Column
     private LocalDateTime deletedAt;
 
-    public Post(User user, String title, String content, String image) {
+    public Post(User user, String type,String title, String content, boolean isSecret, String password) {
         this.user = user;
+        this.type = type;
         this.title = title;
         this.content = content;
-        this.image = image;
-        this.viewCount = 0L;
+        this.isSecret = isSecret;
+        this.password = password;
         this.deletedAt = null;
     }
 
-    public void update(String title, String content, String image) {
+    public void update(String title, String content, Boolean isSecret, String password) {
         if(title != null) this.title = title;
         if(content != null) this.content = content;
-        if(image != null) this.image = image;
+        if(isSecret != null) this.isSecret = isSecret;
+        if(password != null) this.password = password;
     }
 
     public void delete() {

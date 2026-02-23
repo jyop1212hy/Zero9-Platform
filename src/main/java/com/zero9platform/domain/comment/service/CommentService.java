@@ -1,8 +1,12 @@
 package com.zero9platform.domain.comment.service;
 
 import com.zero9platform.common.enums.ExceptionCode;
+import com.zero9platform.common.enums.FeedType;
+import com.zero9platform.common.enums.PostType;
+import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.model.PageResponse;
+import com.zero9platform.domain.activity_feed.event.FeedCreateEvent;
 import com.zero9platform.domain.comment.entity.Comment;
 import com.zero9platform.domain.comment.model.request.CommentCreateRequest;
 import com.zero9platform.domain.comment.model.request.CommentUpdateRequest;
@@ -14,6 +18,7 @@ import com.zero9platform.domain.post.repository.PostRepository;
 import com.zero9platform.domain.user.entity.User;
 import com.zero9platform.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,9 +31,10 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
-     * 일반 게시물 댓글 작성
+     * 공지 / 문의  답변(댓글) 작성
      */
     @Transactional
     public CommentCreateResponse commentCreate(Long userId, Long postId, CommentCreateRequest request) {
@@ -39,28 +45,52 @@ public class CommentService {
         Post post = postRepository.findByIdAndDeletedAtIsNull(postId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.POST_NOT_FOUND));
 
+        // 정책 검증 실행
+        validateCommentPolicy(post, user);
+
         Comment saved = commentRepository.save(new Comment(post, user, request.getContent()));
 
+        // 문의사항(INQUIRY)에 답변이 달린 경우에만 답변완료 피드 발행
+        if (PostType.INQUIRY.name().equals(post.getType())) {
+            eventPublisher.publishEvent(new FeedCreateEvent(
+                    FeedType.INQUIRY_ANSWER,
+                    post.getId(),
+                    post.getTitle(),
+                    post.getUser().getId() // 알림 받을 질문자 ID
+            ));
+        }
         return CommentCreateResponse.from(saved);
     }
 
     /**
-     * 일반 게시물 댓글 전체목록 조회
+     * 공지 / 문의  답변(댓글)  전체목록 조회
      */
     @Transactional(readOnly = true)
-    public PageResponse<CommentGetListResponse> commentGetPage(Long postId, Pageable pageable) {
+    public PageResponse<CommentGetListResponse> commentGetPage(Long userId, Long postId, Pageable pageable) {
 
-        postRepository.findByIdAndDeletedAtIsNull(postId)
+        // 비밀글 여부 확인
+        Post post = postRepository.findByIdAndDeletedAtIsNull(postId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.POST_NOT_FOUND));
 
+        // 권한 확인
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
+
+        // 비밀글이 아니거나 관리자거나 작성자 본인이거나
+        boolean hasAccess = !post.isSecret() ||
+                UserRole.ADMIN.name().equals(user.getRole()) ||
+                post.getUser().getId().equals(userId);
+
         Page<CommentGetListResponse> page = commentRepository.findAllByPostId(postId, pageable)
-                .map(CommentGetListResponse::from);
+                .map(comment -> hasAccess
+                        ? CommentGetListResponse.from(comment)
+                        : CommentGetListResponse.maskContent(comment));
 
         return PageResponse.from(page);
     }
 
     /**
-     * 일반 게시물 댓글 수정
+     * 공지 / 문의  답변(댓글) 수정
      */
     @Transactional
     public void commentUpdate(Long userId, Long postId, Long commentId, CommentUpdateRequest request) {
@@ -79,7 +109,7 @@ public class CommentService {
     }
 
     /**
-     * 일반 게시물 댓글 삭제
+     * 공지 / 문의  답변(댓글) 삭제
      */
     @Transactional
     public void commentDelete(Long userId, Long postId, Long commentId) {
@@ -114,6 +144,24 @@ public class CommentService {
 
         if (!comment.getPost().getId().equals(postId)) {
             throw new CustomException(ExceptionCode.NOT_FOUND_COMMENT);
+        }
+    }
+
+    private void validateCommentPolicy(Post post, User user) {
+        String type = post.getType();
+        boolean isAdmin = UserRole.ADMIN.name().equals(user.getRole());
+
+        // 1. 공지사항(NOTICE): 댓글 불가
+        if (PostType.NOTICE.name().equals(type)) {
+            throw new CustomException(ExceptionCode.AUTH_NO_PERMISSION);
+        }
+
+        // 2. 문의사항(INQUIRY): 관리자만 1개 작성 가능
+        if (PostType.INQUIRY.name().equals(type)) {
+            if (!isAdmin) throw new CustomException(ExceptionCode.AUTH_NO_PERMISSION);
+            if (commentRepository.countByPostId(post.getId()) >= 1) {
+                throw new CustomException(ExceptionCode.COMMENT_ALREADY_EXISTS);
+            }
         }
     }
 }

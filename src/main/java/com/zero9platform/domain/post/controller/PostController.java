@@ -1,5 +1,6 @@
 package com.zero9platform.domain.post.controller;
 
+import com.zero9platform.common.enums.PostType;
 import com.zero9platform.common.model.CommonResponse;
 import com.zero9platform.common.model.PageResponse;
 import com.zero9platform.domain.auth.model.AuthUser;
@@ -26,57 +27,57 @@ public class PostController {
     private final PostService postService;
 
     /**
-     *  일반 게시물 생성
+     *  공지 및 문의사항 생성
      */
     @PostMapping
     public ResponseEntity<CommonResponse<PostCreateResponse>> postCreateHandler(@AuthenticationPrincipal AuthUser authUser, @Valid @RequestBody PostCreateRequest request) {
 
         PostCreateResponse response = postService.postCreate(authUser.getId(), request);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("일반 게시물 생성 성공", response));
+        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success("게시물 생성 성공", response));
     }
 
     /**
-     *  일반 게시물 상세조회
+     *  공지 / 문의 상세조회
      */
     @GetMapping("/{postId}")
-    public ResponseEntity<CommonResponse<PostGetDetailResponse>> postGetDetailHandler(@PathVariable Long postId) {
+    public ResponseEntity<CommonResponse<PostGetDetailResponse>> postGetDetailHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long postId, @RequestParam(required = false) String password) {
 
-        PostGetDetailResponse response = postService.postGetDetail(postId);
+        PostGetDetailResponse response = postService.postGetDetail(authUser.getId(), postId, password);
 
-        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("일반 게시물 상세조회 성공", response));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("게시물 상세조회 성공", response));
     }
 
     /**
-     *  일반 게시물 전체목록 조회
+     *  유형별 목록 조회
      */
     @GetMapping
-    public ResponseEntity<CommonResponse<PageResponse<PostGetListResponse>>> postGetListHandler(Pageable pageable){
+    public ResponseEntity<CommonResponse<PageResponse<PostGetListResponse>>> postGetListHandler(@RequestParam PostType type, Pageable pageable){
 
-        PageResponse<PostGetListResponse> response = PageResponse.from(postService.postGetPage(pageable));
+        PageResponse<PostGetListResponse> response = PageResponse.from(postService.postGetPage(type, pageable));
 
-        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("일반 게시물 목록조회 성공", response));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("목록조회 성공", response));
     }
 
     /**
-     *  일반 게시물 수정
+     *  공지 및 문의 수정
      */
     @PutMapping("/{postId}")
     public ResponseEntity<CommonResponse<PostUpdateResponse>> postUpdateHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long postId, @Valid @RequestBody PostUpdateRequest request) {
 
         PostUpdateResponse response = postService.postUpdate(authUser.getId(), postId, request);
 
-        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("일반 게시물 수정 성공", response));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("게시물 수정 성공", response));
     }
 
     /**
-     *  일반 게시물 삭제
+     *  공지 및 문의 삭제
      */
     @DeleteMapping("/{postId}")
     public ResponseEntity<CommonResponse<Void>> postDeleteHandler(@AuthenticationPrincipal AuthUser authUser, @PathVariable Long postId) {
 
-        postService.postDelete(authUser, postId);
+        postService.postDelete(authUser.getId(), postId);
 
-        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("일반 게시물 삭제 성공", null));
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("게시물 삭제 성공", null));
     }
 }

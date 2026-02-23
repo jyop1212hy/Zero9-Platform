@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 public class SearchProfanityFilter {
 
     private final Set<String> badWords = new HashSet<>();
-    private final String FILE_PATH = "/src/main/resources/bad-words.txt";
+    private final String FILE_PATH = System.getProperty("user.dir") + "/bad-words.txt";
 
     /**
      * 비속어 단어 업로드
@@ -38,23 +38,26 @@ public class SearchProfanityFilter {
      */
     public synchronized void refresh() {
         try {
-            // 기존 메모리 데이터 초기화
             badWords.clear();
+            Path path = Paths.get(FILE_PATH);
 
-            ClassPathResource resource = new ClassPathResource(FILE_PATH);
+            if (Files.exists(path)) {
+                // 1. 서버 폴더에 파일이 있으면 (최신 데이터) 로드
+                badWords.addAll(Files.readAllLines(path, StandardCharsets.UTF_8));
+            } else {
+                // 2. 서버 폴더에 파일이 없으면 (최초 실행) JAR 내부 리소스 로드
+                ClassPathResource resource = new ClassPathResource("bad-words.txt");
+                if (resource.exists()) {
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()))) {
+                        Set<String> initialWords = reader.lines().map(String::trim).collect(Collectors.toSet());
+                        badWords.addAll(initialWords);
 
-            if (resource.exists()) {
-
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
-
-                    // 파일 읽기 -> 공백 제거 -> 빈 줄 제외 -> HashSet에 저장
-                    badWords.addAll(reader.lines()
-                            .map(String::trim) // 앞뒤 공백 제거
-                            .filter(line -> !line.isEmpty())  // 빈 라인 제외
-                            .collect(Collectors.toSet()));
+                        // 3. 로드한 데이터를 외부 파일로 복사 (이후부터는 이 파일을 수정함)
+                        Files.write(path, initialWords, StandardCharsets.UTF_8);
+                    }
                 }
             }
-            log.info("비속어 사전 동기화 완료: {}개 단어 로드됨", badWords.size());
+            log.info("비속어 사전 동기화 완료: {}개", badWords.size());
         } catch (IOException e) {
             log.error("비속어 파일 읽기 실패: {}", e.getMessage());
 

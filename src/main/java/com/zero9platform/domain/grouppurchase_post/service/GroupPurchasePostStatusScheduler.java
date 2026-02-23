@@ -23,7 +23,7 @@ public class GroupPurchasePostStatusScheduler {
     @Scheduled(cron = "0 0 0 * * *") // cron 내부적으로 이전 실행이 끝난 후 다음 스케줄을 처리
     public void updateGppProgressStatus() {
 
-        log.info("실행 스레드명 : {}", Thread.currentThread().getName());
+        log.info("GPP 모집상태 변경 시작, 실행 스레드명 : {}", Thread.currentThread().getName());
 
         LocalDateTime now = LocalDateTime.now();
 

@@ -79,21 +79,31 @@ public class SearchLogService {
 
         boolean isAbuse = isDuplicateSearch(cleanKeyword, identifier);
 
-        // ES용 쿼리 빌드 (DB 레포지토리 호출 대신)
+        // ES용 쿼리 빌드 (필드 가중치 적용 제목:5, 내용:1)
         NativeQuery query = NativeQuery.builder()
-                .withQuery(q -> q.multiMatch(m -> {
+                .withQuery(q -> q.bool(b -> {
                     List<String> targetFields = switch (postType != null ? postType : "all") {
-                        case "product_title" -> targetFields = List.of("title", "content");
-                        case "content" -> targetFields = List.of("content");
-                        case "influencer" -> targetFields = List.of("nickname");
-                        default -> List.of("title", "content", "nickname"); // 전체 검색
+                        case "product_title" -> List.of("title^10", "content^1");    // 제목에 10배 가중치
+                        case "content" -> List.of("content^1");                 // 내용레 1배 가중치
+                        case "influencer" -> List.of("nickname^10");            // 닉네임 10배 가중치
+                        default -> List.of("title^10", "nickname^10", "content^1"); // 전체 검색 시 제목 > 닉네임 > 내용 순
                     };
 
-                    return m.fields(targetFields)
+                    // 2. MultiMatch 쿼리 최적화
+                    b.must(m -> m.multiMatch(mm -> mm
+                            .fields(targetFields)
                             .query(cleanKeyword)
-                            .fuzziness("1");
+                            // 제목(title)처럼 중요한 필드에서 정확도가 높아야 하므로
+                            // 가중치가 높은 필드 위주로 점수를 계산하도록 유도
+                            .type(co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType.BestFields)
+                            // 오타 허용 범위를 조절 (단어 길이가 짧을 땐 오타 허용 안 함)
+                            .fuzziness("AUTO")
+                    ));
+                    return b;
                 }))
-                .withSort(s -> s.field(f -> f.field("startDate").order(SortOrder.Desc)))
+                // 검색 정렬 순위
+                .withSort(s -> s.score(sc -> sc.order(SortOrder.Desc))) // 1순위: 유사도 점수 높은 순 (정확도)
+                .withSort(s -> s.field(f -> f.field("startDate").order(SortOrder.Desc))) // 2순위: 점수가 같을 경우 최신 시작일 순
                 .withPageable(pageable)
                 .build();
 

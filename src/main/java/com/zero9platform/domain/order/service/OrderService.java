@@ -169,8 +169,11 @@ public class OrderService {
         Long productId = order.getOrderItem().getProductPost().getId();
         String title = order.getOrderItem().getProductPost().getTitle();
 
-        // 이벤트 던지기
-        eventPublisher.publishEvent(new FeedCreateEvent(FeedType.PAYMENT_COUNT, productId, title, userId));
+        // 1. 전체 피드용 (누구나 보는 'N명 주문 중') -> userId를 null로 던짐
+        eventPublisher.publishEvent(new FeedCreateEvent(FeedType.PAYMENT_COUNT, productId, title, null));
+
+        // 2. 개인 피드용 (나만 보는 '내 주문 완료') -> userId를 그대로 던짐
+        eventPublisher.publishEvent(new FeedCreateEvent(FeedType.PAYMENT_USER, productId, title, userId));
 
         paymentRepository.save(payment);
     }

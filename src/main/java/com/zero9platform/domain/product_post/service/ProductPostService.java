@@ -7,14 +7,10 @@ import com.zero9platform.common.enums.ProgressStatus;
 import com.zero9platform.common.enums.StockStatus;
 import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.exception.CustomException;
-import com.zero9platform.domain.activity_feed.service.ActivityFeedService;
 import com.zero9platform.domain.product_post.entity.ProductPost;
 import com.zero9platform.domain.product_post.model.request.ProductPostCreateRequest;
 import com.zero9platform.domain.product_post.model.request.ProductPostUpdateRequest;
-import com.zero9platform.domain.product_post.model.response.ProductPostCreateResponse;
-import com.zero9platform.domain.product_post.model.response.ProductPostGetDetailResponse;
-import com.zero9platform.domain.product_post.model.response.ProductPostGetListResponse;
-import com.zero9platform.domain.product_post.model.response.ProductPostUpdateResponse;
+import com.zero9platform.domain.product_post.model.response.*;
 import com.zero9platform.domain.product_post.repository.ProductPostRepository;
 import com.zero9platform.domain.product_post_favorite.repository.ProductPostFavoriteRepository;
 import com.zero9platform.domain.product_post_option.entity.ProductPostOption;
@@ -32,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -105,6 +102,9 @@ public class ProductPostService {
         return ProductPostGetDetailResponse.from(productPost, productImage, favoriteCount);
     }
 
+    /**
+     * 상품목록 전체 조회
+     */
     @Transactional(readOnly = true)
     public Page<ProductPostGetListResponse> productPostGetList(Pageable pageable) {
 
@@ -122,50 +122,60 @@ public class ProductPostService {
     }
 
     /**
+     * 내가 등록한 판매 게시물 보기
+     * limit version
+     */
+    @Transactional(readOnly = true)
+    public List<ProductPostGetMyListResponse> myProductPostGetLimitList(Long userId, Pageable pageable) {
+
+        return productPostRepository.findMyPostsWithFavoriteCount(userId, pageable);
+    }
+
+    /**
      * 상품 게시물 수정
      */
     @Transactional
     public ProductPostUpdateResponse productPostUpdate(Long userId, Long productPostId, ProductPostUpdateRequest request, MultipartFile file) {
 
-        // 인가 확인 (사용자 제외)
         User user = validPermission(userId);
 
         ProductPost productPost = productPostRepository.findById(productPostId)
                 .orElseThrow(() -> new CustomException(ExceptionCode.PRODUCT_POST_NOT_FOUND));
 
-        // 상품판매 게시물의 상태가 'READY'일 때만 수정 가능
-        if (!productPost.getProgressStatus().equals(ProgressStatus.READY.name())) {
+        if (!ProgressStatus.READY.name().equals(productPost.getProgressStatus())) {
             throw new CustomException(ExceptionCode.PRODUCT_POST_CANNOT_UPDATE_ALREADY_STARTED);
         }
 
-        // 본인만 수정 가능
         validProductPostOwner(user, productPost);
 
-        // 이미지 파일 업로드 S3 서비스 호출
-        String newImageKey = null;
         String oldImageKey = productPost.getImage();
+        String newImageKey = null;
 
         if (file != null && !file.isEmpty()) {
             newImageKey = s3Service.upload(file, S3_FOLDER);
         }
 
-        String category = request.getCategory() != null ? request.getCategory().name() : null;
+        String finalImageKey = (newImageKey != null) ? newImageKey : oldImageKey;
 
-        // 이미지 교체 로직
-        String finalImageKey = newImageKey != null ? newImageKey : oldImageKey;
+        String category = (request.getCategory() != null) ? request.getCategory().name() : productPost.getCategory(); // 기존 유지
 
-        //엘라스틱서치 비동기 업데이트
-        eventPublisher.publishEvent(SearchEvent.from(productPost, false));
+        productPost.update(
+                category,
+                request.getTitle(),
+                request.getName(),
+                request.getContent(),
+                request.getOriginalPrice(),
+                finalImageKey,
+                request.getStartDate(),
+                request.getEndDate(),
+                LocalDateTime.now()
+        );
 
-        // 기존 이미지 삭제 (새 이미지가 있을 때만)
         if (newImageKey != null && oldImageKey != null) {
             s3Service.s3Delete(oldImageKey);
         }
 
-        // 현재 시간 생성
-        LocalDateTime now = LocalDateTime.now();
-
-        productPost.update(category, request.getTitle(), request.getName(), request.getContent(), request.getOriginalPrice(), finalImageKey, request.getStartDate(), request.getEndDate(), now);
+        eventPublisher.publishEvent(SearchEvent.from(productPost, false));
 
         return ProductPostUpdateResponse.from(productPost);
     }

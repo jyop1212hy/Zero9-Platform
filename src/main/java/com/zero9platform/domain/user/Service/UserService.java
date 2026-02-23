@@ -114,31 +114,28 @@ public class UserService {
 
         User user = findById(userId);
 
-        // 나를 제외한 중복 체크
+        // 중복 체크
         checkDuplicate(userRepository.existsByEmailAndIdNot(request.getEmail(), userId), ExceptionCode.USER_EMAIL_DUPLICATED);
         checkDuplicate(userRepository.existsByNicknameAndIdNot(request.getNickname(), userId), ExceptionCode.USER_NICKNAME_DUPLICATED);
         checkDuplicate(userRepository.existsByPhoneAndIdNot(request.getPhone(), userId), ExceptionCode.USER_PHONE_DUPLICATED);
 
-        String newProfileImageKey = null;
         String oldProfileImageKey = user.getProfileImage();
+        String newProfileImageKey = oldProfileImageKey;
 
-        // 새 이미지가 들어온 경우
+        // 새 이미지가 들어온 경우만 교체
         if (profileImage != null && !profileImage.isEmpty()) {
+
+            // 새 이미지 업로드
             newProfileImageKey = s3Service.upload(profileImage, S3_FOLDER);
+
+            // 기존 이미지 삭제
+            if (oldProfileImageKey != null) {
+                s3Service.s3Delete(oldProfileImageKey);
+            }
         }
 
-        // 사용자 정보 수정
+        // 사용자 정보 수정 (이미지 포함)
         user.userUpdate(request.getEmail(), request.getNickname(), request.getPhone(), newProfileImageKey);
-
-        // 이미지가 안 들어온 경우 → 기존 이미지 삭제
-        if ((profileImage == null || profileImage.isEmpty()) && oldProfileImageKey != null) {
-            s3Service.s3Delete(oldProfileImageKey);
-        }
-
-        // 새 이미지가 들어온 경우 → 기존 이미지 삭제
-        if (newProfileImageKey != null && oldProfileImageKey != null) {
-            s3Service.s3Delete(oldProfileImageKey);
-        }
 
         return UserUpdateResponse.from(user, newProfileImageKey);
     }

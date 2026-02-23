@@ -34,6 +34,7 @@ public enum ExceptionCode {
 
     // 댓글
     NOT_FOUND_COMMENT(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다."),
+    COMMENT_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 답변이 완료된 문의사항입니다."),
 
     // 공동구매 게시물
     GPP_NOT_FOUND(HttpStatus.NOT_FOUND, "공동구매 게시물을 찰을 수 없습니다."),

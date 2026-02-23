@@ -35,7 +35,7 @@ public class GroupPurchasePostRankingScheduler {
     @Scheduled(cron = "0 */10 * * * *") // cron 내부적으로 이전 실행이 끝난 후 다음 스케줄을 처리
     public void refreshTotalRanking() {
 
-        log.info("실행 스레드명 : {}", Thread.currentThread().getName());
+        log.info("GPP 누적 랭킹 갱신, 실행 스레드명 : {}", Thread.currentThread().getName());
 
         // 기존 랭킹 ZSet삭제
         redisTemplate.delete("gpp:ranking:total");
