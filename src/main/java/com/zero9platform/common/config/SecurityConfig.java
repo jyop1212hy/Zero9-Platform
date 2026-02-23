@@ -74,8 +74,10 @@ public class SecurityConfig {
                                 "/mypage/**",
                                 "/payment/**",
                                 "/joinpage/**",
-                                "/frontend/**",
-                                "/auth/**"
+                                "/admin/**",
+                                "/auth/**",
+                                "/gp_post/**",
+                                "/search_log/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/zero9/auth/**",

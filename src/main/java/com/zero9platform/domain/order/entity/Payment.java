@@ -22,7 +22,7 @@ public class Payment extends BaseEntity {
 
     @Column(nullable = false)
     private String paymentKey;
-
+    
     public Payment(Order order, String paymentKey) {
         this.order = order;
         this.paymentKey = paymentKey;
