@@ -8,6 +8,27 @@ spring:
   profiles:
     active: local   # 기본은 로컬
 
+  security:
+    oauth2:
+      client:
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize  #카카오 서버에서 인증 코드를 요청할 url
+            token-uri: https://kauth.kakao.com/oauth/token              #액세스 토큰을 요청하기 위한 url
+            user-info-uri: https://kapi.kakao.com/v2/user/me            #액세스 토큰을 바탕으로 사용자의 정보를 받아오기 위한 url
+            user-name-attribute: id                                     #사용자의 정보를 가져올 때 식별자로 사용할 속성이다. 카카오에서는 id를 사용
+        registration:
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}                               #카카오 디벨로퍼스에서 발급받은 client-id를 입력함/ 카카오 “REST API 키(Default Rest API Key 값)
+            client-secret: ${KAKAO_CLIENT_SECRET}                       #카카오 디벨로퍼스에서 발급받은 secret을 입력하면 됨/ 카카오 “클라이언트 시크릿(Client Secret)” 값
+            client-authentication-method: client_secret_post            #클라이언트 인증방식이다. client-secret을 사용했기에 client-secret-post를 입력해주면 됨
+            authorization-grant-type: authorization_code                #여러가지가 있으나 가장 기본적인 authorization_code 방식을 사용
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}" #사용자가 로그인에 성공한 후 발급받은 authorization code를 돌려줄 uri
+            scope:                                                      #카카오 리소스 서버에서 가져올 정보의 범위를 입력해준다. 리소스 서버에서 닉네임과 이메일을 가져옴
+              - profile_nickname
+              - profile_image
+#              - account_email
+
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DB_URL}
