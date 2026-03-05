@@ -4,6 +4,8 @@ import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.jwt.JwtAccessDeniedHandler;
 import com.zero9platform.common.jwt.JwtAuthenticationEntryPoint;
 import com.zero9platform.common.jwt.JwtFilter;
+import com.zero9platform.domain.auth.oauth.CustomOAuth2UserService;
+import com.zero9platform.domain.auth.oauth.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,11 +28,8 @@ import org.springframework.security.web.servletapi.SecurityContextHolderAwareReq
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint, JwtAccessDeniedHandler jwtAccessDeniedHandler) throws Exception {
@@ -43,19 +42,23 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
+                // OAuth2 로그인 설정
+                .oauth2Login(oauth -> oauth
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        .successHandler(oAuth2SuccessHandler)
+                )
 
                 // JWT 인증 필터 등록
                 .addFilterBefore(jwtFilter, SecurityContextHolderAwareRequestFilter.class)
 
                 // 세션 설정: STATELESS (JWT 기반 인증)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
+//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)) // 카카오 로그인 테스트용
                 // Security 예외 처리
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint) // 인증 실패 (401)
                         .accessDeniedHandler(jwtAccessDeniedHandler) // 인가 실패 (403)
                 )
-
                 // 인가(Authorization) 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -68,6 +71,7 @@ public class SecurityConfig {
                                 "/**/*.png", "/**/*.jpg", "/**/*.jpeg",
                                 "/**/*.svg", "/**/*.ico"
                         ).permitAll()
+                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll() // OAuth2 진입/콜백 허용 (필수)
                         .requestMatchers(
                                 "/img/**",
                                 "/goods/**",

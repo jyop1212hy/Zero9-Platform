@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/zero9/auth")
@@ -30,6 +32,14 @@ public class AuthController {
         AuthLoginResponse response = authService.login(request, httpServletResponse);
 
         return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("로그인 성공", response));
+    }
+
+    /**
+     * kakao 로그인 테스트용 컨트롤러
+     */
+    @GetMapping("/oauth/callback")
+    public Map<String, String> callback(@RequestParam String accessToken) {
+        return Map.of("accessToken", accessToken);
     }
 
     /**

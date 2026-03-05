@@ -4,6 +4,7 @@ import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.jwt.JwtUtil;
+import com.zero9platform.domain.auth.oauth.OAuthUserPrincipal;
 import com.zero9platform.domain.auth.refresh_token.RefreshToken;
 import com.zero9platform.domain.auth.refresh_token.RefreshTokenRepository;
 import com.zero9platform.domain.auth.model.request.AuthLoginRequest;
@@ -50,8 +51,8 @@ public class AuthService {
             throw new CustomException(ExceptionCode.USER_WITHDRAWN);
         }
 
-        // 비밀번호 검사
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        // LOCAL 비밀번호 검사
+        if (user.getPassword() == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new CustomException(ExceptionCode.USER_PASSWORD_NOT_MATCH);
         }
 
@@ -100,6 +101,87 @@ public class AuthService {
                 .build();
 
         // 브라우저는 이 헤더를 보고 쿠키를 저장 이후 요청 시 자동으로 서버에 쿠키를 포함해서 보냄
+        response.addHeader("Set-Cookie", cookie.toString());
+
+        return new AuthLoginResponse(accessToken);
+    }
+
+    /**
+     * 로그인(OAUTH - KAKAO 등)
+     * - OAuth 인증 성공 후, provider+providerId로 upsert 된 User를 받아서 토큰만 발급
+     */
+    @Transactional
+    public AuthLoginResponse oauthLogin(OAuthUserPrincipal principal, HttpServletResponse response) {
+
+        // 탈퇴한 회원 검사
+        Long userId = principal.getUserId();
+        if(userId == null){
+            throw new CustomException(ExceptionCode.USER_NOT_FOUND);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ExceptionCode.USER_NOT_FOUND));
+
+
+        if (user.getDeletedAt() != null) {
+            throw new CustomException(ExceptionCode.USER_WITHDRAWN);
+        }
+
+        return issueTokens(user, response);
+    }
+
+    /**
+     * Access/Refresh 발급 공통 처리
+     * - 인플루언서 승인 체크
+     * - 기존 Refresh Token 제거
+     * - 새 Refresh Token 저장 + 쿠키 세팅
+     */
+    private AuthLoginResponse issueTokens(User user, HttpServletResponse response) {
+
+        // role 변환
+        UserRole role = UserRole.valueOf(user.getRole());
+
+        // 인플루언서 승인 확인
+        if (role == UserRole.INFLUENCER) {
+            boolean approved = influencerRepository.findByUserId(user.getId())
+                    .map(Influencer::getInfluencerApprovalStatus)
+                    .orElse(false);
+
+            if (!approved) {
+                throw new CustomException(ExceptionCode.USER_INFLUENCER_NOT_APPROVED);
+            }
+        }
+
+        // 기존 Refresh Token 전부 제거
+        refreshTokenRepository.deleteAllByUserId(user.getId());
+
+        // Access Token 생성
+        String accessToken = jwtUtil.createToken(
+                user.getId(),
+                user.getNickname(),
+                role
+        );
+
+        // Refresh Token 생성
+        String refreshTokenValue = jwtUtil.createRefreshToken();
+
+        RefreshToken refreshToken = new RefreshToken(
+                refreshTokenValue,
+                user.getId(),
+                LocalDateTime.now().plusDays(14)
+        );
+
+        refreshTokenRepository.save(refreshToken);
+
+        // RefreshToken 쿠키 세팅
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshTokenValue)
+                .httpOnly(true)
+                .secure(false) // 운영 HTTPS면 true
+                .path("/")
+                .maxAge(60L * 60 * 24 * 14)
+                .sameSite("Lax") // 개발환경 Lax
+                .build();
+
         response.addHeader("Set-Cookie", cookie.toString());
 
         return new AuthLoginResponse(accessToken);
@@ -155,7 +237,6 @@ public class AuthService {
         // 재사용 감지 (탈취)
         if (refreshToken.isUsed()) {
             refreshTokenRepository.deleteAllByUserId(refreshToken.getUserId());
-
             throw new CustomException(ExceptionCode.REFRESH_TOKEN_REUSED);
         }
 
