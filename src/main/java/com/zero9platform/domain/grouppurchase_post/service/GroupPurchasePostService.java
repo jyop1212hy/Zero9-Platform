@@ -12,6 +12,8 @@ import com.zero9platform.domain.grouppurchase_post.model.response.GroupPurchaseP
 import com.zero9platform.domain.grouppurchase_post.model.response.GroupPurchasePostListResponse;
 import com.zero9platform.domain.grouppurchase_post.model.response.GroupPurchasePostReadResponse;
 import com.zero9platform.domain.grouppurchase_post.repository.GroupPurchasePostRepository;
+import com.zero9platform.domain.notification.GroupPurchasePostStatusChangedEvent;
+import com.zero9platform.domain.notification.NotificationEventProducer;
 import com.zero9platform.domain.searchLog.model.event.SearchEvent;
 import com.zero9platform.domain.user.entity.User;
 import com.zero9platform.domain.user.repository.UserRepository;
@@ -240,4 +242,5 @@ public class GroupPurchasePostService {
         // 엘라스틱서치 비동기 데이터 삭제
         eventPublisher.publishEvent(SearchEvent.from(gpp, true));
     }
+
 }

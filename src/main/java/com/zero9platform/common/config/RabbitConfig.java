@@ -14,6 +14,12 @@ public class RabbitConfig {
     public static final String FEED_QUEUE = "activity.feed.queue";
     public static final String FEED_ROUTING_KEY = "activity.feed.routing";
 
+    // 알림(Notification)용 추가
+    public static final String NOTIFICATION_EXCHANGE = "notification.exchange";
+    public static final String PRODUCT_STATUS_QUEUE = "notification.product.status.queue";
+    public static final String PRODUCT_STATUS_ROUTING_KEY = "product.status.changed";
+
+
     /**
      * TopicExchange: Routing Key 패턴 매칭을 통해 메시지를 배정하는 Exchange
      */
@@ -45,4 +51,32 @@ public class RabbitConfig {
     public MessageConverter jackson2JsonMessageConverter() {
         return new Jackson2JsonMessageConverter();
     }
+
+
+    /**
+     * Notification Exchange
+     */
+    @Bean
+    public TopicExchange notificationExchange() {
+        return new TopicExchange(NOTIFICATION_EXCHANGE);
+    }
+
+    /**
+     * 상품 상태 변경 알림 Binding
+     */
+    @Bean
+    public Queue productStatusQueue() {
+        return new Queue(PRODUCT_STATUS_QUEUE, true);
+    }
+
+    /**
+     * 상품 상태 변경 알림 Binding
+     */
+    @Bean
+    public Binding productStatusBinding(Queue productStatusQueue, TopicExchange notificationExchange) {
+        return BindingBuilder.bind(productStatusQueue)
+                .to(notificationExchange)
+                .with(PRODUCT_STATUS_ROUTING_KEY);
+    }
+
 }

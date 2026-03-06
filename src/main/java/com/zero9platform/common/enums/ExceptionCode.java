@@ -42,6 +42,9 @@ public enum ExceptionCode {
     GPP_INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "종료일은 시작일 이후여야 하며, 시작일은 오늘 이전일 수 없습니다."),
     GPP_NO_PERMISSION(HttpStatus.FORBIDDEN, "공동구매 게시물에 대한 권한이 없습니다."),
 
+    // 공동구매 상태변환 알림
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림이 존재하지 않습니다."),
+
     // 공동구매 게시물 일정 팔로우
     GROUP_PURCHASE_POST_ALREADY_SUBSCRIBED(HttpStatus.CONFLICT, "이미 팔로우한 공동구매 게시물입니다."),
 
@@ -96,8 +99,7 @@ public enum ExceptionCode {
     TOSS_PAYMENT_CONFIRM_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "토스 결제 승인 처리 중 서버 오류가 발생했습니다."),
     TOSS_PAYMENT_CANCEL_FAIL(HttpStatus.BAD_REQUEST, "토스 결제 취소에 실패했습니다."),
     TOSS_PAYMENT_CANCEL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "토스 결제 취소 처리 중 서버 오류가 발생했습니다."),
-    TOSS_PAYMENT_KEY_NOT_FOUND(HttpStatus.BAD_REQUEST, "결제 키를 찾을 수 없습니다."),
-
+    TOSS_PAYMENT_KEY_NOT_FOUND(HttpStatus.BAD_REQUEST, "결제 키를 찾을 수 없습니다.")
     ;
 
     private final HttpStatus status;

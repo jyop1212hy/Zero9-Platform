@@ -85,4 +85,9 @@ public interface GroupPurchasePostRepository extends JpaRepository<GroupPurchase
     // 엘라스틱서치 역 벌크인덱싱 업데이트용
     @EntityGraph(attributePaths = {"user"})
     Page<GroupPurchasePost> findAllByUpdatedAtAfter(LocalDateTime modifiedAfter, PageRequest of);
+
+
+    // 상태변경 대상 조회용
+    List<GroupPurchasePost> findAllByGppProgressStatusAndStartDateLessThanEqualAndDeletedAtIsNull(String gppProgressStatus, LocalDateTime now);
+    List<GroupPurchasePost> findAllByGppProgressStatusAndEndDateLessThanEqualAndDeletedAtIsNull(String gppProgressStatus, LocalDateTime now);
 }
