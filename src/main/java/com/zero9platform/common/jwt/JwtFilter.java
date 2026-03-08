@@ -30,7 +30,23 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        boolean skip = uri.startsWith("/oauth2/")
+                || uri.startsWith("/login/oauth2/")
+                || uri.equals("/login")
+                || uri.startsWith("/login/")
+                || uri.equals("/error")
+                || uri.startsWith("/zero9/auth/oauth/callback");
+
+        log.info("[JWT] uri={}, skip={}", uri, skip);
+        return skip;
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+        log.info("[JWT] doFilterInternal uri={}", request.getRequestURI());
 
         String bearerJwt = request.getHeader("Authorization");
 
