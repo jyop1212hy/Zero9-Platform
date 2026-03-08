@@ -52,8 +52,8 @@ public class SecurityConfig {
                 .addFilterBefore(jwtFilter, SecurityContextHolderAwareRequestFilter.class)
 
                 // 세션 설정: STATELESS (JWT 기반 인증)
-//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)) // 카카오 로그인 테스트용
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)) // 카카오 로그인 테스트용
                 // Security 예외 처리
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint) // 인증 실패 (401)
@@ -106,6 +106,7 @@ public class SecurityConfig {
                                 "/zero9/feeds/all",
                                 "/zero9/ranking/**"
                         ).permitAll()
+                        .requestMatchers("/notifications/subscribe/**").permitAll() //SSE 허용
                         .requestMatchers("/zero9/admin/**").hasRole(UserRole.ADMIN.name())
                         .anyRequest().authenticated() // 그 외 요청은 인증 필수
                 )

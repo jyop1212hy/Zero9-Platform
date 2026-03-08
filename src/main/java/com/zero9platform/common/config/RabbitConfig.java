@@ -65,7 +65,7 @@ public class RabbitConfig {
      * 상품 상태 변경 알림 Binding
      */
     @Bean
-    public Queue productStatusQueue() {
+    public Queue notificationQueue() {
         return new Queue(PRODUCT_STATUS_QUEUE, true);
     }
 
@@ -73,8 +73,8 @@ public class RabbitConfig {
      * 상품 상태 변경 알림 Binding
      */
     @Bean
-    public Binding productStatusBinding(Queue productStatusQueue, TopicExchange notificationExchange) {
-        return BindingBuilder.bind(productStatusQueue)
+    public Binding binding(Queue notificationQueue, TopicExchange notificationExchange) {
+        return BindingBuilder.bind(notificationQueue)
                 .to(notificationExchange)
                 .with(PRODUCT_STATUS_ROUTING_KEY);
     }

@@ -6,6 +6,7 @@ import com.zero9platform.domain.notification.GroupPurchasePostStatusChangedEvent
 import com.zero9platform.domain.notification.NotificationEventProducer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,13 +20,15 @@ import java.util.List;
 public class GroupPurchasePostStatusScheduler {
 
     private final GroupPurchasePostRepository groupPurchasePostRepository;
-    private final NotificationEventProducer notificationEventProducer;
+//    private final NotificationEventProducer notificationEventProducer; // 연습용
+    private final ApplicationEventPublisher eventPublisher; //실무용
 
     /**
      * 매일 00시에 모집 상태 자동 변경
      */
     @Transactional
-    @Scheduled(cron = "0 0 0 * * *") // cron 내부적으로 이전 실행이 끝난 후 다음 스케줄을 처리
+//    @Scheduled(cron = "0 0 0 * * *") // cron 내부적으로 이전 실행이 끝난 후 다음 스케줄을 처리
+    @Scheduled(cron = "0 * * * * *")
     public void updateGppProgressStatus() {
 
         log.info("GPP 모집상태 변경 시작, 실행 스레드명 : {}", Thread.currentThread().getName());
@@ -49,26 +52,51 @@ public class GroupPurchasePostStatusScheduler {
 
         // 3. READY -> DOING 이벤트 발행
         for (GroupPurchasePost post : readyPosts) {
-            notificationEventProducer.publishGroupPurchasePostStatusChanged(
+            eventPublisher.publishEvent(
                     new GroupPurchasePostStatusChangedEvent(
                             post.getId(),
                             post.getProductName(),
                             "READY",
-                            "DOING")
-            );
-        }
-
-        // 4. DOING -> END 이벤트 발행
-        for (GroupPurchasePost post : doingPosts) {
-            notificationEventProducer.publishGroupPurchasePostStatusChanged(
-                    new GroupPurchasePostStatusChangedEvent(
-                            post.getId(),
-                            post.getProductName(),
-                            "DOING",
-                            "END"
+                            "DOING"
                     )
             );
         }
+
+       // 4. DOING -> END 이벤트 발행
+       for (GroupPurchasePost post : doingPosts) {
+           eventPublisher.publishEvent(
+                   new GroupPurchasePostStatusChangedEvent(
+                           post.getId(),
+                           post.getProductName(),
+                           "DOING",
+                           "END"
+                   )
+           );
+       }
+
+//        // 3. READY -> DOING 이벤트 발행
+//        for (GroupPurchasePost post : readyPosts) {
+//            notificationEventProducer.publishGroupPurchasePostStatusChanged(
+//                    new GroupPurchasePostStatusChangedEvent(
+//                            post.getId(),
+//                            post.getProductName(),
+//                            "READY",
+//                            "DOING")
+//            );
+//        }
+//
+//        // 4. DOING -> END 이벤트 발행
+//        for (GroupPurchasePost post : doingPosts) {
+//            notificationEventProducer.publishGroupPurchasePostStatusChanged(
+//                    new GroupPurchasePostStatusChangedEvent(
+//                            post.getId(),
+//                            post.getProductName(),
+//                            "DOING",
+//                            "END"
+//                    )
+//            );
+//        }
+
         log.info("GPP 모집상태 변경 - READY->DOING: {}, DOING->END: {}", readyToDoing, doingToEnd);
         log.info("GPP 알림 이벤트 발행 - READY->DOING: {}, DOING->END: {}", readyPosts.size(), doingPosts.size());
     }

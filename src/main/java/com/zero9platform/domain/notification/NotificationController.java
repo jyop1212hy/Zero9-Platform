@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/zero9/notifications")
+@RequestMapping("/zero9")
 public class NotificationController {
 
     private final NotificationService notificationService;
@@ -20,7 +20,7 @@ public class NotificationController {
     /**
      * 내 알림 목록 조회
      */
-    @GetMapping
+    @GetMapping("notifications")
     public ResponseEntity<CommonResponse<List<Notification>>> getNotifications(
             @AuthenticationPrincipal AuthUser authUser
     ) {
