@@ -1,5 +1,6 @@
 package com.zero9platform.domain.user.repository;
 
+import com.zero9platform.common.enums.AuthProvider;
 import com.zero9platform.domain.user.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -63,4 +64,6 @@ public interface UserRepository extends JpaRepository<User,Long> {
     boolean existsByNicknameAndIdNot(String nickname, Long id);
 
     Optional<User> findByIdAndDeletedAtIsNull(Long userId);
+
+    Optional<User> findByProviderAndProviderId(AuthProvider provider, String providerId);
 }

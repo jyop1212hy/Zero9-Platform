@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SSE Test</title>
+</head>
+<body>
+
+<h2>SSE 알림 테스트</h2>
+<p>브라우저 콘솔(F12)을 확인하세요.</p>
+
+<script>
+    const userId = 516;
+    // 백엔드 주소와 userId 파라미터 확인
+    const eventSource = new EventSource(`http://localhost:8080/notifications/subscribe?userId=${userId}`);
+
+    // 1. [추가] 연결 성공 확인용 리스너
+    // 백엔드의 .name("connect")와 매칭됩니다.
+    eventSource.addEventListener("connect", (event) => {
+        console.log("🚀 SSE 연결 성공:", event.data);
+    });
+
+    // 2. 실제 알림 수신 리스너
+    // 백엔드의 .name("notification")과 매칭됩니다.
+    eventSource.addEventListener("notification", (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            console.log("🔔 새 알림 도착:", data);
+
+            // 화면에 알림 내용을 간단히 표시하고 싶다면?
+            const msg = `알림: ${data.content}`;
+            console.log(msg);
+        } catch (e) {
+            console.error("데이터 파싱 에러:", e);
+        }
+    });
+
+    // 3. 에러 발생 시
+    eventSource.onerror = (error) => {
+        console.error("❌ SSE 연결 오류 발생:", error);
+        // 연결이 끊겼을 때의 상태 확인 (0: 연결 중, 1: 연결됨, 2: 연결 종료)
+        console.log("연결 상태:", eventSource.readyState);
+    };
+</script>
+
+</body>
+</html>

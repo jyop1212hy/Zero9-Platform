@@ -1,6 +1,7 @@
 package com.zero9platform.domain.user.Service;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.zero9platform.common.enums.AuthProvider;
 import com.zero9platform.common.enums.ExceptionCode;
 import com.zero9platform.common.enums.UserRole;
 import com.zero9platform.common.exception.CustomException;
@@ -36,7 +37,7 @@ public class UserService {
     private String bucket;
 
     /**
-     * 회원가입
+     * 회원가입(로컬)
      */
     @Transactional
     public UserCreateResponse createUser(UserCreateCommonRequest request) {
@@ -56,7 +57,7 @@ public class UserService {
         // 중복검사 닉네임
         checkDuplicate(userRepository.existsByNickname(request.getNickname()), ExceptionCode.USER_NICKNAME_DUPLICATED);
 
-        User user = new User(request.getLoginId(), passwordEncoder.encode(request.getPassword()), request.getEmail(), request.getName(), request.getRole().name(), request.getPhone(), request.getNickname());
+        User user = User.createLocal(request.getLoginId(), passwordEncoder.encode(request.getPassword()), request.getEmail(), request.getName(), request.getPhone(), request.getNickname(), request.getRole().name());
 
         User userCreated = userRepository.save(user);
 
@@ -71,6 +72,69 @@ public class UserService {
         influencerRepository.save(new Influencer(userCreated, influencerRequest.getInfluencerSocialLink()));
 
         return UserInfluencerCreateResponse.from(userCreated, influencerRequest.getInfluencerSocialLink());
+    }
+
+    /**
+     * OAuth 유저 upsert
+     * - 매칭 키: provider + providerId
+     * - nickname unique=true 충돌 방지 포함
+     */
+    @Transactional
+    public User upsertOAuthUser(AuthProvider provider, String providerId, String nickname, String profileImageUrl) {
+        User oauthUser = userRepository.findByProviderAndProviderId(provider, providerId)
+                .map(user -> {
+                    String resolvedNickname = resolveNicknameForUpdate(user.getId(), nickname);
+                    if (resolvedNickname == null) resolvedNickname = user.getNickname();
+                    user.updateOAuthProfile(resolvedNickname, profileImageUrl);
+                    return user;
+                })
+                .orElseGet(() -> {
+                    String resolvedNickname = resolveNicknameForCreate(nickname, provider, providerId);
+                    User newUser = User.createOAuth(provider, providerId, resolvedNickname, profileImageUrl, UserRole.USER.name());
+                    return userRepository.save(newUser);
+                });
+        return oauthUser;
+    }
+
+    /**
+    * 신규 생성 시 닉네임 충돌 처리
+    */
+    private String resolveNicknameForCreate(String nickname, AuthProvider provider, String providerId) {
+        String base = (nickname == null || nickname.isBlank())
+                ? provider.name().toLowerCase() + "_" + providerId
+                : nickname.trim();
+
+        if (!userRepository.existsByNickname(base)) return base;
+
+        // 1차: providerId 뒤 4자리 부착
+        String tail = providerId.length() >= 4 ? providerId.substring(providerId.length() - 4) : providerId;
+        String candidate = base + "_" + tail;
+        if (!userRepository.existsByNickname(candidate)) return candidate;
+
+        // 2차: 숫자 증가
+        int i = 2;
+        while (userRepository.existsByNickname(candidate)) {
+            candidate = base + "_" + i++;
+        }
+        return candidate;
+    }
+
+    /**
+     * 업데이트 시 닉네임 충돌 처리(본인 제외)
+     */
+    private String resolveNicknameForUpdate(Long userId, String nickname) {
+        if (nickname == null || nickname.isBlank()) return null; // updateOAuthProfile에서 null 처리 원하면 여기 조정
+        String base = nickname.trim();
+
+        // 본인 제외 중복 체크
+        if (!userRepository.existsByNicknameAndIdNot(base, userId)) return base;
+
+        int i = 2;
+        String candidate = base + "_" + i;
+        while (userRepository.existsByNicknameAndIdNot(candidate, userId)) {
+            candidate = base + "_" + (++i);
+        }
+        return candidate;
     }
 
     /**
@@ -96,7 +160,16 @@ public class UserService {
         }
 
         // 프로필 이미지 URL 생성 (key → url)
-        String profileImgUrl = user.getProfileImage() != null ? amazonS3.getUrl(bucket, user.getProfileImage()).toString() : null;
+//        String profileImgUrl = user.getProfileImage() != null ? amazonS3.getUrl(bucket, user.getProfileImage()).toString() : null;
+
+        String profileImgUrl = null;
+        if (user.getProfileImage() != null) {
+            if(user.getProvider() == AuthProvider.KAKAO) {
+                profileImgUrl = user.getProfileImage();
+            } else {
+                profileImgUrl = amazonS3.getUrl(bucket, user.getProfileImage()).toString();
+            }
+        }
 
         // 자기 자신 조회 여부에 따른 응답 분기
         if (isMy) {

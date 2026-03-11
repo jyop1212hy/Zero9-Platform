@@ -2,7 +2,9 @@ package com.zero9platform.domain.gpp_follow.repository;
 
 import com.zero9platform.domain.gpp_follow.entity.GppFollow;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface FollowRepository extends JpaRepository<GppFollow, Long> {
@@ -16,4 +18,11 @@ public interface FollowRepository extends JpaRepository<GppFollow, Long> {
      * 구독 관계 (사용자, 공동구매 게시물) 반환
      */
     Optional<GppFollow> findByUserIdAndGroupPurchasePostId(Long userId, Long groupPurchasePostId);
+
+    @Query("""
+              select f.user.id
+              from GppFollow f
+              where f.groupPurchasePost.id = :groupPurchasePostId
+    """)
+    List<Long> findUserIdsByGroupPurchasePostId(Long groupPurchasePostId);
 }

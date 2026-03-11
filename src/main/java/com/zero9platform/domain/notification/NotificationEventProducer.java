@@ -11,7 +11,7 @@ public class NotificationEventProducer {
 
     private final RabbitTemplate rabbitTemplate;
 
-    public void publishGroupPurchasePostStatusChanged(GroupPurchasePostStatusChangedEvent event) {
+    public void publish(GroupPurchasePostStatusChangedEvent event) {
         rabbitTemplate.convertAndSend(
                 RabbitConfig.NOTIFICATION_EXCHANGE,
                 RabbitConfig.PRODUCT_STATUS_ROUTING_KEY,
