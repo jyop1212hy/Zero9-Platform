@@ -11,6 +11,7 @@ import com.zero9platform.domain.product_post_favorite.repository.ProductPostFavo
 import com.zero9platform.domain.searchLog.model.response.RecentSearchResponse;
 import com.zero9platform.domain.searchLog.elasticsearch.SearchDocument;
 import com.zero9platform.domain.searchLog.model.response.SearchLogItemResponse;
+import com.zero9platform.domain.searchLog.repository.SearchDocumentRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
 public class SearchLogService {
 
     private final ProductPostFavoriteRepository productPostFavoriteRepository;
+    private final SearchDocumentRepository searchDocumentRepository;
     private final ElasticsearchOperations elasticsearchOperations;
     private final SearchProfanityFilter searchProfanityFilter;
     private final StringRedisTemplate redisTemplate;
@@ -163,6 +165,23 @@ public class SearchLogService {
                     }
                 })
                 .filter(Objects::nonNull)
+                .toList();
+    }
+
+    /**
+     * 실시간 자동완성 추천 (Manager의 기능을 서비스 계층으로 캡슐화)
+     */
+    @Transactional(readOnly = true)
+    public List<String> showAutoComplete(String keyword) {
+
+        // keyword 필드에서 입력값으로 시작하는 도큐먼트들을 찾음
+        List<SearchDocument> results = searchDocumentRepository.findByKeywordOrderByCreatedAtDesc(keyword);
+
+        // 검색어(keyword)만 중복 없이 뽑아서 리스트로 반환
+        return results.stream()
+                .map(SearchDocument::getKeyword)
+                .distinct()
+                .limit(10) // 10개만 보여주기
                 .toList();
     }
 

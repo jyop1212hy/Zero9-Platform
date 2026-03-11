@@ -7,6 +7,7 @@ import com.zero9platform.domain.auth.model.AuthUser;
 import com.zero9platform.domain.searchLog.model.response.RecentSearchResponse;
 import com.zero9platform.domain.searchLog.model.response.SearchLogItemResponse;
 import com.zero9platform.domain.searchLog.service.SearchIndexer;
+import com.zero9platform.domain.searchLog.service.SearchLogManager;
 import com.zero9platform.domain.searchLog.service.SearchLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class SearchLogController {
     private final SearchLogService searchLogService;
     private final SearchIndexer searchIndexer;
     private final SearchProfanityFilter profanityFilter;
+    private final SearchLogManager searchLogManager;
 
     /**
      * 통합 검색 API
@@ -63,6 +65,21 @@ public class SearchLogController {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(CommonResponse.success("최근 검색어 조회 성공", history));
+    }
+
+    /**
+     * 실시간 검색어 자동완성
+     */
+    @GetMapping("/autocomplete")
+    public ResponseEntity<CommonResponse<List<String>>> autoComplete(@RequestParam(name ="keyword") String query) {
+
+        if (query == null || query.isBlank()) {
+            return ResponseEntity.ok(CommonResponse.success("검색어가 없습니다.", List.of()));
+        }
+
+        List<String> suggestions = searchLogService.showAutoComplete(query);
+
+        return ResponseEntity.status(HttpStatus.OK).body(CommonResponse.success("자동완성 조회 성공", suggestions));
     }
 
     /**
