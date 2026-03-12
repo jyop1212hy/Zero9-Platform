@@ -28,7 +28,6 @@ public class SearchLogController {
     private final SearchLogService searchLogService;
     private final SearchIndexer searchIndexer;
     private final SearchProfanityFilter profanityFilter;
-    private final SearchLogManager searchLogManager;
 
     /**
      * 통합 검색 API

@@ -3,10 +3,10 @@ package com.zero9platform.domain.searchLog.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zero9platform.domain.ranking.service.RankingCounter;
-import com.zero9platform.domain.searchLog.elasticsearch.SearchDocument;
+//import com.zero9platform.domain.searchLog.elasticsearch.SearchDocument;
 import com.zero9platform.domain.searchLog.entity.SearchLog;
 import com.zero9platform.domain.searchLog.model.response.RecentSearchResponse;
-import com.zero9platform.domain.searchLog.repository.SearchDocumentRepository;
+//import com.zero9platform.domain.searchLog.repository.SearchLogElasticsearchRepository;
 import com.zero9platform.domain.searchLog.repository.SearchLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ import java.util.List;
 public class SearchLogManager {
 
     private final SearchLogRepository searchLogRepository;
-    private final SearchDocumentRepository searchDocumentRepository;
+//    private final SearchLogElasticsearchRepository searchLogElasticsearchRepository;
     private final StringRedisTemplate redisTemplate;
     private final RankingCounter rankingCounter;
     private final ObjectMapper objectMapper;
@@ -44,7 +44,7 @@ public class SearchLogManager {
         SearchLog log = searchLogRepository.save(new SearchLog(keyword, userId));
 
         // ES 저장 (자동완성용 지도에 기록)
-        searchDocumentRepository.save(SearchDocument.from(log));
+//        searchLogElasticsearchRepository.save(SearchDocument.from(log));
 
         // 랭킹 카운트 증가
         rankingCounter.increaseKeyword(keyword);

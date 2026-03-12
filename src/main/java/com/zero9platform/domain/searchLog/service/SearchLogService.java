@@ -8,10 +8,11 @@ import com.zero9platform.common.exception.CustomException;
 import com.zero9platform.common.util.SearchProfanityFilter;
 import com.zero9platform.domain.auth.model.AuthUser;
 import com.zero9platform.domain.product_post_favorite.repository.ProductPostFavoriteRepository;
+import com.zero9platform.domain.searchLog.elasticsearch.ProductDocument;
 import com.zero9platform.domain.searchLog.model.response.RecentSearchResponse;
-import com.zero9platform.domain.searchLog.elasticsearch.SearchDocument;
 import com.zero9platform.domain.searchLog.model.response.SearchLogItemResponse;
-import com.zero9platform.domain.searchLog.repository.SearchDocumentRepository;
+import com.zero9platform.domain.searchLog.repository.ProductPostSearchRepository;
+//import com.zero9platform.domain.searchLog.repository.SearchLogElasticsearchRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -39,7 +40,8 @@ import java.util.stream.Collectors;
 public class SearchLogService {
 
     private final ProductPostFavoriteRepository productPostFavoriteRepository;
-    private final SearchDocumentRepository searchDocumentRepository;
+//    private final SearchLogElasticsearchRepository searchLogElasticsearchRepository;
+    private final ProductPostSearchRepository productPostSearchRepository;
     private final ElasticsearchOperations elasticsearchOperations;
     private final SearchProfanityFilter searchProfanityFilter;
     private final StringRedisTemplate redisTemplate;
@@ -85,10 +87,10 @@ public class SearchLogService {
         NativeQuery query = NativeQuery.builder()
                 .withQuery(q -> q.bool(b -> {
                     List<String> targetFields = switch (postType != null ? postType : "all") {
-                        case "product_title" -> List.of("title^10", "content^1");    // 제목에 10배 가중치
+                        case "product_title" -> List.of("title^10", "keyword^5");    // 제목에 10배 가중치
                         case "content" -> List.of("content^1");                 // 내용레 1배 가중치
                         case "influencer" -> List.of("nickname^10");            // 닉네임 10배 가중치
-                        default -> List.of("title^10", "nickname^10", "content^1"); // 전체 검색 시 제목 > 닉네임 > 내용 순
+                        default -> List.of("title^15", "keyword^5", "nickname^10", "content^1"); // 전체 검색 시 제목 > 닉네임 > 내용 순
                     };
 
                     // 2. MultiMatch 쿼리 최적화
@@ -110,13 +112,13 @@ public class SearchLogService {
                 .build();
 
         // ES 검색 실행
-        SearchHits<SearchDocument> hits = elasticsearchOperations.search(query, SearchDocument.class);
+        SearchHits<ProductDocument> hits = elasticsearchOperations.search(query, ProductDocument.class);
 
         // 데이터 가공 (ID 추출 및 찜수 매핑)
         List<Long> postIds = hits.getSearchHits().stream()
                 .map(hit -> hit.getContent())
-                .filter(doc -> "PRODUCT_POST".equals(doc.getPostType()))
-                .map(SearchDocument::getNumericId)
+                .filter(doc -> "PRODUCT".equals(doc.getPostType()))
+                .map(ProductDocument::getNumericId)
                 .filter(Objects::nonNull)
                 .toList();
 
@@ -125,9 +127,9 @@ public class SearchLogService {
         // ES 결과(SearchDocument)를 Response DTO로 변환
         List<SearchLogItemResponse> contents = hits.getSearchHits().stream()
                 .map(hit -> {
-                    SearchDocument doc = hit.getContent();
+                    ProductDocument doc = hit.getContent();
                     String matchType = determineMatchType(doc, cleanKeyword, postType);
-                    return SearchLogItemResponse.from(doc, matchType, favCounts.getOrDefault(doc.getNumericId(), 0L));
+                    return SearchLogItemResponse.from(doc, matchType, favCounts.getOrDefault(doc.getNumericId(), 0L), cleanKeyword);
                 })
                 .toList();
 
@@ -175,11 +177,14 @@ public class SearchLogService {
     public List<String> showAutoComplete(String keyword) {
 
         // keyword 필드에서 입력값으로 시작하는 도큐먼트들을 찾음
-        List<SearchDocument> results = searchDocumentRepository.findByKeywordOrderByCreatedAtDesc(keyword);
+//        List<SearchDocument> results = searchLogElasticsearchRepository.findByKeywordStartingWithOrderByCreatedAtDesc(keyword);
+
+        // 상품/공구 통합 마스터 인덱스
+        List<ProductDocument> results = productPostSearchRepository.findByKeywordStartingWith(keyword);
 
         // 검색어(keyword)만 중복 없이 뽑아서 리스트로 반환
         return results.stream()
-                .map(SearchDocument::getKeyword)
+                .map(ProductDocument::getTitle)
                 .distinct()
                 .limit(10) // 10개만 보여주기
                 .toList();
@@ -220,7 +225,7 @@ public class SearchLogService {
     /**
      * 매칭 타입 결정 로직 분리
      */
-    private String determineMatchType(SearchDocument doc, String cleanKeyword, String postType) {
+    private String determineMatchType(ProductDocument doc, String cleanKeyword, String postType) {
 
         if ("influencer".equals(postType)) {
             return "인플루언서 매칭";

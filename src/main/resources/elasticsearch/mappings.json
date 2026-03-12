@@ -2,8 +2,13 @@
   "properties": {
     "keyword": {
       "type": "text",
-      "analyzer": "ngram_analyzer",
-      "search_analyzer": "standard"
+      "analyzer": "standard",
+      "fields": {
+        "ngram": {
+          "type": "text",
+          "analyzer": "ngram_analyzer"
+        }
+      }
     }
   }
 }
