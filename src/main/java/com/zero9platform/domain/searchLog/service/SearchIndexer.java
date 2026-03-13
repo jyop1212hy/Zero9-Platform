@@ -102,11 +102,12 @@ public class SearchIndexer {
 //
             // ProductDocument.from() 사용
             List<ProductDocument> productDocs = slice.getContent().stream()
-                    .filter(product -> product.getUser().getDeletedAt() != null)
-                    .map(ProductDocument::from) // 변환기 호출
+                    .filter(product -> product.getUser().getDeletedAt() == null)
+                    .map(product -> ProductDocument.from(product)) // 변환기 호출
                     .toList();
 
             saveDocs(productDocs, "ProductPost", productPage++);
+            totalProducts += productDocs.size();
         }
 
 
@@ -145,6 +146,7 @@ public class SearchIndexer {
                     .toList();
 
             saveDocs(gppDocs, "GroupPurchasePost", gppPage++);
+            totalGpps += gppDocs.size();
         }
 
         log.info("[Bulk Indexing] 완료! (총합: {} 건)", (totalProducts + totalGpps));

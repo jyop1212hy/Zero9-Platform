@@ -16,7 +16,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @RequiredArgsConstructor
 public class SearchEventListener {
 
-//    private final SearchLogElasticsearchRepository searchLogElasticsearchRepository;
+    //    private final SearchLogElasticsearchRepository searchLogElasticsearchRepository;
     private final ProductPostSearchRepository productPostSearchRepository;
 
     /**
@@ -53,14 +53,7 @@ public class SearchEventListener {
 
             // 2. 통합 창고용 ProductDocument 생성
             // SearchEvent에서 받아온 데이터를 ProductDocument로 옮겨 담습니다.
-            ProductDocument productDoc = ProductDocument.builder()
-                    .id(event.getId())
-                    .postType(event.getPostType())
-                    .title(event.getTitle())
-                    .keyword(event.getTitle()) // 자동완성 핵심: 제목을 키워드 필드에 저장
-                    .price(event.getPrice())
-                    .endDate(event.getEndDate())
-                    .build();
+            ProductDocument productDoc = ProductDocument.from(event);
 
 //            searchLogElasticsearchRepository.save(doc);
 

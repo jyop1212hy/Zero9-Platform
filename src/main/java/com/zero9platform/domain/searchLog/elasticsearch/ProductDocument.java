@@ -3,16 +3,16 @@ package com.zero9platform.domain.searchLog.elasticsearch;
 
 import com.zero9platform.domain.grouppurchase_post.entity.GroupPurchasePost;
 import com.zero9platform.domain.product_post.entity.ProductPost;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.zero9platform.domain.searchLog.model.event.SearchEvent;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.*;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Builder
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Document(indexName = "product_master_v1") // 인덱스명 분리!
 @Setting(settingPath = "elasticsearch/settings.json") // 설정 파일
@@ -50,23 +50,27 @@ public class ProductDocument {
     @Field(type = FieldType.Date, format = DateFormat.date_hour_minute_second)
     private LocalDateTime endDate;
 
-    @Builder
-    public ProductDocument(String id, String postType, String title, String content, String nickname, String keyword, Long price, LocalDateTime startDate, LocalDateTime endDate) {
-        this.id = id;
-        this.postType = postType;
-        this.title = title;
-        this.content = content;
-        this.nickname = nickname;
-        this.keyword = keyword;
-        this.price = price;
-        this.startDate = startDate;
-        this.endDate = endDate;
+    // 리스너 전용: 이벤트가 PRODUCT인지 GPP인지 이미 알려주므로 조건문 하나면 끝!
+    public static ProductDocument from(SearchEvent event) {
+        return ProductDocument.builder()
+                .id(event.getPostType() + "_" + event.getId()) // 여기서 최종 ID 조립
+                .userId(event.getUserId())
+                .postType(event.getPostType())
+                .title(event.getTitle())
+                .content(event.getContent())
+                .nickname(event.getNickname())
+                .keyword(event.getTitle())
+                .price(event.getPrice())
+                .startDate(event.getStartDate())
+                .endDate(event.getEndDate())
+                .build();
     }
 
-    // 1. 판매 상품 게시물(ProductPost) 변환기
+    // 인덱서 전용: ProductPost 직접 변환
     public static ProductDocument from(ProductPost entity) {
         return ProductDocument.builder()
                 .id("PRODUCT_" + entity.getId())
+                .userId(entity.getUser().getId())
                 .postType("PRODUCT")
                 .title(entity.getTitle())
                 .content(entity.getContent())
@@ -78,10 +82,11 @@ public class ProductDocument {
                 .build();
     }
 
-    // 2. 공동구매 홍보 게시물(GroupPurchasePost) 변환기
+    // 인덱서 전용: GroupPurchasePost 직접 변환
     public static ProductDocument from(GroupPurchasePost entity) {
         return ProductDocument.builder()
                 .id("GPP_" + entity.getId())
+                .userId(entity.getUser().getId())
                 .postType("GPP")
                 .title(entity.getProductName())
                 .content(entity.getContent())
@@ -95,9 +100,7 @@ public class ProductDocument {
 
     public Long getNumericId() {
 
-        if (this.id == null) {
-            return null;
-        }
+        if (this.id == null) {return null;}
 
         try {
             String[] parts = this.id.split("_");
@@ -107,6 +110,4 @@ public class ProductDocument {
             return null;
         }
     }
-
-
 }
