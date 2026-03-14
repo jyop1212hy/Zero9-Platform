@@ -1,0 +1,14 @@
+{
+  "properties": {
+    "keyword": {
+      "type": "text",
+      "analyzer": "standard",
+      "fields": {
+        "ngram": {
+          "type": "text",
+          "analyzer": "ngram_analyzer"
+        }
+      }
+    }
+  }
+}

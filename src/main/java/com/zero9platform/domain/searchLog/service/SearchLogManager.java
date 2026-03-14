@@ -38,7 +38,7 @@ public class SearchLogManager {
         }
 
         // DB 로그 저장
-        searchLogRepository.save(new SearchLog(keyword, userId));
+        SearchLog log = searchLogRepository.save(new SearchLog(keyword, userId));
 
         // 랭킹 카운트 증가
         rankingCounter.increaseKeyword(keyword);

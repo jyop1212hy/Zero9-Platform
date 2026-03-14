@@ -15,7 +15,9 @@ import com.zero9platform.domain.product_post.repository.ProductPostRepository;
 import com.zero9platform.domain.product_post_favorite.repository.ProductPostFavoriteRepository;
 import com.zero9platform.domain.product_post_option.entity.ProductPostOption;
 import com.zero9platform.domain.product_post_option.model.request.ProductPostOptionCreateRequest;
+import com.zero9platform.domain.searchLog.elasticsearch.ProductDocument;
 import com.zero9platform.domain.searchLog.model.event.SearchEvent;
+import com.zero9platform.domain.searchLog.repository.ProductPostSearchRepository;
 import com.zero9platform.domain.user.entity.User;
 import com.zero9platform.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,7 @@ public class ProductPostService {
 
     private final UserRepository userRepository;
     private final ProductPostRepository productPostRepository;
+    private final ProductPostSearchRepository  productPostSearchRepository;
     private final S3Service s3Service;
     private final AmazonS3 amazonS3;
     private final ApplicationEventPublisher eventPublisher;
