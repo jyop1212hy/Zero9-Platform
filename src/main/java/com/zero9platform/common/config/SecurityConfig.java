@@ -37,7 +37,6 @@ public class SecurityConfig {
         return httpSecurity
                 // CORS 활성화
                 .cors(Customizer.withDefaults())
-
                 // CSRF, BASIC, FORM 로그인 비활성화 (JWT 사용)
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -65,6 +64,7 @@ public class SecurityConfig {
                                 HttpMethod.OPTIONS,
                                 "/**"
                         ).permitAll() // CORS Preflight 허용
+                        .requestMatchers("/ws_zero9/**").permitAll() // WebSocket 허용
                         .requestMatchers(
                                 "/", "/index.html", "/main.html",
                                 "/**/*.css", "/**/*.js",

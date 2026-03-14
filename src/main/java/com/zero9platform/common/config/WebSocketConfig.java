@@ -12,7 +12,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws-zero9") // 클라이언트 접속 엔드포인트
+        registry.addEndpoint("/ws_zero9") // 클라이언트 접속 엔드포인트
                 .setAllowedOriginPatterns("*")
                 .withSockJS(); // 구형 브라우저 대응
     }
@@ -23,7 +23,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // /topic: 일대다 방송 (알림, 게이지)
         // /queue: 일대일 전송 (문의 채팅)
         registry.enableSimpleBroker("/topic", "/queue");
-
         registry.setApplicationDestinationPrefixes("/app");
+        registry.setUserDestinationPrefix("/user"); // 1:1 전송용 접두사
     }
 }
