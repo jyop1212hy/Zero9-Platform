@@ -65,6 +65,9 @@ dependencies {
     // elasticsearch
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
 
+    // 웹소켓
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
     // flyway - Flyway AutoConfiguration 감지 -> Boot가 맞는 버전의 Flyway를 자동으로 로드
 //    implementation 'org.flywaydb:flyway-core' // 버전 충돌
 }
