@@ -5,8 +5,8 @@ import com.zero9platform.domain.grouppurchase_post.entity.GroupPurchasePost;
 import com.zero9platform.domain.grouppurchase_post.repository.GroupPurchasePostRepository;
 import com.zero9platform.domain.product_post.entity.ProductPost;
 import com.zero9platform.domain.product_post.repository.ProductPostRepository;
-import com.zero9platform.domain.searchLog.elasticsearch.SearchDocument;
-import com.zero9platform.domain.searchLog.repository.SearchDocumentRepository;
+import com.zero9platform.domain.searchLog.elasticsearch.ProductDocument;
+import com.zero9platform.domain.searchLog.repository.ProductPostSearchRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -25,7 +25,7 @@ public class SearchIndexer {
 
     private final ProductPostRepository productPostRepository;
     private final GroupPurchasePostRepository groupPurchasePostRepository;
-    private final SearchDocumentRepository searchDocumentRepository;
+    private final ProductPostSearchRepository productPostSearchRepository;
 
     /**
      * [수동 실행용] DB의 모든 데이터를 ES로 전송 (Full Indexing)
@@ -80,25 +80,16 @@ public class SearchIndexer {
                 break;
             }
 
-            List<SearchDocument> productDocs = slice.getContent().stream()
+            // ProductDocument.from() 사용
+            List<ProductDocument> productDocs = slice.getContent().stream()
                     .filter(product -> product.getUser().getDeletedAt() == null)
-                    .filter(product -> product.getId() != null)
-                    .map(product -> SearchDocument.builder()
-                            .id("PRODUCT_POST_" + product.getId())
-                            .postType("PRODUCT_POST")
-                            .title(product.getTitle())
-                            .content(product.getContent())
-                            .nickname(product.getUser().getNickname())
-                            .price(product.getOriginalPrice())
-                            .image(product.getImage())
-                            .startDate(product.getStartDate())
-                            .endDate(product.getEndDate())
-                            .userId(product.getUser().getId())
-                            .build())
+                    .map(product -> ProductDocument.from(product)) // 변환기 호출
                     .toList();
 
             saveDocs(productDocs, "ProductPost", productPage++);
+            totalProducts += productDocs.size();
         }
+
 
         // GroupPurchasePost 페이징 처리
         int gppPage = 0;
@@ -112,24 +103,13 @@ public class SearchIndexer {
                 break;
             }
 
-            List<SearchDocument> gppDocs = slice.getContent().stream()
+            List<ProductDocument> gppDocs = slice.getContent().stream()
                     .filter(gpp -> gpp.getUser() != null && gpp.getUser().getDeletedAt() == null)
-                    .filter(gpp -> gpp.getId() != null && gpp.getDeletedAt() == null)
-                    .map(gpp -> SearchDocument.builder()
-                            .id("GROUP_PURCHASE_POST_" + gpp.getId())
-                            .postType("GROUP_PURCHASE_POST")
-                            .title(gpp.getProductName())
-                            .content(gpp.getContent())
-                            .nickname(gpp.getUser().getNickname())
-                            .price(gpp.getPrice())
-                            .image(gpp.getImage())
-                            .startDate(gpp.getStartDate())
-                            .endDate(gpp.getEndDate())
-                            .userId(gpp.getUser().getId())
-                            .build())
+                    .map(ProductDocument::from) // 변환기 호출
                     .toList();
 
             saveDocs(gppDocs, "GroupPurchasePost", gppPage++);
+            totalGpps += gppDocs.size();
         }
 
         log.info("[Bulk Indexing] 완료! (총합: {} 건)", (totalProducts + totalGpps));
@@ -138,11 +118,11 @@ public class SearchIndexer {
     /**
      * 인덱싱 결과 저장
      */
-    private void saveDocs(List<SearchDocument> docs, String type, int page) {
+    private void saveDocs(List<ProductDocument> docs, String type, int page) {
         try {
 
             if (!docs.isEmpty()) {
-                searchDocumentRepository.saveAll(docs);
+                productPostSearchRepository.saveAll(docs);
 
                 log.info("[{}] {} 건 인덱싱 중... (Page: {})", type, docs.size(), page);
             }

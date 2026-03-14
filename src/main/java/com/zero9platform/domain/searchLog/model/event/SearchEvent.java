@@ -2,6 +2,7 @@ package com.zero9platform.domain.searchLog.model.event;
 
 import com.zero9platform.domain.grouppurchase_post.entity.GroupPurchasePost;
 import com.zero9platform.domain.product_post.entity.ProductPost;
+import com.zero9platform.domain.searchLog.elasticsearch.ProductDocument;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 public class SearchEvent {
 
     private final String id;
-    private final String postType;
+    private final String postType;      // "PRODUCT" 또는 "GPP"
     private final String title;
     private final String content;
     private final String nickname;
@@ -27,18 +28,17 @@ public class SearchEvent {
     public static SearchEvent from(ProductPost post, boolean deleted){
 
         return new SearchEvent(
-                "PRODUCT_POST_"+ post.getId().toString(),
+                post.getId().toString(),
                 "PRODUCT_POST",
                 post.getTitle(),
                 post.getContent(),
                 post.getUser().getNickname(),
                 post.getOriginalPrice(),
-                post.getImage(),
+                null, // GPP에 이미지가 있다면 추가
                 post.getStartDate(),
                 post.getEndDate(),
                 post.getUser().getId(),
                 deleted
-
         );
     }
 
@@ -46,13 +46,13 @@ public class SearchEvent {
     public static SearchEvent from(GroupPurchasePost gpp, boolean isDelete) {
 
         return new SearchEvent(
-                "GROUP_PURCHASE_POST_" + gpp.getId().toString(),
+                gpp.getId().toString(),
                 "GROUP_PURCHASE_POST",
                 gpp.getProductName(),
                 gpp.getContent(),
                 gpp.getUser().getNickname(),
                 gpp.getPrice(),
-                gpp.getImage(),
+                null, // GPP에 이미지가 있다면 추가
                 gpp.getStartDate(),
                 gpp.getEndDate(),
                 gpp.getUser().getId(),
