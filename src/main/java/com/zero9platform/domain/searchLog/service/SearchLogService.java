@@ -40,7 +40,6 @@ import java.util.stream.Collectors;
 public class SearchLogService {
 
     private final ProductPostFavoriteRepository productPostFavoriteRepository;
-    //    private final SearchLogElasticsearchRepository searchLogElasticsearchRepository;
     private final ProductPostSearchRepository productPostSearchRepository;
     private final ElasticsearchOperations elasticsearchOperations;
     private final SearchProfanityFilter searchProfanityFilter;
@@ -180,9 +179,6 @@ public class SearchLogService {
      */
     @Transactional(readOnly = true)
     public List<String> showAutoComplete(String keyword) {
-
-        // keyword 필드에서 입력값으로 시작하는 도큐먼트들을 찾음
-//        List<SearchDocument> results = searchLogElasticsearchRepository.findByKeywordStartingWithOrderByCreatedAtDesc(keyword);
 
         // 상품/공구 통합 마스터 인덱스
         List<ProductDocument> results = productPostSearchRepository.findByKeywordStartingWith(keyword);
