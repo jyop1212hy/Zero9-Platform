@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>찜 목록</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../../common.js"></script>
+    <script src="../../header.js"></script>
+    <script src="../mypage_nav.js "></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="../../style.css" rel="stylesheet">
+    
+    <style>
+        #ggim_list_main{}
+        #ggim_list a{display: block; width: 100%; height: 100%; font-size: 1.4rem;}
+        #ggim_list .ggim_delete_btn{width: 100%; height: 30px; border-radius: 5px; text-align: center; background-color: #555; color: #fff;}
+    </style>
+</head>
+<body>
+    <main id="ggim_list_main" class="mypage_main">
+        <div class="container clear_box">
+            <div class="view_section">
+                <h2 class="section_title">찜 목록</h2>
+
+                <table class="table_ds type_1">
+                    <thead>
+                        <tr>
+                            <th style="width: 790px;">상품명</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="ggim_list">
+                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const GGIM_LIST = $("#ggim_list");
+
+        function renderList(arr){
+            GGIM_LIST.empty();
+
+            if(arr.length === 0){
+                GGIM_LIST.append(`
+                    <tr>
+                        <td colspan="3">데이터가 없습니다.</td>
+                    </tr>
+                `);
+
+                return;
+            }
+
+            let html = "";
+
+            arr.forEach(item => {
+                html += `
+                    <tr>
+                        <td>
+                            <a href="${ORIGIN_URL}/goods/detail.html?id=${item.productPostId}">
+                                ${item.productName}
+                            </a>
+                        </td>
+                        <td>
+                            <button 
+                                class="ggim_delete_btn" 
+                                type="button" 
+                                data-id="${item.productPostId}">
+                                삭제
+                            </button>    
+                        </td>
+                    </tr>
+                `;
+            });
+
+            GGIM_LIST.append(html);
+        }
+
+        function loadFavorites(){
+            $.ajax({
+                url: `${SPRING_BOOT_URL}/zero9/favorites`,
+                method: "GET",
+                dataType: "json",
+                headers: { Authorization: ACCESS_TOKEN },
+
+                success: function(res){
+                    renderList(res.data.content);
+                },
+
+                error: function(err){
+                    console.error("찜 리스트 불러오기 실패:", err);
+                    alert("찜 리스트를 불러오지 못했습니다.");
+                }
+            });
+        }
+
+        loadFavorites();
+
+
+        $(document).on("click", ".ggim_delete_btn", function(){
+
+            const btn = $(this); 
+            const id = btn.data("id");
+
+            if(!confirm("정말 찜을 삭제하시겠습니까?")){
+                return;
+            }
+
+            $.ajax({
+                url: `${SPRING_BOOT_URL}/zero9/product-posts/${id}/favorites`,
+                method: "DELETE",
+                headers: { Authorization: ACCESS_TOKEN },
+
+                success: function(res){
+                    alert(res.message);
+
+                    btn.closest("tr").remove();
+
+                    if(GGIM_LIST.find("tr").length === 0){
+                        GGIM_LIST.append(`
+                            <tr>
+                                <td colspan="3">데이터가 없습니다.</td>
+                            </tr>
+                        `);
+                    }
+                },
+
+                error: function(err){
+                    console.error("삭제 실패:", err);
+
+                    if (err.responseJSON && err.responseJSON.message) {
+                        alert(err.responseJSON.message);
+                    } else {
+                        alert("삭제 중 오류가 발생했습니다.");
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

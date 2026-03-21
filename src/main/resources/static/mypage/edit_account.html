@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원정보수정</title>
+    
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../common.js"></script>
+    <script src="../header.js"></script>
+    <script src="mypage_nav.js "></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="../style.css" rel="stylesheet"> 
+</head>
+<body>
+    <main id="edit_account_main" class="mypage_main">
+        <div class="container clear_box">
+            <div class="view_section">
+                <h2 class="section_title">회원 정보 수정</h2>
+
+                <form id="edit_account_form">
+                    <div class="form_inner">
+                        <ul class="edit_list">
+                            <li>
+                                <label for="edit_email" class="title">이메일</label>
+                                <input id="edit_email" type="email">
+                            </li>
+                            <li>
+                                <label for="edit_nickname" class="title">닉네임</label>
+                                <input id="edit_nickname" type="text">
+                            </li>
+                            <li>
+                                <label for="edit_tel" class="title">핸드폰</label>
+                                <input id="edit_tel" type="tel">
+                            </li>
+                            <li>
+                                <label for="profile_img" class="title">프로필 이미지</label>
+                                <input id="profile_img" type="file">
+                            </li>
+                        </ul>
+
+                        <button id="submit_btn" class="submit" type="submit">수정</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        myProfile(PAYLOAD.sub, function (profile) {
+            const { role, nickname, phone, email } = profile;
+
+            const ROLE_TEXT = {
+                USER: "user",
+                INFLUENCER: "influencer"
+            };
+
+            $("#edit_email").val(email);
+            $("#edit_nickname").val(nickname);
+            $("#edit_tel").val(phone);
+
+            // 기존 이벤트 제거 후 다시 등록 (중복 방지)
+            $("#edit_account_form").off("submit").on("submit", function(e){
+                e.preventDefault();
+
+                const formData = new FormData();
+
+                const userUpdateRequest = {
+                    email: $("#edit_email").val(),
+                    nickname: $("#edit_nickname").val(),
+                    phone: $("#edit_tel").val()
+                };
+
+                try {
+                    formData.append(
+                        "userUpdateRequest",
+                        new Blob([JSON.stringify(userUpdateRequest)], { type: "application/json" })
+                    );
+                } catch (e) {
+                    console.error("JSON 변환 오류", e);
+                }
+
+                const fileInput = $("#profile_img")[0];
+                if (fileInput.files.length > 0) {
+                    formData.append("profileImage", fileInput.files[0]);
+                }
+
+                $.ajax({
+                    url: `${SPRING_BOOT_URL}/zero9/users`,
+                    type: "PUT",
+                    data: formData,
+                    headers: { Authorization: ACCESS_TOKEN },
+                    contentType: false,
+                    processData: false,
+
+                    success: function(res){
+                        alert(res.message);
+
+                        if(res.success){
+                            location.href = `/mypage/${ROLE_TEXT[role]}/home.html`;
+                        }
+                    },
+
+                    error: function(err){
+                        console.error("전체 에러:", err);
+
+                        if (err.responseJSON && err.responseJSON.message) {
+                            alert(err.responseJSON.message);
+                        } else if (err.responseText) {
+                            alert(err.responseText);
+                        } else {
+                            alert("서버 오류가 발생했습니다.");
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

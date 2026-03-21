@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>판매 상품 등록</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../../common.js"></script>
+    <script src="../../header.js"></script>
+    <script src="../mypage_nav.js "></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="../../style.css" rel="stylesheet"> 
+</head>
+<body>
+    <main id="product_post_create_main" class="mypage_create_main mypage_main">
+        <div class="container clear_box">
+            <div class="view_section">
+                <h2 class="section_title">판매 상품 등록</h2>
+
+                <form id="product_post_create_form">
+                    <div class="form_inner">
+                        <div>
+                            <p class="title">카테고리</p>
+
+                            <div class="data">
+                                <select id="category" style="width: 180px;" required></select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">시작 시간</p>
+
+                            <div class="data">
+                                <input id="startDatetime" type="datetime-local" style="width: 180px;" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">종료 시간</p>
+
+                            <div class="data">
+                                <input id="endDatetime" type="datetime-local" style="width: 180px;" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">상품 제목</p>
+
+                            <div class="data">
+                                <input id="producTitle" class="full" type="text" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">상품 이름</p>
+
+                            <div class="data">
+                                <input id="producName" class="full" type="text" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">상품 가격</p>
+
+                            <div class="data">
+                                <input id="originalPrice" class="full" type="text" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">상품 내용</p>
+
+                            <div class="data">
+                                <textarea id="productContent" class="full" style="height: 300px" required></textarea>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">상품 옵션</p>
+
+                            <div class="option_data data">
+                                <div class="clear_box test">
+                                    <input class="option_name" type="text" placeholder="옵션 이름" required>
+                                    <input class="sale_price" type="text" placeholder="옵션 가격" required>
+                                    <input class="stock_quantity" type="number" min="1" placeholder="옵션 수량" value="1" required>
+                                </div>
+
+                                <button id="option_add_btn" class="add_btn full" type="button">옵션 추가</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">상품 이미지</p>
+
+                            <div class="data">
+                                <input id="contentImage" class="full" type="file">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="submit_btn" type="submit">판매 등록</button>
+                </form> 
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 카테고리 세팅
+        function renderCategoryOptions(categoryMap) {
+            const options = Object.entries(categoryMap)
+                .map(([key, value]) => `<option value="${key}">${value}</option>`)
+                .join("");
+
+            $("#category").html(options);
+        }
+
+        // 옵션 추가 버튼
+        function bindOptionAddButton() {
+            $("#option_add_btn").on("click", function () {
+                const optionHtml = `
+                    <div class="clear_box add">
+                        <input class="option_name" type="text" placeholder="옵션 이름" required>
+                        <input class="sale_price" type="text" placeholder="옵션 가격" required>
+                        <input class="stock_quantity" type="number" min="1" value="1" placeholder="옵션 수량" required>
+                        <button class="del_btn" type="button">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+                    </div>
+                `;
+
+                $(this).before(optionHtml);
+            });
+
+            $(document).on("click", ".del_btn", function () {
+                $(this).closest(".add").remove();
+            });
+        }
+
+        // 옵션 리스트 수집
+        function collectOptions() {
+            const optionList = [];
+
+            $(".option_data .clear_box").each(function () {
+                const name = $(this).find(".option_name").val()?.trim();
+                const salePrice = $(this).find(".sale_price").val()?.trim();
+                const stockQuantity = $(this).find(".stock_quantity").val()?.trim();
+
+                if (!name || !salePrice || !stockQuantity) return;
+
+                optionList.push({
+                    name,
+                    salePrice: Number(salePrice),
+                    stockQuantity: Number(stockQuantity)
+                });
+            });
+
+            return optionList;
+        }
+
+        // 날짜 포맷 변환
+        function formatDateTime(value) {
+            if (!value) return null;
+            return `${value}:00.000`;
+        }
+
+        // 요청 데이터 생성
+        function buildRequestData() {
+            return {
+                category: $("#category").val(),
+                title: $("#producTitle").val()?.trim(),
+                name: $("#producName").val()?.trim(),
+                content: $("#productContent").val()?.trim(),
+                originalPrice: Number($("#originalPrice").val()),
+                optionList: collectOptions(),
+                startDate: formatDateTime($("#startDatetime").val()),
+                endDate: formatDateTime($("#endDatetime").val())
+            };
+        }
+
+        // 폼 제출
+        function bindSubmit() {
+            $("#product_post_create_form").on("submit", function (e) {
+                e.preventDefault();
+
+                const formData = new FormData();
+                const requestData = buildRequestData();
+
+                formData.append( "ppCreateRequest", new Blob([JSON.stringify(requestData)], { type: "application/json" }));
+
+                const fileInput = $("#contentImage")[0];
+                if (fileInput.files.length > 0) {
+                    formData.append("contentImage", fileInput.files[0]);
+                }
+
+                $.ajax({
+                    url: `${SPRING_BOOT_URL}/zero9/product-posts`,
+                    type: "POST",
+                    headers: { Authorization: ACCESS_TOKEN },
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (res) {
+                        alert(res.message);     
+
+                        if (res.success) {
+                            location.href = "home.html";
+                            
+                            return;
+                        }    
+                    },
+                    error: function (jqXHR) {
+                        console.error("상품 등록 실패:", jqXHR);
+
+                        const message = jqXHR.responseJSON?.message || "상품 등록 중 오류가 발생했습니다.";
+
+                        alert(message);
+                    }
+                });
+            });
+        }
+
+        // 초기 실행
+        $(function () {
+            renderCategoryOptions(categoryMap);
+            bindOptionAddButton();
+            bindSubmit();
+        });
+    </script>
+</body>
+</html>

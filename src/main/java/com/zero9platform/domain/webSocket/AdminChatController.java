@@ -8,12 +8,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/admin/chat")
+@RequestMapping("/zero9")
 public class AdminChatController {
 
     private final ChatMessageService chatMessageService;
 
-    @PostMapping("/send")
+    @PostMapping("/admin/chat/send")
     public void sendToUser(@RequestBody AdminChatRequest request) {
 
         chatMessageService.sendToUser(

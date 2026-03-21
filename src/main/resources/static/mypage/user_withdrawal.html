@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원 탈퇴</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../common.js"></script>
+    <script src="../header.js"></script>
+    <script src="mypage_nav.js "></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="../style.css" rel="stylesheet"> 
+</head>
+<body>
+    <main id="user_withdrawal_main" class="mypage_main">
+        <div class="container clear_box">
+            <div class="view_section">
+                <h2 class="section_title">회원 탈퇴</h2>
+
+                <form id="user_withdrawal_form">
+                    <div class="form_inner">
+                        <p class="title">비밀번호 확인</p>
+
+                        <div class="input_box">
+                            <input id="password" type="password" required>    
+                            <button class="submit_btn" type="submit">확인</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        $("#user_withdrawal_form").on("submit", function (e) {
+            e.preventDefault();
+
+            const password = $("#password").val().trim();
+
+            const isConfirm = confirm(
+                "정말로 회원 탈퇴하시겠습니까?\n\n탈퇴 시 계정 정보와 이용 기록은 모두 삭제되며 복구할 수 없습니다."
+            );
+
+            if (!isConfirm) return;
+
+            $.ajax({
+                url: `${SPRING_BOOT_URL}/zero9/users`,
+                method: "DELETE",
+                contentType: "application/json",
+                dataType: "json",
+                headers: {
+                    Authorization: localStorage.getItem("accessToken")
+                },
+                data: JSON.stringify({
+                    password: password
+                }),
+                success: function (res) {
+                    if (!res.success) {
+                        alert(res.message || "회원 탈퇴에 실패했습니다.");
+                        return;
+                    }
+
+                    alert("회원 탈퇴가 완료되었습니다.");
+                    
+                    localStorage.removeItem("accessToken");
+
+                    // 메인 페이지 이동
+                    location.href = ORIGIN_URL + "/main.html";
+                },
+                error: function (xhr) {
+                    console.error("회원 탈퇴 에러:", xhr);
+
+                    const message = xhr.responseJSON?.message || "회원 탈퇴 중 오류가 발생했습니다.";
+
+                    alert(message);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

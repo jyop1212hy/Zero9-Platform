@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공지사항</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../common.js"></script>
+    <script src="../header.js"></script>
+     
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="../style.css" rel="stylesheet"> 
+</head>
+<body>
+    <main id="notice_view_main" class="container">
+        <div class="view_head">
+            <h2>제목 들어갑니다.</h2>
+
+            <div>
+                <p class="name">관리자</p>
+                <p class="datetime">0000</p>
+            </div>
+        </div>
+
+        <div class="content"></div>
+    </main>
+
+    <script>
+        const ID = getQueryParam("id");
+
+        $.ajax({
+            url: `${SPRING_BOOT_URL}/zero9/posts/${ID}`,
+            method: "GET",
+            dataType: "json",
+            success: function(res){
+                const data = res.data;
+
+                console.log(data);
+            },
+            error: function(err){
+                console.error("공지 상세 불러오기 실패:", err);
+            }
+        });
+
+    </script>
+</body>
+</html>

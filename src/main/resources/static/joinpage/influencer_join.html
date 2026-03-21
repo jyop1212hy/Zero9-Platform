@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원 가입</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../common.js"></script>
+    <script src="../header.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="../style.css" rel="stylesheet"> 
+</head>
+<body>
+    <main class="join_main">
+        <div class="container">
+            <h2 class="main_title">회원가입</h2>
+
+            <form id="influencer_join_form">
+                <div class="join_input_wrapper">
+                    <div>
+                        <p class="title">아이디</p>
+                        <input id="loginId" class="full" type="text" required>
+                    </div>
+
+                    <div>
+                        <p class="title">비밀번호</p>
+                        <input id="password" class="full" type="password" required>
+                    </div>
+
+                    <div>
+                        <p class="title">이름</p>
+                        <input id="name" class="full" type="text" required>
+                    </div>
+
+                    <div>
+                        <p class="title">이메일</p>
+                        <input id="email" class="full" type="email" required>
+                    </div>
+
+                    <div>
+                        <p class="title">핸드폰</p>
+                        <input id="phone" class="full" type="phone" required>
+                    </div>
+
+                    <div>
+                        <p class="title">닉네임</p>
+                        <input id="nickname" class="full" type="text" required>
+                    </div>
+
+                    <div>
+                        <p class="title">인플루언서 인증 주소</p>
+                        <input id="influencerSocialLink" class="full" type="text" placeholder="인스타그램, 유튜브 주소" required>
+                    </div>
+                </div>
+
+                <button id="join_btn" class="submit_btn full" type="submit">확인</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        $("#influencer_join_form").on("submit", function (e) {
+            e.preventDefault();
+
+            const formData = {
+                loginId: $("#loginId").val().trim(),
+                password: $("#password").val().trim(),
+                name: $("#name").val().trim(),
+                email: $("#email").val().trim(),
+                phone: $("#phone").val().trim(),
+                nickname: $("#nickname").val().trim(),
+                influencerSocialLink: $("#influencerSocialLink").val().trim()
+            };
+
+            $.ajax({
+                url: `${SPRING_BOOT_URL}/zero9/users/influencer`,
+                type: "POST",
+                contentType: "application/json",
+                dataType: "json",
+                data: JSON.stringify(formData),
+                success: function (res) {
+                    if (!res.success) {
+                        alert(res.message || "회원가입에 실패했습니다.");
+
+                        return;
+                    }
+
+                    popupLayer("join_success_popup");
+
+                    const html = `
+                        <h2>회원가입 완료</h2>
+
+                        <p class="join_user_nickname">
+                            <b>${res.data.nickname}</b>님 관리자 승인 후 로그인 가능합니다.
+                        </p>
+
+                        <a class="login_btn" href="../main.html">메인으로</a>
+                    `;
+
+                    $("#join_success_popup .wrapper").html(html);
+                },
+
+                error: function (xhr) {
+                    const message =
+                        xhr.responseJSON?.message ||
+                        "회원가입 중 오류가 발생했습니다.";
+
+                    console.error("회원가입 요청 실패:", xhr);
+                    alert(message);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

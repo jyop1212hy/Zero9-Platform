@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>판매 상품 등록</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../../common.js"></script>
+    <script src="../../header.js"></script>
+    <script src="../mypage_nav.js "></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="../../style.css" rel="stylesheet"> 
+</head>
+<body>
+    <main id="product_post_create_main" class="mypage_create_main mypage_main">
+        <div class="container clear_box">
+            <div class="view_section">
+                <h2 class="section_title">판매 상품 수정</h2>
+
+                <form id="product_post_create_form">
+                    <div class="form_inner">
+                        <div>
+                            <p class="title">카테고리</p>
+
+                            <div class="data">
+                                <select id="category" style="width: 180px;" required></select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">시작 시간</p>
+
+                            <div class="data">
+                                <input id="startDatetime" type="datetime-local" style="width: 180px;" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">종료 시간</p>
+
+                            <div class="data">
+                                <input id="endDatetime" type="datetime-local" style="width: 180px;" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">상품 제목</p>
+
+                            <div class="data">
+                                <input id="producTitle" class="full" type="text" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">상품 이름</p>
+
+                            <div class="data">
+                                <input id="producName" class="full" type="text" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">상품 가격</p>
+
+                            <div class="data">
+                                <input id="originalPrice" class="full" type="text" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">상품 내용</p>
+
+                            <div class="data">
+                                <textarea id="productContent" class="full" style="height: 300px" required></textarea>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">상품 이미지</p>
+
+                            <div class="data">
+                                <input id="contentImage" class="full" type="file">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="submit_btn" type="submit">판매 상품 수정</button>
+                </form> 
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const PRODUCT_POST_ID = getQueryParam("id");
+
+        // =========================
+        // 공통 함수
+        // =========================
+
+        // datetime-local 변환
+        function toDatetimeLocal(value) {
+            if (!value) return "";
+            return value.slice(0, 16); // "2026-02-20T21:05"
+        }
+
+        // 서버 전송용 포맷
+        function toServerDatetime(value) {
+            if (!value) return null;
+            return `${value}:00.000`;
+        }
+
+        // =========================
+        // 초기 세팅
+        // =========================
+
+        // 카테고리 세팅
+        function setCategoryOptions() {
+            const options = Object.entries(categoryMap)
+                .map(([key, value]) => `<option value="${key}">${value}</option>`)
+                .join("");
+
+            $("#category").html(options);
+        }
+
+        // =========================
+        // 데이터 바인딩
+        // =========================
+        function bindProductData(data) {
+            $("#category").val(data.category);
+            $("#startDatetime").val(toDatetimeLocal(data.startDate));
+            $("#endDatetime").val(toDatetimeLocal(data.endDate));
+            $("#producTitle").val(data.title);
+            $("#producName").val(data.name);
+            $("#originalPrice").val(data.originalPrice);
+            $("#productContent").val(data.content);
+        }
+
+        // =========================
+        // API
+        // =========================
+        function fetchProductDetail() {
+            $.ajax({
+                url: `${SPRING_BOOT_URL}/zero9/product-posts/${PRODUCT_POST_ID}`,
+                method: "GET",
+                dataType: "json",
+                headers: {
+                    Authorization: ACCESS_TOKEN
+                },
+                success: function (res) {
+                    bindProductData(res.data);
+                },
+                error: handleError("조회 실패")
+            });
+        }
+
+        function updateProduct(formData) {
+            $.ajax({
+                url: `${SPRING_BOOT_URL}/zero9/product-posts/${PRODUCT_POST_ID}`,
+                method: "PATCH",
+                headers: {
+                    Authorization: ACCESS_TOKEN
+                },
+                processData: false,
+                contentType: false,
+                data: formData,
+                success: function (res) {
+                    alert(res.message);
+
+                    location.href = "product_post_list.html";
+                },
+                error: handleError("수정 실패")
+            });
+        }
+
+        // =========================
+        // FormData 생성
+        // =========================
+        function createFormData() {
+            const formData = new FormData();
+
+            const request = {
+                category: $("#category").val(),
+                startDate: toServerDatetime($("#startDatetime").val()),
+                endDate: toServerDatetime($("#endDatetime").val()),
+                title: $("#producTitle").val(),
+                name: $("#producName").val(),
+                originalPrice: Number($("#originalPrice").val()),
+                content: $("#productContent").val()
+            };
+
+            formData.append(
+                "ppUpdateRequest",
+                new Blob([JSON.stringify(request)], { type: "application/json" })
+            );
+
+            const file = $("#contentImage")[0].files[0];
+            if (file) {
+                formData.append("contentImage", file);
+            }
+
+            return formData;
+        }
+
+        // =========================
+        // 공통 에러 핸들러
+        // =========================
+        function handleError(defaultMessage) {
+            return function (err) {
+                console.error(err);
+                alert(err.responseJSON?.message || defaultMessage);
+            };
+        }
+
+        // =========================
+        // 이벤트
+        // =========================
+        $("#product_post_create_form").on("submit", function (e) {
+            e.preventDefault();
+            const formData = createFormData();
+            updateProduct(formData);
+        });
+
+        // =========================
+        // 실행
+        // =========================
+        setCategoryOptions();
+        fetchProductDetail();
+    </script>
+</body>
+</html>

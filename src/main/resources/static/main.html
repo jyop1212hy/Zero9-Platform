@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zero9</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+    <script src="/Zero9-Platform/Zero9-Platform.main/static/common.js"></script>
+    <script src="/Zero9-Platform/Zero9-Platform.main/static/header.js"></script>
+    <script src="/Zero9-Platform/Zero9-Platform.main/static/mypage/user/home.js"></script>
+
+    <script>
+        // 카카오 로그인 성공 후 넘어오는 토큰 처리
+        $(document).ready(function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            let tokenFromUrl = urlParams.get('accessToken');
+
+            if (tokenFromUrl) {
+                // URL 디코딩을 먼저 해줍니다.
+                tokenFromUrl = decodeURIComponent(tokenFromUrl);
+
+                // 만약 토큰 앞에 'Bearer '가 붙어 있다면 제거합니다.
+                if (tokenFromUrl.startsWith('Bearer ')) {
+                    tokenFromUrl = tokenFromUrl.substring(7); // "Bearer " 가 7자이므로 그 이후부터 추출
+                }
+
+                // 이제 순수한 토큰만 저장!
+                localStorage.setItem("accessToken", tokenFromUrl);
+
+                // 주소창 정리하고 새로고침
+                const cleanUrl = window.location.origin + window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+
+                alert("카카오 로그인 성공!");
+                location.href = cleanUrl;
+            }
+        });
+    </script>
+     
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet"> 
+</head>
+<body>
+    <main class="main_wrap">
+        <div class="container">
+            <div id="main_goods_section">
+                <h2>상품 리스트</h2>
+                    
+                <ul class="goods_list">
+
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        $.ajax({
+            url: SPRING_BOOT_URL + "/zero9/product-posts",
+            method: "GET",
+            dataType: "json",
+            success: function(res){
+                
+                const GOODS_LIST = $("#main_goods_section .goods_list");
+                const GOODS_CONTENT_ARR = res.data.content;
+
+                if(GOODS_CONTENT_ARR.length != 0){
+
+                    let html = "";
+
+                    GOODS_CONTENT_ARR.forEach(item => {
+                        
+                        let imgElement;
+                        if(item.image == null){
+                            imgElement = `<img src="${ORIGIN_URL}/img/noimg.jpg">`;
+                        }else{
+                            imgElement = `<img src="${item.image}">`;
+                        }
+
+                        html += `
+                            <li>
+                                <a href="./goods/detail.html?id=${item.id}">
+                                    <div class="thumnail">
+                                        ${imgElement}
+                                    </div>
+                                    <p class="product_name">${item.title}</p>
+
+                                    <div class="product_data">
+                                        <span class="price">${Number(item.originalPrice).toLocaleString()}원</span>
+
+                                        <span class="hit">
+                                            <i class="icon fa-solid fa-heart"></i>
+                                            <i class="data">${item.favoriteCount}</i>
+                                        </span>
+                                    </div>
+                                </a>
+                            </li>
+                        `;
+                    });
+
+                    GOODS_LIST.append(html);
+
+                }else{
+                    GOODS_LIST.append(`
+                        <li class="none_list">데이터가 없습니다</li>
+                    `);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("상품 리스트 불러오기 실패:", textStatus, errorThrown);
+
+                alert("상품 리스트를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
+            }
+        });
+    </script>
+</body>
+</html>

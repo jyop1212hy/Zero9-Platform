@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공동 구매 게시물 등록</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../../common.js"></script>
+    <script src="../../header.js"></script>
+    <script src="../mypage_nav.js "></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="../../style.css" rel="stylesheet"> 
+</head>
+<body>
+    <main id="product_post_create_main" class="mypage_create_main mypage_main">
+        <div class="container clear_box">
+            <div class="view_section">
+                <h2 class="section_title">공동 구매 게시물 등록</h2>
+
+                <form id="product_post_create_form">
+                    <div class="form_inner">
+                        <div>
+                            <p class="title">카테고리</p>
+
+                            <div class="data">
+                                <select id="category" style="width: 180px;" required></select>
+                            </div>
+                        </div>
+
+                        <!--div>
+                            <p class="title">진행 상태</p>
+
+                            <div class="data">
+                                <select id="progress_status" style="width: 180px;" required>
+                                    <option value="READY">준비중</option>
+                                    <option value="DOING">진행중</option>
+                                    <option value="END">종료됨</option>
+                                </select>
+                            </div>
+                        </div-->
+
+                        <div>
+                            <p class="title">시작 시간</p>
+
+                            <div class="data">
+                                <input id="startDatetime" type="datetime-local" style="width: 180px;" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">종료 시간</p>
+
+                            <div class="data">
+                                <input id="endDatetime" type="datetime-local" style="width: 180px;" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">상품 제목</p>
+
+                            <div class="data">
+                                <input id="group_purchase_title" class="full" type="text" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">상품 가격</p>
+
+                            <div class="data">
+                                <input id="group_purchase_price" class="full" type="text" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">상품 내용</p>
+
+                            <div class="data">
+                                <textarea id="group_purchase_content" class="full" style="height: 300px" required></textarea>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">링크</p>
+
+                            <div class="data">
+                                <input id="group_purchase_link" class="full" type="text" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="title">상품 이미지</p>
+
+                            <div class="data">
+                                <input id="group_purchase_img" class="full" type="file">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="submit_btn" type="submit">게시물 등록</button>
+                </form> 
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const options = Object.entries(categoryMap).map(([key, value]) => `<option value="${key}">${value}</option>`).join("");
+
+        $("#category").html(options);
+
+        $("#product_post_create_form").on("submit", function(e){
+            e.preventDefault();
+
+            const formData = new FormData();
+
+            const startDate = new Date($("#startDatetime").val()).toISOString();
+            const endDate = new Date($("#endDatetime").val()).toISOString();
+
+            const gppCreateRequest = {
+                productName: $("#group_purchase_title").val(),
+                content: $("#group_purchase_content").val(),
+                image: "String",
+                price: Number($("#group_purchase_price").val()),
+                linkUrl: $("#group_purchase_link").val(),
+                category: $("#category").val(),
+                startDate: startDate,
+                endDate: endDate
+            };
+
+            formData.append(
+                "gppCreateRequest",
+                new Blob([JSON.stringify(gppCreateRequest)], { type: "application/json" })
+            );
+
+            const fileInput = $("#group_purchase_img")[0];
+            if(fileInput.files.length > 0){
+                formData.append("contentImage", fileInput.files[0]);
+            }
+
+            const isEdit = $("#product_post_create_form").data("mode") === "edit";
+            const postId = $("#product_post_create_form").data("id");
+
+            $.ajax({
+                url: isEdit ? `${SPRING_BOOT_URL}/zero9/gp-posts/${postId}` : `${SPRING_BOOT_URL}/zero9/gp-posts`,
+                type: isEdit ? "PUT" : "POST",
+                data: formData,
+                headers: { Authorization: ACCESS_TOKEN },
+                contentType: false,
+                processData: false,
+
+                success: function(res){
+                    alert(res.message);
+
+                    if(res.success){
+                        location.href = `${ORIGIN_URL}/gp_post/view.html`;
+                    }
+                },
+
+                error: function(err){
+                    console.error(err);
+
+                    if (err.responseJSON?.message) {
+                        alert(err.responseJSON.message);
+                    } else {
+                        alert("처리 중 오류가 발생했습니다.");
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../common.js"></script>
+    <script src="../header.js"></script>
+
+    <link href="../style.css" rel="stylesheet"> 
+</head>
+<body>
+     <main id="order_main" class="main_wrap">
+        <div class="container">
+            <h2>주문서</h2>
+
+            <div class="order_section">
+                <h3>주문자 정보</h3>
+
+                <ul class="order_list">
+                    <li>
+                        <p class="title">이름</p>
+                        <div class="data"></div>
+                    </li>
+
+                    <li>
+                        <p class="title">휴대폰</p>
+                        <div class="data"></div>
+                    </li>
+
+                    <li>
+                        <p class="title">이메일</p>
+                        <div class="data">
+                            <p class="info">이메일을 통해 주문처리과정을 보내드립니다.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div id="order_payment_section">
+                <div class="section_box">
+                    <div class="order_section">
+                        <h3>주문상품</h3>
+
+                        <div class="goods_order_option_list">
+                            <ul class="list_box">
+                                <li>
+                                    <p class="goods_option_name"></p>
+
+                                    <div class="option_data">
+                                        <p class="price"></p>
+                                        <p class="cnt">
+                                            <span class="data">0</span>
+                                            개
+                                        </p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="payment_section">
+                    <h3>결제금액</h3>
+
+                    <div class="final_payment_price">
+                        <span class="tit">최종 결제금액</span>
+
+                        <span class="data">
+                            <b></b>
+                            원
+                        </span>
+                    </div>
+                    
+                    <button id="payment_btn" type="submit">결제하기</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const ORDER_ITEM_ID = getQueryParam("orderItemId");
+
+        $.ajax({
+            url: `${SPRING_BOOT_URL}/zero9/users/${PAYLOAD.sub}/profile`,
+            method: "GET",
+            headers: {
+                Authorization: ACCESS_TOKEN
+            },
+            success: function (res) {
+                const { nickname, phone, email } = res.data;
+                const ORDER_LIST = $("#order_main .order_section .order_list > li");    
+
+                ORDER_LIST.eq(0).find(".data").text(nickname);
+                ORDER_LIST.eq(1).find(".data").text(phone);
+                ORDER_LIST.eq(2).find(".data").text(email);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("프로필 조회 에러:", textStatus, errorThrown);
+                alert("프로필 조회 중 오류가 발생했습니다.");
+            }
+        });
+
+        $.ajax({
+            url: `${SPRING_BOOT_URL}/zero9/order-items/${ORDER_ITEM_ID}`,
+            method: "GET",
+            headers: {
+                Authorization: ACCESS_TOKEN
+            },
+            success: function (res) {
+                const { optionName, optionPrice, capacity } = res.data;
+
+                const totalPrice = optionPrice * capacity;
+
+                const SECTION = $("#order_payment_section .goods_order_option_list");
+
+                SECTION.find(".goods_option_name").text(optionName);
+                SECTION.find(".option_data .price").text(totalPrice.toLocaleString() + "원");
+                SECTION.find(".option_data .cnt .data").text(capacity);
+                $("#order_payment_section .final_payment_price .data b").text(totalPrice.toLocaleString());
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("주문상품 조회 에러:", textStatus, errorThrown);
+                alert("주문상품 조회 중 오류가 발생했습니다.");
+            }
+        });
+
+        $("#payment_btn").click(function(){
+            $.ajax({
+                url: `${SPRING_BOOT_URL}/zero9/order-item/${ORDER_ITEM_ID}/orders`,
+                method: "POST",
+                headers: {
+                    Authorization: ACCESS_TOKEN
+                },
+                success: function (res) {
+                    location.href = `${ORIGIN_URL}/payment/payment.html?orderId=${res.data.id}`;
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error("주문 생성 에러:", textStatus, errorThrown);
+                    alert("주문 처리 중 오류가 발생했습니다.");
+                }
+            });
+        })
+    </script>
+</body>
+</html>

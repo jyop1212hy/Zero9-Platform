@@ -14,6 +14,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -30,6 +31,23 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring()
+                // static 폴더 내의 정적 파일들은 아예 보안 검사를 하지 않음
+//                .requestMatchers("/favicon.ico", "/error")
+//                .requestMatchers("/static/**", "/css/**", "/js/**", "/img/**")
+//                .requestMatchers("/common.js", "/header.js", "/style.css", "/main.html")
+//                .requestMatchers("/auth/**", "/livechat/**", "/goods/**", "/search_log/**")
+//                .requestMatchers("/mypage/**");
+                .requestMatchers("/favicon.ico", "/error")
+                // 앞에 뭐가 붙든 .html, .js, .css, .png 등 정적 파일은 무조건 통과 (Wildcard 사용)
+                .requestMatchers("/**/*.html", "/**/*.js", "/**/*.css", "/**/*.png", "/**/*.jpg", "/**/*.jpeg")
+                // 혹은 마이페이지 경로를 로그에 찍힌 그대로 포함
+                .requestMatchers("/Zero9-Platform/**");
+
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint, JwtAccessDeniedHandler jwtAccessDeniedHandler) throws Exception {

@@ -71,8 +71,8 @@ spring:
 app:
   oauth2:
 #    redirect-uri: http://localhost:3000/oauth/callback
-    redirect-uri: http://localhost:8080/zero9/auth/oauth/callback #백엔드 테스트용
-
+#    redirect-uri: http://localhost:8080/zero9/auth/oauth/callback #백엔드 테스트용
+    redirect-uri: http://localhost:8080/main.html
 # JWT 설정
 jwt:
   secret:

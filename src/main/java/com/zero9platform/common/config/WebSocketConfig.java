@@ -1,5 +1,6 @@
 package com.zero9platform.common.config;
 
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -20,10 +21,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
 
+        // 내장 브로커 사용 시 Heartbeat 설정 (10초 주기)
+        ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+        taskScheduler.setPoolSize(1);
+        taskScheduler.setThreadNamePrefix("wss-heartbeat-thread-");
+        taskScheduler.initialize();
+
         // /topic: 일대다 방송 (알림, 게이지)
         // /queue: 일대일 전송 (문의 채팅)
-        registry.enableSimpleBroker("/topic", "/queue");
-        registry.setApplicationDestinationPrefixes("/app");
+        registry.enableSimpleBroker("/sub", "/topic", "/queue")
+                .setHeartbeatValue(new long[]{10000, 10000}) // 서버가 보내는 주기, 받는 주기
+                .setTaskScheduler(taskScheduler);
+
+        registry.setApplicationDestinationPrefixes("/pub", "/app");
         registry.setUserDestinationPrefix("/user"); // 1:1 전송용 접두사
     }
 }

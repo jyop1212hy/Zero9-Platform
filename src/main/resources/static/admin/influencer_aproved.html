@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>결제 내역 리스트</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../common.js"></script>
+    <script src="admin_header.js"></script>
+
+    <link href="../style.css" rel="stylesheet"> 
+
+    <style>
+        #influencer_aprived_main{}
+        #influencer_aprived_main .list{}
+        #influencer_aprived_main .list > li{padding: 16px; border: 1px solid #ededed; border-radius: 10px;}
+        #influencer_aprived_main .list > li + li{}
+        #influencer_aprived_main .info_title{font-size: 1.6rem; font-weight: bold;}
+        #influencer_aprived_main .info_list{margin-top: 8px; font-size: 1.2rem;}
+        #influencer_aprived_main .info_list .title{color: #666}
+        #influencer_aprived_main .info_list > li{}
+        #influencer_aprived_main .info_list > li + li{margin-top: 3px;}
+        #influencer_aprived_main .aprove_btn_box{margin-top: 30px; padding-top: 10px; border-top: 1px solid #ededed}
+        #influencer_aprived_main .aprove_btn_box button{padding: 8px 30px; border-radius: 5px; background: #555; color: #fff;}
+    </style>
+</head>
+<body>
+    <main id="influencer_aprived_main" class="admin_main">
+        <h2>인플루언서 가입 승인</h2>
+
+        <ul class="list">
+        </ul>
+    </main>
+
+    <script>
+        $.ajax({
+            url: SPRING_BOOT_URL + "/zero9/admin/influencers",
+            method: "GET",
+            dataType: "json",
+            headers: {
+                Authorization: ACCESS_TOKEN
+            },
+            success: function(res){
+                console.log(res.data.content);
+
+                renderInfluencerList(res.data.content);
+            },
+            error: function(err){
+                console.error("인플루언서 리스트 불러오기 실패:", err);
+                alert("데이터를 불러오지 못했습니다.");
+            }
+        });
+
+        function renderInfluencerList(list) {
+            const LIST_ELEMENT = $("#influencer_aprived_main .list");
+
+            if (!list || list.length === 0) {
+                LIST_ELEMENT.html("<li>데이터가 없습니다.</li>");
+                return;
+            }
+
+            let html = "";
+
+            list.forEach(item => {
+
+                // 승인 대기만 보여주기 (status === false)
+                if (item.status === false) {
+                    html += `
+                        <li>
+                            <p class="info_title">회원 정보</p>
+                            <ul class="info_list">
+                                <li><span class="title">아이디</span> : ${item.loginId}</li>
+                                <li><span class="title">이메일</span> : ${item.email}</li>
+                                <li><span class="title">닉네임</span> : ${item.nickName}</li>
+                                <li><span class="title">핸드폰 번호</span> : ${item.phone}</li>
+                            </ul>
+
+                            <div class="aprove_btn_box">
+                                <button type="button" class="approve_btn" data-id="${item.id}">
+                                    승인
+                                </button>
+                            </div>
+                        </li>
+                    `;
+                }
+            });
+
+            LIST_ELEMENT.html(html || "<li>승인 대기자가 없습니다.</li>");
+        }
+
+        $(document).on("click", ".approve_btn", function(){
+
+            if(!confirm("가입승인 하시겠습니까?")) return;
+
+            const influencerId = $(this).data("id");
+
+            $.ajax({
+                url: SPRING_BOOT_URL + "/zero9/admin/influencers/" + influencerId + "/approval",
+                method: "PUT", 
+                contentType: "application/json",
+                dataType: "json",
+                headers: {
+                    Authorization: ACCESS_TOKEN
+                },
+                data: JSON.stringify({
+                    approve: true
+                }),
+                success: function(res){
+
+                    if(res.success === true){
+                        alert(res.message || "승인 완료");
+                        location.reload(); // 🔥 현재 페이지 새로고침
+                    }else{
+                        alert(res.message || "승인 실패");
+                    }
+                },
+                error: function(err){
+                    console.error("인플루언서 승인 실패:", err);
+                    alert("승인 처리 중 오류가 발생했습니다.");
+                }
+            });
+        });
+    </script>
+</body>

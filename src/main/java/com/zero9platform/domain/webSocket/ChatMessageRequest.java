@@ -7,5 +7,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ChatMessageRequest {
 
+    private Long userId;
     private final String message;
 }
