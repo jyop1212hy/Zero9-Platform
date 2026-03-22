@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "keyword_ranking_snapshots", uniqueConstraints = {
-                @UniqueConstraint(name = "uk_keyword_period_date", columnNames = {"keyword", "period", "target_date"})}
+                @UniqueConstraint(name = "uk_keyword_period_date", columnNames = {"keyword", "period_type", "target_date"})}
 )
 public class KeywordRankingSnapshot {
 
@@ -25,18 +25,18 @@ public class KeywordRankingSnapshot {
 
     // 랭킹 기준 기간
     @Enumerated(EnumType.STRING)
-    @Column(name = "period", nullable = false)
+    @Column(name = "period_type", nullable = false)
     private RankingPeriod period;
 
     // 집계된 찜 개수 (캐시 스냅샷 값)
-    @Column(nullable = false)
+    @Column(name = "keyword_count", nullable = false)
     private Long keywordCount;
 
     @Column(name = "target_date", nullable = false)
     private String targetDate;
 
     // 스냅샷 생성 시각
-    @Column(nullable = false)
+    @Column(name = "snapshot_at", nullable = false)
     private LocalDateTime snapshotAt;
 
     public KeywordRankingSnapshot(String keyword, RankingPeriod period, Long keywordCount, String targetDate) {
