@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "keyword_ranking_snapshots", uniqueConstraints = {
-                @UniqueConstraint(name = "uk_keyword_period_date", columnNames = {"keyword", "period", "target_date"})}
+@Table(name = "favorite_ranking_snapshots", uniqueConstraints = {
+                @UniqueConstraint(name = "uk_favorite_period_date", columnNames = {"product_post_id", "period", "target_date"})}
 )
 public class FavoriteRankingSnapshot {
 
@@ -25,18 +25,18 @@ public class FavoriteRankingSnapshot {
 
     // 랭킹 기준 기간
     @Enumerated(EnumType.STRING)
-    @Column(name = "period", nullable = false)
+    @Column(name = "period_type", nullable = false)
     private RankingPeriod period;
 
     // 집계된 찜 개수 (캐시 스냅샷 값)
-    @Column(nullable = false)
+    @Column(name = "favorite_count", nullable = false)
     private Long favoriteCount;
 
     @Column(name = "target_date", nullable = false)
     private String targetDate;
 
     // 스냅샷 생성 시각
-    @Column(nullable = false)
+    @Column(name = "snapshot_at", nullable = false)
     private LocalDateTime snapshotAt;
 
     public FavoriteRankingSnapshot(Long productPostId, RankingPeriod period, Long favoriteCount, String targetDate) {
