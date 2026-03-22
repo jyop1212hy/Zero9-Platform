@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 상세</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../common.js"></script>
+    <script src="../header.js"></script>
+
+    <link href="../style.css" rel="stylesheet"> 
+</head>
+<body>
+    <main id="order_detail_main" class="main_wrap">
+        <div class="container">
+            <div class="thumnail_box">
+                <img>
+            </div>
+
+            <div class="goods_data_box">
+                <p class="goods_category"></p>
+                <p class="goods_title"></p>
+                <p class="product_name"></p>
+
+                <p class="goods_discription"></p>
+
+                <p class="price">0원</p>
+                
+                <div class="option_box">
+                    <select id="goods_list">
+                        <option value="">상품을 선택해주세요</option>
+                    </select>
+                </div>
+
+                <div class="option_final_box">
+                    <div class="total_price">
+                        <span class="txt">총 상품금액</span>
+                        <p class="data_txt">
+                            <b class="data">0</b>
+                            원
+                        </p>
+                    </div>
+
+                    <div class="clear_btn_box">
+                        <button id="ggim" type="button">찜</button>
+                        
+                        <button id="order_btn" type="button">주문하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const ID = getQueryParam("id");
+
+        $.ajax({
+            url: `${SPRING_BOOT_URL}/zero9/product-posts/${Number(ID)}`,
+            method: "GET",
+            success: function (res) {
+
+                const detail = res.data;
+                const optionList = detail.optionList;
+
+                const $main = $("#order_detail_main .goods_data_box");
+                const $optionBox = $main.find(".option_box");
+                const $finalPrice = $main.find(".option_final_box .total_price .data_txt .data");
+
+                /* ===== 기본 상품 정보 ===== */
+                const thumnail_img = $("#order_detail_main .thumnail_box img");
+                const thumnail_img_url = detail.image != null ? detail.image : ORIGIN_URL + "/img/noimg.jpg";
+
+                thumnail_img.attr("src", thumnail_img_url);
+
+                $main.find(".goods_category").text(categoryMap[detail.category]);
+                $main.find(".goods_title").text(detail.title);
+                $main.find(".product_name").text(detail.name);
+                $main.find(".goods_discription").text(detail.content);
+                $main.children(".price").text(Number(detail.originalPrice).toLocaleString() + "원");
+
+                /* ===== 옵션 select ===== */
+                let optionHtml = `<option value="">옵션 선택</option>`;
+                $.each(optionList, function (idx, option) {
+                    optionHtml += `<option value="${idx}">${option.name}</option>`;
+                });
+                $("#goods_list").html(optionHtml);
+
+                /* ===== 옵션 선택 ===== */
+                $("#goods_list").on("change", function () {
+                    const idx = $(this).val();
+                    if (!idx) return;
+
+                    const option = optionList[idx];
+                    let $selectBox = $optionBox.find(".select_box");
+
+                    if ($selectBox.length === 0) {
+                        $optionBox.append(`
+                            <div class="select_box" data-price="0" data-option="0">
+                                <p class="option_name"></p>
+                                <div class="option_data">
+                                    <p class="price"></p>
+                                    <input class="goods_total_num" min="1" type="number" value="1">
+                                </div>
+                            </div>
+                        `);
+                        $selectBox = $optionBox.find(".select_box");
+                    }
+
+                    $selectBox
+                        .attr("data-price", option.salePrice)
+                        .attr("data-option", option.id)
+                        .find(".option_name").text(option.name).end()
+                        .find(".price").text(option.salePrice.toLocaleString() + "원")
+                        .end()
+                        .find(".goods_total_num").val(1);
+
+                    $finalPrice.text(option.salePrice.toLocaleString());
+                });
+
+                /* ===== 수량 변경 ===== */
+                $(document).on("input change", ".goods_total_num", function () {
+                    const quantity = Number($(this).val()) || 1;
+                    const unitPrice = Number($(this).closest(".select_box").data("price"));
+
+                    const totalPrice = unitPrice * quantity;
+                    $finalPrice.text(totalPrice.toLocaleString());
+                });
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("상품 상세 불러오기 실패:", textStatus, errorThrown);
+
+                alert("상품 상세 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
+            }
+        });
+
+        $("#order_btn").on("click", function () {
+
+            const $selectBox = $("#order_detail_main .goods_data_box .option_box .select_box");
+
+            if ($selectBox.length === 0) {
+                alert("옵션을 선택해주세요.");
+                return;
+            }
+
+            const optionId = Number($selectBox.data("option"));
+            const orderQuantity = Number($selectBox.find(".goods_total_num").val());
+
+            if (!optionId || orderQuantity < 1) {
+                alert("옵션 또는 수량이 올바르지 않습니다.");
+                return;
+            }
+
+            if (isTokenExpired(ACCESS_TOKEN)) {
+                alert("로그인이 필요합니다.");
+                return;
+            }
+
+            $.ajax({
+                url: `${SPRING_BOOT_URL}/zero9/product-posts/${Number(ID)}/order-items`,
+                method: "POST",
+                contentType: "application/json",
+                headers: {
+                    Authorization: ACCESS_TOKEN
+                },
+                data: JSON.stringify({
+                    optionId: optionId,
+                    orderQuantity: orderQuantity
+                }),
+                success: function (res) {
+                    location.href =  `${ORIGIN_URL}/goods/order_detail.html?orderItemId=${res.data.id}`;
+                },
+                error: function (jqXHR) {
+                    console.error("주문 요청 실패:", jqXHR.responseJSON || jqXHR);
+
+                    if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+                        alert(jqXHR.responseJSON.message);
+                    } else {
+                        alert("주문 처리 중 오류가 발생했습니다.");
+                    }
+                }
+            });
+        });
+
+        $("#ggim").click(function(){
+            $.ajax({
+                url: `${SPRING_BOOT_URL}/zero9/product-posts/${Number(ID)}/favorites`,
+                method: "POST",
+                contentType: "application/json",
+                headers: {
+                    Authorization: ACCESS_TOKEN
+                },
+                success: function (res) {
+                    if(!res.success){
+                        alert(res.message);
+
+                        return;
+                    }
+
+                    alert(res.message);
+                },
+                error: function (jqXHR) {
+                    console.error("찜 요청 실패:", jqXHR.responseJSON || jqXHR);
+
+                    if (jqXHR.responseJSON && jqXHR.responseJSON.message) {
+                        alert(jqXHR.responseJSON.message);
+                    } else {
+                        alert("찜 처리 중 오류가 발생했습니다.");
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

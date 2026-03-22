@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주문결제</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../common.js"></script>
+    <script src="https://js.tosspayments.com/v2/standard"></script>
+</head>
+<body>
+    <script>
+        const ORDER_ID = getQueryParam("orderId");
+
+        $.ajax({
+            url: `${SPRING_BOOT_URL}/zero9/orders/${ORDER_ID}`,
+            method: "GET",
+            headers: {
+                Authorization: ACCESS_TOKEN
+            },
+            success: function ({ data }) {
+
+                // Toss Payments 초기화
+                const clientKey = "test_ck_DpexMgkW36bkOzxbDNnw3GbR5ozO";
+                const customerKey = "I45b2nHLcZW9Ks4Sepwlv";
+
+                const tossPayments = TossPayments(clientKey);
+                const payment = tossPayments.payment({ customerKey });
+
+                payment.requestPayment({
+                    method: "CARD",
+                    amount: {
+                        currency: "KRW",
+                        value: Number(data.totalAmount),
+                    },
+                    orderId: data.orderNo,
+                    orderName: data.optionName,
+                    successUrl: window.location.origin + "/payment/success.html?order_id=" + ORDER_ID,
+                    failUrl: window.location.origin + "/fail",
+                    customerEmail: data.email,
+                    customerName: data.nickname,
+                    customerMobilePhone: data.phone.replace(/-/g, ""),
+                    card: {
+                        flowMode: "DEFAULT",
+                        useEscrow: false,
+                        useCardPoint: false,
+                        useAppCardOnly: false,
+                    },
+                }).catch(function (error) {
+                    console.error("결제 요청 에러:", error);
+
+                    if (error.code === "USER_CANCEL") {
+                        alert("결제가 취소되었습니다.");
+                        
+                        location.href = ORIGIN_URL + "/main.html";
+
+                        return;
+                    }
+
+                    alert("결제 중 오류가 발생했습니다.");
+                });
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("주문 조회 에러:", textStatus, errorThrown);
+                alert("주문 정보를 불러오는 중 오류가 발생했습니다.");
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../common.js"></script>
+    <script src="../header.js"></script>
+    <script>
+        // 페이지 로드 시 체크 ($(document).ready 내부에 넣거나 바로 실행)
+        $(document).ready(function() {
+            // 토큰이 존재 '하고' 만료되지 않았을 때만 메인으로 보냄
+            if (ACCESS_TOKEN && !isTokenExpired(ACCESS_TOKEN)) {
+                alert("이미 로그인된 상태입니다.");
+                window.location.href = ORIGIN_URL + "/main.html";
+            }
+        });
+    </script>
+
+    <link href="../style.css" rel="stylesheet"> 
+</head>
+<body>
+    <form id="login_form">
+        <div id="login_container">
+            <h2>로그인</h2>
+
+            <div class="input_box">
+                <input id="id" class="full" type="text" placeholder="아이디">
+                <input id="password" class="full" type="password" placeholder="비밀번호">
+            </div>
+
+            <button id="login_btn" class="btn full" type="submit">로그인</button>
+        </div>
+
+        <div class="social_login" style="margin-top: 20px;">
+            <a id="kakao_login_btn"
+               href="http://localhost:8080/oauth2/authorization/kakao"
+               style="display: block; background: #FEE500; color: #3C1E1E; text-decoration: none;
+                padding: 15px; border-radius: 6px; text-align: center; font-weight: bold; margin-top: 10px;">
+                <i class="fa-solid fa-comment"></i> 카카오톡으로 1초 로그인
+            </a>
+        </div>
+    </form>
+
+    <script>
+        $("#login_form").on("submit", function (e) {
+            e.preventDefault();
+
+            const ID = $("#id").val().trim();
+            const PASSWORD = $("#password").val().trim();
+
+            if (!ID) {
+                alert("아이디를 입력해주세요.");
+                return;
+            }
+
+            if (!PASSWORD) {
+                alert("비밀번호를 입력해주세요.");
+                return;
+            }
+
+            $.ajax({
+                url: SPRING_BOOT_URL + "/zero9/auth/login",
+                type: "POST",
+                contentType: "application/json",
+                dataType: "json",
+                data: JSON.stringify({
+                    loginId: ID,
+                    password: PASSWORD
+                }),
+                success: function (res) {
+                    if (!res.success) {
+                        alert(res.message || "로그인 실패");
+
+                        return;
+                    }
+
+                    const token = res.data?.token;
+
+                    if (!token) {
+                        alert("토큰이 존재하지 않습니다.");
+                        return;
+                    }
+
+                    localStorage.setItem("accessToken", token);
+
+                    location.href = ORIGIN_URL + "/main.html";
+                },
+                error: function (xhr) {
+                    console.error("로그인 에러:", xhr);
+
+                    const message = xhr.responseJSON?.message || "로그인 중 오류가 발생했습니다.";
+
+                    alert(message);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

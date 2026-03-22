@@ -14,6 +14,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -32,12 +33,28 @@ public class SecurityConfig {
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring()
+                // static 폴더 내의 정적 파일들은 아예 보안 검사를 하지 않음
+//                .requestMatchers("/favicon.ico", "/error")
+//                .requestMatchers("/static/**", "/css/**", "/js/**", "/img/**")
+//                .requestMatchers("/common.js", "/header.js", "/style.css", "/main.html")
+//                .requestMatchers("/auth/**", "/livechat/**", "/goods/**", "/search_log/**")
+//                .requestMatchers("/mypage/**");
+                .requestMatchers("/favicon.ico", "/error")
+                // 앞에 뭐가 붙든 .html, .js, .css, .png 등 정적 파일은 무조건 통과 (Wildcard 사용)
+                .requestMatchers("/**/*.html", "/**/*.js", "/**/*.css", "/**/*.png", "/**/*.jpg", "/**/*.jpeg")
+                // 혹은 마이페이지 경로를 로그에 찍힌 그대로 포함
+                .requestMatchers("/Zero9-Platform/**");
+
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity, JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint, JwtAccessDeniedHandler jwtAccessDeniedHandler) throws Exception {
 
         return httpSecurity
                 // CORS 활성화
                 .cors(Customizer.withDefaults())
-
                 // CSRF, BASIC, FORM 로그인 비활성화 (JWT 사용)
                 .csrf(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -65,6 +82,7 @@ public class SecurityConfig {
                                 HttpMethod.OPTIONS,
                                 "/**"
                         ).permitAll() // CORS Preflight 허용
+                        .requestMatchers("/ws_zero9/**").permitAll() // WebSocket 허용
                         .requestMatchers(
                                 "/", "/index.html", "/main.html",
                                 "/**/*.css", "/**/*.js",

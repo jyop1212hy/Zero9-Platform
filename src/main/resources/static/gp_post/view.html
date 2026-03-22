@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공동구매 게시물</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../common.js"></script>
+    <script src="../header.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="../style.css" rel="stylesheet"> 
+    <style>
+        .follow_box{text-align: center; margin-top: 60px;}
+        .follow_box .btn{padding: 10px 24px; border-radius: 5px; background: #575757; color: #fff;}
+        .follow_box .btn .icon{color: #ffb659;}
+    </style>
+</head>
+<body>
+    <main id="gp_post_view_main" class="container list_main">
+    
+        <div class="top_box">
+            <p class="view_cnt">
+                <i class="icon fa-solid fa-eye"></i>
+                <span class="data">0</span>
+            </p>
+
+            <div class="from_to_inner">
+                <span class="status"></span>
+
+                <span class="datetime"></span>
+            </div>
+
+            <p class="category"></p>
+            <p class="product_name"></p>
+            <p class="price">0</p>
+
+            <div class="sale_link_box">
+                <p class="title">판매 링크</p>
+
+                <a href="" target="_blank"></a>
+            </div>
+
+            <div class="follow_box">
+                <button id="follow_btn" class="btn" type="button">
+                    <i class="icon fa-solid fa-bell"></i>
+                    일정 팔로우
+                </button>
+            </div>
+        </div>
+
+        <div class="content_box"></div>
+
+        <div class="comment_box">
+            <style>
+                .comment_box{margin-top: 100px;}
+                .comment_box .root_comment{display: flex; gap: 0 5px;}
+                .comment_box .root_comment textarea{flex: 1; height: 100px;}
+                .comment_box .root_comment .submit_btn{width: 100px; background: #555; color: #fff;}
+            </style>
+
+            
+            <div class="root_comment">
+                <textarea id="root_comment_textarea"></textarea>
+                <button id="root_comment_btn" class="submit_btn" type="button">작성</button>
+            </div>
+
+            <ul class="comment_list">
+                
+            </ul>
+        </div>
+    </main>
+
+    <script>
+        const GPP_ID = getQueryParam("id");
+        const ROOT = $("#gp_post_view_main");
+
+        $.ajax({
+            url: `${SPRING_BOOT_URL}/zero9/gp-posts/${GPP_ID}`,
+            method: "GET",
+            dataType: "json",
+            success: function(res){
+                const d = res.data;
+
+                // 공통 유틸
+                const formatPrice = price => Number(price || 0).toLocaleString() + "원";
+                const safeText = text => text ?? "";
+
+                // 조회수
+                ROOT.find(".view_cnt .data").text(d.viewCount ?? 0);
+
+                // 상태
+                const STATUS_EL = ROOT.find(".status");
+                STATUS_EL.text(safeText(d.gppProgressStatus));
+
+                if(d.gppProgressStatus === "진행중"){
+                    STATUS_EL.addClass("ing");
+                }
+
+                // 기간
+                ROOT.find(".datetime")
+                    .text(`진행 기간: ${safeText(d.startDate)} ~ ${safeText(d.endDate)}`);
+
+                // 카테고리
+                ROOT.find(".category").text(safeText(d.category));
+
+                // 상품명
+                ROOT.find(".product_name").text(safeText(d.productName));
+
+                // 가격
+                ROOT.find(".price").text(formatPrice(d.price));
+
+                // 링크
+                const LINK_EL = ROOT.find(".sale_link_box a");
+                if(d.linkUrl){
+                    LINK_EL.attr("href", d.linkUrl).text(d.linkUrl).show();
+                }else{
+                    LINK_EL.hide();
+                }
+
+                // 내용 + 이미지
+                const IMG_HTML = d.image ? `<img src="${d.image}" alt="">` : "";
+                ROOT.find(".content_box")
+                    .html(`${safeText(d.content)}${IMG_HTML ? `<br>${IMG_HTML}` : ""}`);
+            },
+            error: function(err){
+                console.error("상세 조회 실패:", err);
+                alert("데이터를 불러오지 못했습니다.");
+            }
+        });
+
+        $("#follow_btn").click(function(){
+            if(!confirm("일정 팔로우 하시겠습니까?")){
+                return;
+            }
+
+            $.ajax({
+                url: `${SPRING_BOOT_URL}/zero9/gp-posts/${GPP_ID}/follows`,
+                method: "POST",
+                dataType: "json",
+                headers: { Authorization: ACCESS_TOKEN },
+                success: function(res){
+                    alert(res.message);
+                },
+                error: function(err){
+                    console.error("일정 팔로우 실패:", err);
+
+                    if(err.responseJSON && err.responseJSON.message){
+                        alert(err.responseJSON.message);
+                    }else{
+                        alert("이미 팔로우했거나 요청에 문제가 있습니다.");
+                    }
+                }
+            });
+        });
+
+        $("#root_comment_btn").on("click", function(){
+            $.ajax({
+                url: `${SPRING_BOOT_URL}/zero9/gpp-comments`,
+                method: "POST",
+                dataType: "json",
+                contentType: "application/json",
+                headers: { Authorization: ACCESS_TOKEN },
+                data: JSON.stringify({
+                    gppId: GPP_ID,
+                    content: $("#root_comment_textarea").val()
+                }),
+                success: function(res){
+                    $(".comment_list").prepend(`
+                        <li>${res.data.content}</li>
+                    `);
+                },
+                error: function(err){
+                    console.error("댓글 작성 실패:", err);
+                }
+            });
+        });
+
+        $.ajax({
+            url: `${SPRING_BOOT_URL}/zero9/gpp-comments`,
+            method: "GET",
+            dataType: "json",
+            data: {
+                gppId: GPP_ID
+            },
+            success: function(res){
+                console.log(res);
+
+                res.data.forEach(comment => {
+                    $(".comment_list").append(`
+                        <li>${comment.content}</li>
+                    `);
+                });
+            },
+            error: function(err){
+                console.error("조회 실패:", err);
+            }
+        });
+    </script>
+</body>
+</html>

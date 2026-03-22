@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../../common.js"></script>
+    <script src="../../header.js"></script>
+    <script src="../mypage_nav.js "></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="../../style.css" rel="stylesheet"> 
+</head>
+<body>
+    <main class="mypage_main">
+        <div class="container clear_box">
+            <div id="mypage_home_section" class="view_section">
+                <div>
+                    <h2>판매내역</h2>
+
+                    <table class="table_ds type_1">
+                        <thead>
+                            <tr>
+                                <th>상품명</th>
+                                <th>공구 시작 시간</th>
+                                <th>공구 종료 시간</th>
+                                <th>금액</th>
+                                <th>찜갯수</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="product_post_my_list">
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        $.ajax({
+            url: `${SPRING_BOOT_URL}/zero9/product-posts/my`,
+            method: "GET",
+            headers: {
+                Authorization: ACCESS_TOKEN
+            },
+            success: function (res) {
+
+                const { data } = res;
+
+                if (!data || data.length === 0) {
+                    $("#product_post_my_list").html( `<tr><td colspan="5">등록된 게시물이 없습니다.</td></tr>`);
+
+                    return;
+                }
+
+                const trHtml = data.map(post => `
+                    <tr>
+                        <td class="left">${post.title}</td>
+                        <td class="center">${post.startDatetime}</td>
+                        <td class="center">${post.endDatetime}</td>
+                        <td class="left">${Number(post.originalPrice).toLocaleString()} 원</td>
+                        <td class="center">${post.favoriteCount}</td>
+                    </tr>
+                `).join("");
+
+                $("#product_post_my_list").html(trHtml);
+            },
+            error: function (jqXHR) {
+
+                console.error("게시물 조회 실패:", jqXHR.responseJSON || jqXHR);
+
+                const message =
+                    jqXHR.responseJSON?.message ||
+                    "게시물 조회 중 오류가 발생했습니다.";
+
+                alert(message);
+            }
+        });
+    </script>
+</body>
+</html>

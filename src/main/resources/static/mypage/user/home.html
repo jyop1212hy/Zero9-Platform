@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../../common.js"></script>
+    <script src="../../header.js"></script>
+    <script src="../mypage_nav.js "></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="../../style.css" rel="stylesheet"> 
+</head>
+<body>
+    <main class="mypage_main">
+        <div class="container clear_box">
+            <div id="mypage_home_section" class="view_section">
+                <table class="mypage_follow_table table_ds type_1">
+                    <thead>
+                        <tr>
+                            <th class="nickname">닉네임</th>
+                            <th class="product_name">상품명</th>
+                            <th class="datetime">공구 시작 시간</th>
+                            <th class="datetime">공구 종료 시간</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="follow_my_list">
+                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        $(document).ready(function() {
+
+            // 1. 갱신된 최신 토큰이 있는지 확인
+            if (!ACCESS_TOKEN || isTokenExpired(ACCESS_TOKEN)) {
+                alert("로그인이 만료되었거나 정보가 없습니다. 다시 로그인해주세요.");
+                location.href = ORIGIN_URL + "/auth/login.html";
+                return;
+            }
+
+        // 2. 이제 최신 ACCESS_TOKEN을 들고 요청을 보냅니다.
+        $.ajax({
+            url: SPRING_BOOT_URL + "/zero9/gp-posts/follows",
+            method: "GET",
+            dataType: "json",
+            headers: {
+                Authorization: ACCESS_TOKEN
+            },
+            success: function(res){
+
+                // const list = res.data.content;
+                const list = res.data ? res.data.content : [];
+                const $tbody = $("#follow_my_list");
+
+                if (!list || list.length === 0) {
+                    $tbody.html(`
+                        <tr>
+                            <td colspan="4">팔로우한 게시글이 없습니다.</td>
+                        </tr>
+                    `);
+                    return;
+                }
+
+                let html = "";
+
+                list.forEach(item => {
+                    html += `
+                        <tr>
+                            <td class="nickname">${item.nickname}</td>
+                            <td class="product_name">${item.productName}</td>
+                            <td class="datetime">${item.startDate}</td>
+                            <td class="datetime">${item.endDate}</td>
+                        </tr>
+                    `;
+                });
+
+                $tbody.html(html);
+            },
+            error: function(jqXHR) {
+                console.error("팔로우 리스트 불러오기 실패:", jqXHR);
+
+                // 401 에러(Unauthorized)가 나면 토큰 문제인 것이 확실함
+                if (jqXHR.status === 401) {
+                    alert("인증에 실패했습니다. 다시 로그인해주세요.");
+                } else {
+                    alert("데이터를 불러오지 못했습니다.");
+                }
+            }
+        });
+        });
+    </script>
+</body>
+</html>

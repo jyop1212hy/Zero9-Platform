@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결제완료</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../common.js"></script>
+    <script src="../header.js"></script>
+
+    <link href="../style.css" rel="stylesheet"> 
+</head>
+<body>
+    <main id="payment_success_main" class="main_wrap">
+        <div class="success_container">
+            <h2></h2>
+
+            <a href="../main.html">메인으로</a>
+        </div>
+    </main>
+
+    <script>
+        const paymentKey = getQueryParam("paymentKey");
+        const orderId = getQueryParam("order_id");
+        const orderNo = getQueryParam("orderId");
+        const amount = Number(getQueryParam("amount"));
+
+        if (!paymentKey || !orderId || isNaN(amount)) {
+            alert("결제 정보가 올바르지 않습니다.");
+
+            location.href = ORIGIN_URL + "/main.html";
+        }
+
+        $.ajax({
+            url: `${SPRING_BOOT_URL}/zero9/orders/${orderId}`,
+            method: "PUT",
+            contentType: "application/json",
+            headers: {
+                Authorization: ACCESS_TOKEN
+            },
+            data: JSON.stringify({
+                orderNo: orderNo,
+                paymentKey: paymentKey,
+                amount: amount
+            }),
+            success: function () {
+                $("#payment_success_main h2").text("결제 완료");
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error("결제 처리 에러:", textStatus, errorThrown);
+
+                alert("결제 처리 중 오류가 발생했습니다.");
+
+                location.href = ORIGIN_URL + "/main.html";
+            }
+        });
+    </script>
+</body>
+</html>

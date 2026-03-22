@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>검색 결과</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../common.js"></script>
+    <script src="../header.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="../style.css" rel="stylesheet"> 
+</head>
+<body>
+    
+    <script>
+        const KEYWORD = getQueryParam("keyword");
+        const ROOT = $("#gp_post_view_main");
+
+        $.ajax({
+            url: `${SPRING_BOOT_URL}/zero9/search-logs?keyword=${KEYWORD}&postType=content`,
+            method: "GET",
+            dataType: "json",
+            success: function(res){
+                console.log(res);
+            },
+            error: function(err){
+                console.error("상세 조회 실패:", err);
+
+                alert("데이터를 불러오지 못했습니다.");
+            }
+        });
+    </script>
+</body>
+</html>

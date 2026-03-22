@@ -99,7 +99,13 @@ public enum ExceptionCode {
     TOSS_PAYMENT_CONFIRM_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "토스 결제 승인 처리 중 서버 오류가 발생했습니다."),
     TOSS_PAYMENT_CANCEL_FAIL(HttpStatus.BAD_REQUEST, "토스 결제 취소에 실패했습니다."),
     TOSS_PAYMENT_CANCEL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "토스 결제 취소 처리 중 서버 오류가 발생했습니다."),
-    TOSS_PAYMENT_KEY_NOT_FOUND(HttpStatus.BAD_REQUEST, "결제 키를 찾을 수 없습니다.")
+    TOSS_PAYMENT_KEY_NOT_FOUND(HttpStatus.BAD_REQUEST, "결제 키를 찾을 수 없습니다."),
+
+    // 1:1 실시간 채팅문의
+    CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "채팅방을 찾을 수 없습니다."),
+    CHAT_MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "채팅 메시지를 찾을 수 없습니다."),
+    CHAT_FORBIDDEN(HttpStatus.FORBIDDEN, "채팅 권한이 없습니다."),
+    CHAT_BAD_WORD_DETECTED(HttpStatus.BAD_REQUEST, "메시지에 비속어가 포함되어 있습니다.");
     ;
 
     private final HttpStatus status;

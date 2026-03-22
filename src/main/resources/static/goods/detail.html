@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 상세</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../common.js"></script>
+    <script src="../header.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="../style.css" rel="stylesheet"> 
+</head>
+<body>
+    <main id="order_detail_main" class="main_wrap">
+        <div class="container">
+            <div class="thumnail_box">
+                <img>
+            </div>
+
+            <div class="goods_data_box">
+                <div class="goos_condition">
+                    <span class="status">...</span>
+
+                    <span class="ggim_cnt">
+                        <i class="icon fa-solid fa-heart"></i>
+                        <b class="data">0</b>
+                    </span>
+                </div>
+
+                <p class="goods_category"></p>
+                <p class="goods_title"></p>
+                <p class="product_name"></p>
+
+                <p class="goods_discription"></p>
+
+                <p class="price">0원</p>
+                
+                <div class="option_box">
+                    <select id="goods_list">
+                        <option value="">상품을 선택해주세요</option>
+                    </select>
+                </div>
+
+                <div class="option_final_box">
+                    <div class="total_price">
+                        <span class="txt">총 상품금액</span>
+                        <p class="data_txt">
+                            <b class="data">0</b>
+                            원
+                        </p>
+                    </div>
+
+                    <div class="clear_btn_box">
+                        <button id="ggim" type="button">찜</button>
+                        
+                        <button id="order_btn" type="button">주문하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const ID = Number(getQueryParam("id"));
+        const $main = $("#order_detail_main .goods_data_box");
+        const $optionBox = $main.find(".option_box");
+        const $finalPrice = $main.find(".option_final_box .total_price .data_txt .data");
+        const $thumbnail = $("#order_detail_main .thumnail_box img");
+
+        let optionList = [];
+
+        const formatPrice = (price) => Number(price).toLocaleString();
+
+        const handleAjaxError = (jqXHR, defaultMsg) => {
+            console.error(jqXHR.responseJSON || jqXHR);
+            alert(jqXHR.responseJSON?.message || defaultMsg);
+        };
+
+        const authHeader = () => ({
+            Authorization: ACCESS_TOKEN
+        });
+        
+        // 상품 상세 조회
+        function loadProductDetail() {
+            $.ajax({
+                url: `${SPRING_BOOT_URL}/zero9/product-posts/${ID}`,
+                method: "GET",
+                success: renderProductDetail,
+                error: (jqXHR) =>
+                    handleAjaxError(jqXHR, "상품 상세 불러오지 못했습니다.")
+            });
+        }
+
+        function renderProductDetail(res) {
+            const detail = res.data;
+            optionList = detail.optionList;
+
+            renderBasicInfo(detail);
+            renderOptionSelect(optionList);
+        }
+
+        function renderBasicInfo(detail) {
+            const imageUrl = detail.image ?? `${ORIGIN_URL}/img/noimg.jpg`;
+
+            const status = {
+                READY: "준비중",
+                DOING: "진행중",
+                END: "종료됨"
+            }
+
+            $thumbnail.attr("src", imageUrl);
+
+            $main.find(".goos_condition .status").text(status[detail.progressStatus]);
+            $main.find(".goos_condition .ggim_cnt .data").text(detail.favoriteCount);
+            $main.find(".goods_category").text(categoryMap[detail.category]);
+            $main.find(".goods_title").text(detail.title);
+            $main.find(".product_name").text(detail.name);
+            $main.find(".goods_discription").text(detail.content);
+            $main.children(".price").text(formatPrice(detail.originalPrice) + "원");
+        }
+
+        function renderOptionSelect(optionList) {
+            const optionHtml = `
+                <option value="">옵션 선택</option>
+                ${optionList
+                    .map((opt, idx) => `<option value="${idx}">${opt.name}</option>`)
+                    .join("")}
+            `;
+
+            $("#goods_list").html(optionHtml);
+        }
+        
+        // 옵션 선택 처리
+        function createSelectBox() {
+            return $(`
+                <div class="select_box" data-price="0" data-option="0">
+                    <p class="option_name"></p>
+                    <div class="option_data">
+                        <p class="price"></p>
+                        <input class="goods_total_num" min="1" type="number" value="1">
+                    </div>
+                </div>
+            `);
+        }
+
+        function updateSelectBox(option) {
+            let $selectBox = $optionBox.find(".select_box");
+
+            if (!$selectBox.length) {
+                $selectBox = createSelectBox();
+                $optionBox.append($selectBox);
+            }
+
+            $selectBox
+                .attr("data-price", option.salePrice)
+                .attr("data-option", option.id);
+
+            $selectBox.find(".option_name").text(option.name);
+            $selectBox.find(".price").text(formatPrice(option.salePrice) + "원");
+            $selectBox.find(".goods_total_num").val(1);
+
+            updateFinalPrice(option.salePrice, 1);
+        }
+
+        function updateFinalPrice(unitPrice, quantity) {
+            const total = unitPrice * quantity;
+            $finalPrice.text(formatPrice(total));
+        }
+        
+        // 이벤트 바인딩
+        function bindEvents() {
+
+            // 옵션 선택
+            $("#goods_list").on("change", function () {
+                const idx = $(this).val();
+                if (!idx) return;
+
+                updateSelectBox(optionList[idx]);
+            });
+
+            // 수량 변경
+            $(document).on("input change", ".goods_total_num", function () {
+                const quantity = Number($(this).val()) || 1;
+                const unitPrice = Number($(this).closest(".select_box").data("price"));
+
+                updateFinalPrice(unitPrice, quantity);
+            });
+
+            // 주문 버튼
+            $("#order_btn").on("click", handleOrder);
+
+            // 찜 버튼
+            $("#ggim").on("click", handleFavorite);
+        }
+        
+        // 주문 처리
+        function handleOrder() {
+            const $selectBox = $optionBox.find(".select_box");
+
+            if (!$selectBox.length) {
+                alert("옵션을 선택해주세요.");
+                return;
+            }
+
+            const optionId = Number($selectBox.data("option"));
+            const orderQuantity = Number($selectBox.find(".goods_total_num").val());
+
+            if (!optionId || orderQuantity < 1) {
+                alert("옵션 또는 수량이 올바르지 않습니다.");
+                return;
+            }
+
+            if (isTokenExpired(ACCESS_TOKEN)) {
+                alert("로그인이 필요합니다.");
+                return;
+            }
+
+            $.ajax({
+                url: `${SPRING_BOOT_URL}/zero9/product-posts/${ID}/order-items`,
+                method: "POST",
+                contentType: "application/json",
+                headers: authHeader(),
+                data: JSON.stringify({ optionId, orderQuantity }),
+                success: (res) => {
+                    location.href = `${ORIGIN_URL}/goods/order_detail.html?orderItemId=${res.data.id}`;
+                },
+                error: (jqXHR) =>
+                    handleAjaxError(jqXHR, "주문 처리 중 오류가 발생했습니다.")
+            });
+        }
+        
+        // 찜 처리
+        function handleFavorite() {
+            $.ajax({
+                url: `${SPRING_BOOT_URL}/zero9/product-posts/${ID}/favorites`,
+                method: "POST",
+                headers: authHeader(),
+                success: (res) => {
+                    const GGIM_ELEMENT = $("#order_detail_main .goods_data_box .goos_condition .ggim_cnt .data");    
+                    const GGIM_CNT = Number(GGIM_ELEMENT.text());    
+
+                    if (!res.success) {
+                        alert(res.message);
+                        return;
+                    }
+
+                    alert(res.message);
+                    GGIM_ELEMENT.text(GGIM_CNT + 1);
+                },
+                error: (jqXHR) =>
+                    handleAjaxError(jqXHR, "찜 처리 중 오류가 발생했습니다.")
+            });
+        }
+
+        $(function () {
+            loadProductDetail();
+            bindEvents();
+        });
+    </script>
+</body>
+</html>

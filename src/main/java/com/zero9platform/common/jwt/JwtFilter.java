@@ -32,15 +32,52 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String uri = request.getRequestURI();
-        boolean skip = uri.startsWith("/oauth2/")
-                || uri.startsWith("/login/oauth2/")
-                || uri.equals("/login")
-                || uri.startsWith("/login/")
-                || uri.equals("/error")
-                || uri.startsWith("/zero9/auth/oauth/callback");
 
-        log.info("[JWT] uri={}, skip={}", uri, skip);
-        return skip;
+        // [Step 1] 무조건 통과해야 하는 것들 (화면 파일, 정적 리소스)
+        if (uri.contains("/Zero9-Platform/") ||
+                uri.contains("/static/") ||
+                uri.endsWith(".html") ||
+                uri.endsWith(".js") ||
+                uri.endsWith(".css") ||
+                uri.endsWith(".png") ||
+                uri.endsWith(".jpg") ||
+                uri.equals("/favicon.ico") ||
+                uri.equals("/error")) {
+            log.info("[JWT] 정적 리소스/화면 통과: uri={}, skip=true", uri);
+            return true;
+        }
+
+        // [Step 2] API 중에서도 로그인이 필요 없는 '공개' API들
+        boolean isPublic = uri.contains("/zero9/auth/") ||           // 인증/로그인/회원가입
+                uri.contains("/zero9/product-posts") ||    // 상품 목록
+                uri.contains("/zero9/feeds/") ||           // 피드
+                uri.contains("/zero9/ranking/") ||         // 랭킹
+                uri.contains("/zero9/search-logs/") ||     // 검색어
+                uri.startsWith("/oauth2/") ||
+                uri.startsWith("/login/oauth2/") ||
+                uri.equals("/login/") ||
+                uri.startsWith("/zero9/auth/oauth/callback");
+
+            if (isPublic) {
+                log.info("[JWT] 인증/공개 API 통과: uri={}, skip=true", uri);
+                return true;
+            }
+
+
+//        boolean skip = uri.startsWith("/oauth2/")
+//                || uri.startsWith("/login/oauth2/")
+//                || uri.equals("/login")
+//                || uri.startsWith("/login/")
+//                || uri.startsWith("/zero9/auth/oauth/callback");
+
+        // 3. [보안 API] 위에서 안 걸러진 나머지 모든 데이터 요청(/zero9/...)은 JWT 검사 진행!
+        if (uri.contains("/zero9/")) {
+            log.info("[JWT] 보안 API 검사 진행: uri={}, skip=false", uri);
+            return false;
+        }
+
+        // 4. 그 외 (favicon 등)
+        return true;
     }
 
     @Override

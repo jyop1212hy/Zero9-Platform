@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>판매 게시물 리스트</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../common.js"></script>
+    <script src="../header.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href="../style.css" rel="stylesheet"> 
+</head>
+<body>
+    <main id="product_post_main" class="container list_main">
+        <h2 class="main_title">상품판매 게시물</h2>
+
+        <ul class="list_wrapper">
+        </ul>
+
+        <div class="page_nation"></div>
+    </main>
+
+    <script>
+        let currentPage = 0;
+
+        $(document).on("click", ".page_nation button", function(){
+            const page = $(this).data("page");
+
+            loadList(page);
+        });
+
+        loadList(0);
+
+        function loadList(page = 0){
+            currentPage = page;
+
+            $.ajax({
+                url: `${SPRING_BOOT_URL}/zero9/product-posts?page=${page}`,
+                method: "GET",
+                dataType: "json",
+                success: function(res){
+                    const data = res.data;
+
+                    if(Array.isArray(data)){
+                        // pageable 없는 경우
+                        renderList(data);
+                        renderPagination({
+                            totalPages: 1,
+                            number: 0
+                        });
+                    }else{
+                        // pageable 있는 경우
+                        renderList(data.content);
+                        renderPagination(data);
+                    }
+                },
+                error: function(err){
+                    console.error("상품 리스트 불러오기 실패:", err);
+                }
+            });
+        }
+
+        function renderList(arr){
+            const LIST_WRAP = $("#product_post_main .list_wrapper");
+            LIST_WRAP.empty();
+
+            if(!arr || arr.length === 0){
+                LIST_WRAP.append(`<li class="empty">데이터가 없습니다.</li>`);
+                return;
+            }
+
+            let html = "";
+
+            arr.forEach(item => {
+                html += `
+                    <li>
+                        <a href="detail.html?id=${item.id}">
+                            <div class="img_box">
+                                <img src="${item.image || '../img/noimg.jpg'}">
+                            </div>
+
+                            <div class="detail_box">
+                                <p class="title">${item.title}</p>
+                                <p class="price">${Number(item.originalPrice).toLocaleString()}원</p>
+
+                                <div class="ggim_data">
+                                    <i class="icon fa-solid fa-heart"></i>
+                                    <span class="data">${item.favoriteCount}</span>
+                                </div>
+                            </div>
+                        </a>
+                    </li>
+                `;
+            });
+
+            LIST_WRAP.append(html);
+        }
+    </script>
+</body>
+</html>

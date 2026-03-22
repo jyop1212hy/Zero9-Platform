@@ -28,7 +28,7 @@ private Long userId;                    // 알림 받을 사용자
     @Column(nullable = false, length = 255)
     private String content;
 
-    @Column(nullable = false)
+    @Column(name = "is_read", nullable = false)
     private boolean isRead = false;
 
     public Notification(Long userId, Long groupPurchasePostId, String title, String content) {

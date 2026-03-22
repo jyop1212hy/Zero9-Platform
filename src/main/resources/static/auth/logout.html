@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="../common.js"></script>
+</head>
+<body>
+    <script>
+        if (ACCESS_TOKEN) {
+            $.ajax({
+                url: SPRING_BOOT_URL + "/zero9/auth/logout",
+                method: "POST",
+                headers: {
+                    "Authorization": ACCESS_TOKEN
+                },
+                xhrFields: {
+                    withCredentials: true // 쿠키 전송 (Refresh Token)
+                },
+                success: function(data, textStatus, jqXHR) {
+                    // 프론트 로그아웃 처리
+                    localStorage.removeItem("accessToken");
+
+                    alert("로그아웃 되었습니다.");
+
+                    location.href = ORIGIN_URL + "/main.html";
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("로그아웃 실패:", textStatus, errorThrown);
+
+                    alert("로그아웃 실패");
+
+                    location.href = "../main.html";
+                }
+            });
+        } else {
+            alert("접근 할 수 없습니다.");
+
+            location.href = ORIGIN_URL + "/main.html";
+        }
+    </script>
+</body>
+</html>
